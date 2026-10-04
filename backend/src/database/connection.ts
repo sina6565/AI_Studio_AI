@@ -150,7 +150,7 @@ export function getDatabaseStatus(): {
     timestamp: new Date(),
     readyState,
     details: {
-      state: stateByCode[readyCode] || 'unknown',
+      state: stateByCode[readyState] || 'unknown',
       host: mongoose.connection.host,
       db: mongoose.connection.db?.getName(),
       collections: mongoose.connection.collections
