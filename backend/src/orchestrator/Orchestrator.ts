@@ -98,6 +98,33 @@ export class Orchestrator {
       `[Orchestrator] Job created: ${job.id} (type: ${request.jobType}, provider: ${decision.providerName})`,
     );
 
+    // Enqueue job to Bull queue for async processing
+    try {
+      await jobQueueProcessor.enqueueJob(
+        job.id as string,
+        request.userId,
+        request.jobType,
+      );
+      logger.info(`[Orchestrator] Job ${job.id} enqueued to Bull queue`);
+    } catch (error) {
+      logger.error(
+        `[Orchestrator] Failed to enqueue job ${job.id} to Bull queue`,
+        error,
+      );
+      // Update job status to failed if queue enqueue fails
+      job.status = JobStatus.FAILED;
+      job.error = {
+        code: 'QUEUE_ENQUEUE_FAILED',
+        message: error instanceof Error ? error.message : 'Failed to enqueue job',
+      };
+      await job.save();
+      throw new AppError(
+        'QUEUE_ENQUEUE_FAILED',
+        'Failed to queue job for processing',
+        503,
+      );
+    }
+
     return {
       jobId: job.id as string,
       status: job.status as JobStatus,
