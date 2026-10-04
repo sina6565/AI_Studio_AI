@@ -4,7 +4,11 @@
 
 import config from './config';
 import { createApp } from './app';
-import { connectDatabase, disconnectDatabase } from './database/connection';
+import {
+  connectDatabase,
+  initializeDatabase,
+  disconnectDatabase,
+} from './database/connection';
 import registry from './providers/registry';
 import orchestrator from './orchestrator/Orchestrator';
 import logger from './utils/logger';
@@ -20,6 +24,11 @@ async function start(): Promise<void> {
     logger.info('Connecting to database...');
     await connectDatabase();
     logger.info('Database connected');
+
+    // Initialize database (create indexes, etc.)
+    logger.info('Initializing database...');
+    await initializeDatabase();
+    logger.info('Database initialized');
 
     // Initialize providers
     logger.info('Initializing providers...');
@@ -38,7 +47,7 @@ async function start(): Promise<void> {
     // Start listening
     const server = app.listen(config.port, config.host, () => {
       logger.info(
-        `Server listening on http://${config.host}:${config.port}`,
+        `Server listening on http://${config.host}:${config.port}`
       );
       logger.info(`Environment: ${config.nodeEnv}`);
       logger.info(`API Version: ${config.apiVersion}`);
@@ -50,8 +59,12 @@ async function start(): Promise<void> {
 
       server.close(async () => {
         logger.info('HTTP server closed');
-        await disconnectDatabase();
-        logger.info('Database disconnected');
+        try {
+          await disconnectDatabase();
+          logger.info('Database disconnected');
+        } catch (error) {
+          logger.error('Error disconnecting database:', error);
+        }
         process.exit(0);
       });
 
