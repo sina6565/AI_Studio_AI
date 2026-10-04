@@ -107,6 +107,12 @@ const requireEnv = (key: string, defaultValue?: string): string => {
   return value;
 };
 
+// Determine database URL from MONGODB_URI or DATABASE_URL
+const mongodbUri =
+  process.env.MONGODB_URI ||
+  process.env.DATABASE_URL ||
+  'mongodb://localhost:27017/ai-platform';
+
 const config_: AppConfig = {
   nodeEnv: (process.env.NODE_ENV as AppConfig['nodeEnv']) || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
@@ -115,7 +121,7 @@ const config_: AppConfig = {
   apiPrefix: '/api',
 
   database: {
-    url: requireEnv('DATABASE_URL', 'mongodb://localhost:27017/ai-platform'),
+    url: mongodbUri,
     poolSize: parseInt(process.env.DATABASE_POOL_SIZE || '10', 10),
     timeout: 30000,
   },
@@ -195,7 +201,14 @@ if (config_.nodeEnv === 'production') {
     throw new Error('JWT_SECRET must be set in production');
   }
   if (!config_.providers.agnes.apiKey) {
-    console.warn('Agnes AI provider not configured - image generation will be unavailable');
+    console.warn(
+      'Agnes AI provider not configured - image generation will be unavailable'
+    );
+  }
+  if (!process.env.MONGODB_URI && !process.env.DATABASE_URL) {
+    throw new Error(
+      'MONGODB_URI or DATABASE_URL must be set in production'
+    );
   }
 }
 
