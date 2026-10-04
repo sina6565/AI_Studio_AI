@@ -3,6 +3,7 @@ import { IJob, JobStatus, JobType, JobPriority, UserPreferences } from '../types
 import { IProvider } from '../providers/interfaces/IProvider';
 import { Router } from '../routing/Router';
 import { Job as JobModel } from '../database/models';
+import jobQueueProcessor from '../jobs/JobQueueProcessor';
 import logger from '../utils/logger';
 import { AppError, ValidationError } from '../types/errors';
 
@@ -196,7 +197,6 @@ export class Orchestrator {
         (job.metadata.retryCount || 0) <
         (job.metadata.maxRetries || 3);
 
-      job.status = shouldRetry ? JobStatus.QUEUED : JobStatus.FAILED;
       job.metadata.retryCount = (job.metadata.retryCount || 0) + 1;
       job.error = {
         code: 'EXECUTION_ERROR',
@@ -204,15 +204,33 @@ export class Orchestrator {
         stack: error instanceof Error ? error.stack : undefined,
       };
 
-      await job.save();
-
-      const action = shouldRetry
-        ? `queued for retry (${job.metadata.retryCount}/${job.metadata.maxRetries})`
-        : 'marked as failed';
-      logger.error(
-        `[Orchestrator] Job execution failed: ${jobId} - ${action}`,
-        error,
-      );
+      if (shouldRetry) {
+        // Re-enqueue job to Bull queue for retry
+        try {
+          job.status = JobStatus.QUEUED;
+          await job.save();
+          
+          await jobQueueProcessor.enqueueJob(jobId, job.userId, job.type);
+          logger.info(
+            `[Orchestrator] Job re-enqueued for retry (${job.metadata.retryCount}/${job.metadata.maxRetries}): ${jobId}`,
+          );
+        } catch (queueError) {
+          logger.error(
+            `[Orchestrator] Failed to re-enqueue job ${jobId} for retry`,
+            queueError,
+          );
+          job.status = JobStatus.FAILED;
+          await job.save();
+        }
+      } else {
+        // Max retries exceeded
+        job.status = JobStatus.FAILED;
+        await job.save();
+        logger.error(
+          `[Orchestrator] Job execution failed after ${job.metadata.retryCount} retries: ${jobId}`,
+          error,
+        );
+      }
     }
   }
 
