@@ -107,7 +107,7 @@ const requireEnv = (key: string, defaultValue?: string): string => {
   return value;
 };
 
-// Determine database URL from MONGODB_URI or DATABASE_URL
+// Determine database URL: prefer MONGODB_URI, fall back to DATABASE_URL or default
 const mongodbUri =
   process.env.MONGODB_URI ||
   process.env.DATABASE_URL ||
@@ -206,9 +206,7 @@ if (config_.nodeEnv === 'production') {
     );
   }
   if (!process.env.MONGODB_URI && !process.env.DATABASE_URL) {
-    throw new Error(
-      'MONGODB_URI or DATABASE_URL must be set in production'
-    );
+    throw new Error('MONGODB_URI or DATABASE_URL must be set in production');
   }
 }
 
