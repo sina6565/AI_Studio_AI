@@ -5,7 +5,7 @@
 import { Schema, model, Document } from 'mongoose';
 import { IJob, JobStatus, JobType, JobPriority } from '../../types';
 
-type JobDocument = Document & Partial<IJob>;
+interface JobDocument extends IJob, Document {}
 
 const jobSchema = new Schema<JobDocument>(
   {
