@@ -3,7 +3,7 @@
  */
 
 import { Schema, model, Document } from 'mongoose';
-import { IContent, ContentType } from '../types';
+import { IContent, ContentType } from '../../types';
 
 interface ContentDocument extends IContent, Document {}
 

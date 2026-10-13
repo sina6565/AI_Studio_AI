@@ -3,8 +3,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../types';
-import logger from '../utils/logger';
+import { AppError } from '../../types';
+import logger from '../../utils/logger';
 
 export function errorHandler(
   error: Error | AppError,

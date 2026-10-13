@@ -3,7 +3,7 @@
  */
 
 import { Schema, model, Document } from 'mongoose';
-import { IProject, ProjectType } from '../types';
+import { IProject, ProjectType } from '../../types';
 
 interface ProjectDocument extends IProject, Document {}
 

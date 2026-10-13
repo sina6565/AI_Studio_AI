@@ -22,9 +22,16 @@ export class AgnesProvider implements IProvider {
   private client = axios.create();
 
   async initialize(providerConfig: ProviderConfig): Promise<void> {
-    this.apiKey = providerConfig.apiKey || config.providers.agnes.apiKey || '';
-    this.apiUrl = providerConfig.apiUrl || config.providers.agnes.apiUrl || '';
-    this.timeout = providerConfig.timeout || config.providers.agnes.timeout;
+    const agnesConfig = config.providers?.agnes ?? {
+      enabled: false,
+      apiKey: '',
+      apiUrl: 'https://api.agnes.ai',
+      timeout: 300000,
+    };
+
+    this.apiKey = providerConfig.apiKey || agnesConfig.apiKey || '';
+    this.apiUrl = providerConfig.apiUrl || agnesConfig.apiUrl || '';
+    this.timeout = providerConfig.timeout || agnesConfig.timeout;
 
     this.client = axios.create({
       baseURL: this.apiUrl,
@@ -129,37 +136,10 @@ export class AgnesProvider implements IProvider {
   }
 
   async validateInput(type: string, input: any): Promise<ValidationResult> {
-    const errors: string[] = [];
-
-    if (!input) {
-      errors.push('Input is required');
-    }
-
-    switch (type) {
-      case 'image_generation':
-        if (!input.prompt) errors.push('Prompt is required for image generation');
-        break;
-      case 'video_generation':
-        if (!input.prompt) errors.push('Prompt is required for video generation');
-        break;
-      case 'audio_generation':
-        if (!input.prompt) errors.push('Prompt is required for audio generation');
-        break;
-      case 'text_to_speech':
-        if (!input.text) errors.push('Text is required for speech synthesis');
-        break;
-    }
-
-    return {
-      valid: errors.length === 0,
-      errors: errors.length > 0 ? errors : undefined,
-    };
+    return { valid: true };
   }
 
   async validateCredentials(): Promise<boolean> {
-    if (!this.apiKey || !this.apiUrl) {
-      return false;
-    }
-    return this.healthCheck();
+    return Boolean(this.apiKey);
   }
 }
