@@ -460,18 +460,26 @@ Not specified
 ## 🗓️ Roadmap to Release
 
 1. ✅ Core API foundation with content generation
-2. Web frontend UI development
-3. Mobile app development
-4. Job queue & orchestration system
-5. Game creation workflows
-6. Advanced provider selection & routing
-7. Testing & quality assurance
-8. Performance optimization
-9. Security audit
-10. Production deployment & release
+2. ✅ Web frontend UI development (React + Vite, real API integration)
+3. 🚧 Mobile app development (screens and API client implemented and type-checked; a native Android/iOS build needs platform tooling that is not available in this environment)
+4. ✅ Job queue & orchestration system (Bull/Redis, retries, stats, cancellation, interrupted-job recovery)
+5. 🚧 Game creation workflows
+6. ✅ Advanced provider selection & routing (provider-agnostic registry + router)
+7. ✅ Testing & quality assurance (backend unit tests, frontend build, CI workflow)
+8. 🚧 Performance optimization
+9. 🚧 Security audit
+10. 🚧 Production deployment & release
+
+### Known limitations
+
+- `.github/workflows/ci.yml` is committed but could not be pushed through the GitHub
+  integration (the app lacks the `workflows` permission). Add it manually or grant the
+  permission to enable CI.
+- Native mobile builds require the Android SDK / Xcode, which are not available here.
+  `npm run type-check` and `npm run lint` pass for the mobile app.
 
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: 2026-09-09  
+**Last Updated**: 2026-10-14  
 **Status**: Core Features Implemented - Production Development Phase
