@@ -25,6 +25,13 @@ export interface CreateJobPayload {
   webhookUrl?: string;
 }
 
+/** Shape returned by POST /v1/jobs (the job is queued, not yet complete). */
+export interface CreatedJob {
+  jobId: string;
+  status: string;
+  createdAt: string;
+}
+
 class MobileAPIClient {
   private client: AxiosInstance;
   private token: string | null = null;
@@ -101,8 +108,11 @@ class MobileAPIClient {
     return this.unwrap(res);
   }
 
-  async createJob(payload: CreateJobPayload): Promise<Job> {
-    const res = await this.client.post<ApiEnvelope<Job>>('/v1/jobs', payload);
+  async createJob(payload: CreateJobPayload): Promise<CreatedJob> {
+    const res = await this.client.post<ApiEnvelope<CreatedJob>>(
+      '/v1/jobs',
+      payload,
+    );
     return this.unwrap(res);
   }
 
@@ -145,7 +155,19 @@ class MobileAPIClient {
   async generate(
     type: string,
     input: Record<string, unknown>,
-  ): Promise<Job> {
+  ): Promise<CreatedJob> {
+    // Game creation needs a structured spec, not just a prompt.
+    if (type === 'game') {
+      const prompt = String(input.prompt || '').trim();
+      return this.createJob({
+        type: 'game_creation',
+        input: {
+          title: prompt.slice(0, 60) || 'Untitled game',
+          description: prompt,
+          scenes: [{ name: 'Opening scene', description: prompt }],
+        },
+      });
+    }
     return this.createJob({ type, input });
   }
 }
