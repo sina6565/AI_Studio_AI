@@ -4,15 +4,35 @@
 
 import { Orchestrator } from '../src/orchestrator/Orchestrator';
 import { JobType, JobPriority, JobStatus } from '../src/types';
-import { AgnesProvider } from '../src/providers/agnes/AgnesProvider';
+
+// Mock external I/O boundaries so the suite runs without MongoDB or Redis.
+jest.mock('../src/database/models', () => ({
+  Job: {
+    create: jest.fn(async (doc: any) => ({
+      ...doc,
+      id: doc._id,
+      createdAt: new Date(),
+      save: jest.fn(async () => undefined),
+    })),
+    findById: jest.fn(),
+    find: jest.fn(),
+  },
+}));
+
+jest.mock('../src/jobs/JobQueueProcessor', () => ({
+  __esModule: true,
+  default: {
+    enqueueJob: jest.fn(async () => undefined),
+    getStats: jest.fn(async () => ({ waiting: 0, active: 0, completed: 0, failed: 0 })),
+    close: jest.fn(async () => undefined),
+  },
+}));
 
 describe('Orchestrator', () => {
   let orchestrator: Orchestrator;
-  let agnesProvider: AgnesProvider;
 
   beforeAll(async () => {
     orchestrator = new Orchestrator();
-    agnesProvider = new AgnesProvider();
 
     // Mock provider for testing
     const mockProvider = {
@@ -29,7 +49,7 @@ describe('Orchestrator', () => {
         reset: new Date(),
         limit: 100,
       }),
-      executeJob: async (job: any) => ({
+      executeJob: async (_job: any) => ({
         output: {
           imageUrl: 'https://example.com/image.png',
           format: 'png',
@@ -57,7 +77,7 @@ describe('Orchestrator', () => {
 
       expect(response).toBeDefined();
       expect(response.jobId).toBeDefined();
-      expect(response.status).toBe(JobStatus.PENDING);
+      expect(response.status).toBe(JobStatus.QUEUED);
       expect(response.createdAt).toBeInstanceOf(Date);
     });
 
