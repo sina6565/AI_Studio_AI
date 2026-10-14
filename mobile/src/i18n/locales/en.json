@@ -7,6 +7,41 @@
     "whatToCreate": "What do you want to create?",
     "image": "Image",
     "video": "Video",
-    "game": "Game"
+    "game": "Game",
+    "promptPlaceholder": "Describe what you want to create",
+    "generate": "Generate",
+    "queued": "Queued as job"
+  },
+  "auth": {
+    "email": "Email",
+    "username": "Username",
+    "password": "Password",
+    "login": "Sign in",
+    "register": "Create account",
+    "haveAccount": "Already have an account? Sign in",
+    "needAccount": "Don't have an account? Sign up",
+    "signOut": "Sign out"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "studio": "Studio",
+    "jobs": "Jobs",
+    "projects": "Projects"
+  },
+  "jobs": {
+    "total": "Total",
+    "completed": "Completed",
+    "processing": "Processing",
+    "failed": "Failed",
+    "recent": "Recent jobs",
+    "empty": "No jobs yet",
+    "progress": "Progress",
+    "cancel": "Cancel"
+  },
+  "projects": {
+    "name": "Project name",
+    "description": "Description",
+    "create": "Create project",
+    "empty": "No projects yet"
   }
 }

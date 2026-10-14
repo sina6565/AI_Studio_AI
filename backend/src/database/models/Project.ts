@@ -3,9 +3,9 @@
  */
 
 import { Schema, model, Document } from 'mongoose';
-import { IProject, ProjectType } from '../types';
+import { IProject, ProjectType } from '../../types';
 
-interface ProjectDocument extends IProject, Document {}
+interface ProjectDocument extends Omit<IProject, 'id'>, Document {}
 
 const projectSchema = new Schema<ProjectDocument>(
   {

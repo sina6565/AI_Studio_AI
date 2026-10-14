@@ -22,9 +22,9 @@ export class AgnesProvider implements IProvider {
   private client = axios.create();
 
   async initialize(providerConfig: ProviderConfig): Promise<void> {
-    this.apiKey = providerConfig.apiKey || config.providers.agnes.apiKey || '';
-    this.apiUrl = providerConfig.apiUrl || config.providers.agnes.apiUrl || '';
-    this.timeout = providerConfig.timeout || config.providers.agnes.timeout;
+    this.apiKey = providerConfig.apiKey || config.providers.agnes?.apiKey || '';
+    this.apiUrl = providerConfig.apiUrl || config.providers.agnes?.apiUrl || '';
+    this.timeout = providerConfig.timeout || config.providers.agnes?.timeout || 300000;
 
     this.client = axios.create({
       baseURL: this.apiUrl,

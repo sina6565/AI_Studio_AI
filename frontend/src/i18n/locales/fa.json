@@ -1,9 +1,94 @@
 {
-  "app": { "title": "استودیو آفرینش هوش مصنوعی", "subtitle": "محتوای فوق‌العاده با هوش مصنوعی ایجاد کنید" },
-  "nav": { "home": "خانه", "create": "ایجاد", "projects": "پروژه‌ها", "jobs": "وظایف", "settings": "تنظیمات", "logout": "خروج" },
-  "pages": { "dashboard": "داشبورد", "studio": "استودیو آفرینش", "projects": "پروژه‌های من", "jobs": "صف وظایف", "settings": "تنظیمات" },
-  "creation": { "whatToCreate": "می‌خواهید چه چیزی بسازید؟", "selectType": "نوع محتوا را انتخاب کنید", "image": "تصویر", "video": "ویدیو", "audio": "صوت", "speech": "گفتار", "text": "متن", "game": "بازی", "character": "کاراکتر", "asset3d": "دارایی 3D", "describe": "آن‌چه می‌خواهید بسازید را توضیح دهید...", "generate": "تولید کن", "cancel": "انصراف" },
-  "job": { "status": "وضعیت", "pending": "در انتظار", "queued": "در صف", "processing": "در حال پردازش", "completed": "تکمیل شده", "failed": "ناموفق", "cancelled": "لغو شده", "progress": "پیشرفت", "created": "ایجاد شده", "download": "دانلود" },
-  "auth": { "login": "ورود", "signup": "ثبت‌نام", "email": "ایمیل", "password": "رمز عبور", "username": "نام کاربری", "remember": "مرا به خاطر بسپار", "forgotPassword": "رمز عبور را فراموش کردید؟", "noAccount": "حساب کاربری ندارید؟", "haveAccount": "قبلاً حساب کاربری دارید؟" },
-  "common": { "loading": "در حال بارگیری...", "error": "خطا", "success": "موفق", "save": "ذخیره", "delete": "حذف", "close": "بستن", "retry": "تلاش مجدد", "noJobs": "هنوز وظیفه‌ای وجود ندارد." }
+  "app": {
+    "title": "استودیو آفرینش هوش مصنوعی",
+    "subtitle": "محتوای فوق‌العاده با هوش مصنوعی ایجاد کنید"
+  },
+  "nav": {
+    "home": "خانه",
+    "create": "ایجاد",
+    "projects": "پروژه‌ها",
+    "jobs": "وظایف",
+    "settings": "تنظیمات",
+    "logout": "خروج"
+  },
+  "pages": {
+    "dashboard": "داشبورد",
+    "studio": "استودیو آفرینش",
+    "projects": "پروژه‌های من",
+    "jobs": "صف وظایف",
+    "settings": "تنظیمات"
+  },
+  "creation": {
+    "whatToCreate": "می‌خواهید چه چیزی بسازید؟",
+    "selectType": "نوع محتوا را انتخاب کنید",
+    "image": "تصویر",
+    "video": "ویدیو",
+    "audio": "صوت",
+    "speech": "گفتار",
+    "text": "متن",
+    "game": "بازی",
+    "character": "کاراکتر",
+    "asset3d": "دارایی 3D",
+    "describe": "آن‌چه می‌خواهید بسازید را توضیح دهید...",
+    "generate": "تولید کن",
+    "cancel": "انصراف",
+    "gameTitle": "عنوان بازی",
+    "gameDescription": "توضیح بازی",
+    "genre": "ژانر",
+    "artStyle": "سبک هنری",
+    "scenes": "صحنه‌ها",
+    "sceneName": "نام صحنه",
+    "sceneDescription": "توضیح صحنه",
+    "addScene": "افزودن صحنه",
+    "removeScene": "حذف صحنه",
+    "gameQueued": "کار ساخت بازی در صف قرار گرفت",
+    "gameQueuedFailed": "قرار دادن کار ساخت بازی در صف ناموفق بود",
+    "gameTitleRequired": "عنوان بازی الزامی است",
+    "gameDescriptionRequired": "توضیح بازی الزامی است",
+    "sceneRequired": "حداقل یک صحنه لازم است",
+    "sceneNameRequired": "نام الزامی است",
+    "sceneDescriptionRequired": "توضیح الزامی است",
+    "jobId": "شناسه کار",
+    "viewJobs": "پیشرفت را در صفحه کارها پیگیری کنید"
+  },
+  "job": {
+    "status": "وضعیت",
+    "pending": "در انتظار",
+    "queued": "در صف",
+    "processing": "در حال پردازش",
+    "completed": "تکمیل شده",
+    "failed": "ناموفق",
+    "cancelled": "لغو شده",
+    "progress": "پیشرفت",
+    "created": "ایجاد شده",
+    "download": "دانلود"
+  },
+  "auth": {
+    "login": "ورود",
+    "signup": "ثبت‌نام",
+    "email": "ایمیل",
+    "password": "رمز عبور",
+    "username": "نام کاربری",
+    "remember": "مرا به خاطر بسپار",
+    "forgotPassword": "رمز عبور را فراموش کردید؟",
+    "noAccount": "حساب کاربری ندارید؟",
+    "haveAccount": "قبلاً حساب کاربری دارید؟"
+  },
+  "common": {
+    "cancel": "انصراف",
+    "create": "ایجاد",
+    "loading": "در حال بارگیری...",
+    "error": "خطا",
+    "success": "موفق",
+    "save": "ذخیره",
+    "delete": "حذف",
+    "close": "بستن",
+    "retry": "تلاش مجدد",
+    "noJobs": "هنوز وظیفه‌ای وجود ندارد."
+  },
+  "game": {
+    "manifest": "مانیفست بازی",
+    "assets": "دارایی",
+    "scenes": "صحنه"
+  }
 }

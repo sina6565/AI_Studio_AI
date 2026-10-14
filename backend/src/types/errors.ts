@@ -4,6 +4,9 @@
 
 import { AppError, ErrorCode } from './index';
 
+// Re-export AppError so consumers can import every error type from this module
+export { AppError };
+
 export class ValidationError extends AppError {
   constructor(message: string, details?: Record<string, any>) {
     super(ErrorCode.INVALID_INPUT, message, 400, details);

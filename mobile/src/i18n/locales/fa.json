@@ -7,6 +7,41 @@
     "whatToCreate": "می‌خواهید چه چیزی بسازید؟",
     "image": "تصویر",
     "video": "ویدیو",
-    "game": "بازی"
+    "game": "بازی",
+    "promptPlaceholder": "توضیح دهید چه چیزی می‌خواهید بسازید",
+    "generate": "بساز",
+    "queued": "در صف قرار گرفت"
+  },
+  "auth": {
+    "email": "ایمیل",
+    "username": "نام کاربری",
+    "password": "رمز عبور",
+    "login": "ورود",
+    "register": "ساخت حساب",
+    "haveAccount": "حساب دارید؟ وارد شوید",
+    "needAccount": "حساب ندارید؟ ثبت‌نام کنید",
+    "signOut": "خروج"
+  },
+  "nav": {
+    "dashboard": "داشبورد",
+    "studio": "استودیو",
+    "jobs": "کارها",
+    "projects": "پروژه‌ها"
+  },
+  "jobs": {
+    "total": "کل",
+    "completed": "تکمیل‌شده",
+    "processing": "در حال پردازش",
+    "failed": "ناموفق",
+    "recent": "کارهای اخیر",
+    "empty": "هنوز کاری وجود ندارد",
+    "progress": "پیشرفت",
+    "cancel": "لغو"
+  },
+  "projects": {
+    "name": "نام پروژه",
+    "description": "توضیح",
+    "create": "ایجاد پروژه",
+    "empty": "هنوز پروژه‌ای وجود ندارد"
   }
 }

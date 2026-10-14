@@ -460,18 +460,65 @@ Not specified
 ## 🗓️ Roadmap to Release
 
 1. ✅ Core API foundation with content generation
-2. Web frontend UI development
-3. Mobile app development
-4. Job queue & orchestration system
-5. Game creation workflows
-6. Advanced provider selection & routing
-7. Testing & quality assurance
-8. Performance optimization
-9. Security audit
-10. Production deployment & release
+2. ✅ Web frontend UI development (React + Vite, real API integration)
+3. 🚧 Mobile app development (screens and API client implemented and type-checked; a native Android/iOS build needs platform tooling that is not available in this environment)
+4. ✅ Job queue & orchestration system (Bull/Redis, retries, stats, cancellation, interrupted-job recovery)
+5. ✅ Game creation workflow (spec validation, per-scene asset generation, game manifest)
+6. ✅ Advanced provider selection & routing (provider-agnostic registry + router)
+7. ✅ Testing & quality assurance (backend unit tests, frontend build, CI workflow)
+8. 🚧 Performance optimization
+9. 🚧 Security audit
+10. 🚧 Production deployment & release
+
+## 🎮 Game creation
+
+Game creation is a **composite** job: the orchestrator routes it on the capability
+its pipeline needs (`image_generation`) rather than asking one provider to
+"create a game".
+
+Submit a game through the existing jobs API:
+
+```bash
+POST /api/v1/jobs
+Authorization: Bearer <token>
+
+{
+  "type": "game_creation",
+  "input": {
+    "title": "Dungeon of Echoes",
+    "description": "A short dungeon-crawling adventure.",
+    "genre": "dungeon crawler",
+    "artStyle": "pixel art",
+    "scenes": [
+      { "name": "Entrance", "description": "A mossy stone doorway." }
+    ]
+  }
+}
+```
+
+Rules: 1–12 scenes, each with a name and a description; title and description are
+required. Invalid input returns `400` naming the offending field. The job is
+queued, tracked, cancelled and inspected through the existing job endpoints.
+
+When it completes, `GET /api/v1/jobs/:id` returns the game manifest at
+`result.metadata.manifest` (scene graph + one generated asset per scene).
+
+**The manifest is a game definition, not a compiled engine build** —
+`playable` is `false` and the declared engine target is `scene-viewer`. A
+provider failure fails the job; it is never reported as a success.
+
+### Known limitations
+
+- `.github/workflows/ci.yml` could not be pushed through the GitHub integration: the
+  GitHub App returns `403 Resource not accessible by integration` because it lacks the
+  `workflows` permission. The identical workflow is committed at
+  `.github/ci-workflow.yml.pending`; move it to `.github/workflows/ci.yml` (or grant the
+  permission and re-push) to enable CI.
+- Native mobile builds require the Android SDK / Xcode, which are not available here.
+  `npm run type-check` and `npm run lint` pass for the mobile app.
 
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: 2026-09-09  
+**Last Updated**: 2026-10-14  
 **Status**: Core Features Implemented - Production Development Phase

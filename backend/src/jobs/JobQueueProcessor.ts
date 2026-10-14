@@ -15,11 +15,31 @@ export interface JobQueueData {
   type: string;
 }
 
+export interface QueueConnectionStatus {
+  connected: boolean;
+  state: string;
+  lastError?: string;
+}
+
+/** How long a single enqueue may block while Redis is unavailable. */
+const ENQUEUE_TIMEOUT_MS = 5000;
+/** Minimum interval between repeated connection-error log lines. */
+const ERROR_LOG_THROTTLE_MS = 30000;
+
 class JobQueueProcessor {
   private queue: Queue.Queue<JobQueueData>;
+  private lastError?: string;
+  private lastErrorLoggedAt = 0;
 
   constructor() {
-    this.queue = new Queue('ai-jobs', config.redis.url);
+    this.queue = new Queue('ai-jobs', config.redis.url, {
+      // Keep the HTTP process responsive when Redis is unavailable instead of
+      // blocking requests on the offline command queue.
+      redis: {
+        maxRetriesPerRequest: null,
+        enableReadyCheck: false,
+      },
+    });
     this.setupEventHandlers();
   }
 
@@ -30,7 +50,7 @@ class JobQueueProcessor {
     // Job processing
     this.queue.process(config.jobQueue.maxAttempts, async (job) => {
       logger.info(`[Queue] Processing job ${job.data.jobId}`);
-      
+
       try {
         await orchestrator.executeJob(job.data.jobId);
         logger.info(`[Queue] Job ${job.data.jobId} completed`);
@@ -51,22 +71,50 @@ class JobQueueProcessor {
       logger.error(`[Queue] Job failed after retries: ${job.data.jobId}`, err);
     });
 
-    // Job error
+    // Job error — Redis connection problems can repeat every second, so
+    // throttle the log to keep container logs useful.
     this.queue.on('error', (error) => {
-      logger.error('[Queue] Queue error', error);
+      this.lastError = error instanceof Error ? error.message : String(error);
+      const now = Date.now();
+      if (now - this.lastErrorLoggedAt >= ERROR_LOG_THROTTLE_MS) {
+        logger.error('[Queue] Queue error', error);
+        this.lastErrorLoggedAt = now;
+      } else {
+        logger.debug(`[Queue] Queue error (throttled): ${this.lastError}`);
+      }
     });
 
     logger.info('[Queue] Job queue processor initialized');
   }
 
   /**
-   * Enqueue a job for processing
+   * Non-blocking connection status derived from the underlying ioredis client.
+   * Safe to call when Redis is down (does not await a connection).
+   */
+  getConnectionStatus(): QueueConnectionStatus {
+    const client = (this.queue as unknown as { client?: { status?: string } }).client;
+    const state = client?.status || 'unknown';
+    return {
+      connected: state === 'ready',
+      state,
+      lastError: this.lastError,
+    };
+  }
+
+  /**
+   * Enqueue a job for processing.
+   *
+   * Bounded by ENQUEUE_TIMEOUT_MS so a Redis outage cannot hang the request
+   * that created the job.
    */
   async enqueueJob(jobId: string, userId: string, jobType: string): Promise<void> {
     try {
-      const job = await this.queue.add(
+      const addPromise = this.queue.add(
         { jobId, userId, type: jobType },
         {
+          // Use the application job id as the Bull job id so the job can be
+          // located and removed when it is cancelled.
+          jobId,
           priority: 1, // Default priority
           attempts: config.jobQueue.maxAttempts,
           backoff: {
@@ -78,10 +126,48 @@ class JobQueueProcessor {
         },
       );
 
+      const job = await Promise.race([
+        addPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error(`Queue enqueue timed out after ${ENQUEUE_TIMEOUT_MS}ms (Redis unavailable)`)),
+            ENQUEUE_TIMEOUT_MS,
+          ),
+        ),
+      ]);
+
       logger.info(`[Queue] Job ${jobId} enqueued with ID ${job.id}`);
     } catch (error) {
-      logger.error(`[Queue] Failed to enqueue job ${jobId}`, error);
+      const message = error instanceof Error ? error.message : String(error);
+      this.lastError = message;
+      logger.error(`[Queue] Failed to enqueue job ${jobId}: ${message}`);
       throw error;
+    }
+  }
+
+  /**
+   * Remove a job from the queue. Used when a job is cancelled before it runs.
+   *
+   * Safe to call when Redis is unavailable: returns false and the worker will
+   * still skip the job because its database status is already terminal.
+   */
+  async removeJob(jobId: string): Promise<boolean> {
+    try {
+      if (!this.queue) {
+        return false;
+      }
+      const job = await this.queue.getJob(jobId);
+      if (!job) {
+        return false;
+      }
+      await job.remove();
+      logger.info(`[JobQueue] Removed cancelled job ${jobId}`);
+      return true;
+    } catch (error) {
+      logger.warn(
+        `[JobQueue] Failed to remove job ${jobId}: ${(error as Error).message}`,
+      );
+      return false;
     }
   }
 

@@ -3,9 +3,9 @@
  */
 
 import { Schema, model, Document } from 'mongoose';
-import { IUser, UserRole } from '../types';
+import { IUser, UserRole } from '../../types';
 
-interface UserDocument extends IUser, Document {}
+interface UserDocument extends Omit<IUser, 'id'>, Document {}
 
 const userSchema = new Schema<UserDocument>(
   {

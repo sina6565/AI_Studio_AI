@@ -3,9 +3,34 @@
  * Shares configuration with frontend
  */
 
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import type { Job, JobStats, Project, User } from '../types';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+
+export interface ApiEnvelope<T> {
+  success: boolean;
+  data: T;
+}
+
+export interface AuthResult {
+  user: User;
+  token: string;
+}
+
+export interface CreateJobPayload {
+  type: string;
+  input: Record<string, unknown>;
+  priority?: number;
+  webhookUrl?: string;
+}
+
+/** Shape returned by POST /v1/jobs (the job is queued, not yet complete). */
+export interface CreatedJob {
+  jobId: string;
+  status: string;
+  createdAt: string;
+}
 
 class MobileAPIClient {
   private client: AxiosInstance;
@@ -25,16 +50,125 @@ class MobileAPIClient {
     });
   }
 
-  setToken(token: string): void {
+  setToken(token: string | null): void {
     this.token = token;
   }
 
-  async createJob(jobData: any): Promise<any> {
-    return this.client.post('/v1/jobs', jobData);
+  getToken(): string | null {
+    return this.token;
   }
 
-  async getJobStatus(jobId: string): Promise<any> {
-    return this.client.get(`/v1/jobs/${jobId}`);
+  isAuthenticated(): boolean {
+    return Boolean(this.token);
+  }
+
+  private unwrap<T>(response: AxiosResponse<ApiEnvelope<T>>): T {
+    return response.data.data;
+  }
+
+  async healthCheck(): Promise<{ status: string }> {
+    const res = await this.client.get('/v1/health');
+    return res.data;
+  }
+
+  async register(
+    email: string,
+    username: string,
+    password: string,
+  ): Promise<AuthResult> {
+    const res = await this.client.post<ApiEnvelope<AuthResult>>(
+      '/v1/auth/register',
+      { email, username, password },
+    );
+    const result = this.unwrap(res);
+    this.setToken(result.token);
+    return result;
+  }
+
+  async login(email: string, password: string): Promise<AuthResult> {
+    const res = await this.client.post<ApiEnvelope<AuthResult>>(
+      '/v1/auth/login',
+      { email, password },
+    );
+    const result = this.unwrap(res);
+    this.setToken(result.token);
+    return result;
+  }
+
+  async logout(): Promise<void> {
+    try {
+      await this.client.post('/v1/auth/logout');
+    } finally {
+      this.setToken(null);
+    }
+  }
+
+  async getMe(): Promise<User> {
+    const res = await this.client.get<ApiEnvelope<User>>('/v1/users/me');
+    return this.unwrap(res);
+  }
+
+  async createJob(payload: CreateJobPayload): Promise<CreatedJob> {
+    const res = await this.client.post<ApiEnvelope<CreatedJob>>(
+      '/v1/jobs',
+      payload,
+    );
+    return this.unwrap(res);
+  }
+
+  async listJobs(): Promise<Job[]> {
+    const res = await this.client.get<ApiEnvelope<Job[]>>('/v1/jobs');
+    return this.unwrap(res);
+  }
+
+  async getJobStats(): Promise<JobStats> {
+    const res = await this.client.get<ApiEnvelope<JobStats>>('/v1/jobs/stats');
+    return this.unwrap(res);
+  }
+
+  async getJobStatus(jobId: string): Promise<Job> {
+    const res = await this.client.get<ApiEnvelope<Job>>(`/v1/jobs/${jobId}`);
+    return this.unwrap(res);
+  }
+
+  async cancelJob(jobId: string): Promise<void> {
+    await this.client.post(`/v1/jobs/${jobId}/cancel`);
+  }
+
+  async listProjects(): Promise<Project[]> {
+    const res = await this.client.get<ApiEnvelope<Project[]>>('/v1/projects');
+    return this.unwrap(res);
+  }
+
+  async createProject(payload: {
+    name: string;
+    description?: string;
+    type?: string;
+  }): Promise<Project> {
+    const res = await this.client.post<ApiEnvelope<Project>>(
+      '/v1/projects',
+      payload,
+    );
+    return this.unwrap(res);
+  }
+
+  async generate(
+    type: string,
+    input: Record<string, unknown>,
+  ): Promise<CreatedJob> {
+    // Game creation needs a structured spec, not just a prompt.
+    if (type === 'game') {
+      const prompt = String(input.prompt || '').trim();
+      return this.createJob({
+        type: 'game_creation',
+        input: {
+          title: prompt.slice(0, 60) || 'Untitled game',
+          description: prompt,
+          scenes: [{ name: 'Opening scene', description: prompt }],
+        },
+      });
+    }
+    return this.createJob({ type, input });
   }
 }
 

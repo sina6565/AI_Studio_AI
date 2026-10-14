@@ -11,26 +11,38 @@ import {
 } from './database/connection';
 import registry from './providers/registry';
 import orchestrator from './orchestrator/Orchestrator';
+import { recoverStuckJobs } from './jobs/recovery';
+import { validateEnvironment } from './config/validateEnv';
 import logger from './utils/logger';
 
 /**
- * Start server
+ * Initialize database and providers without blocking the HTTP server.
+ *
+ * A failure here must NOT prevent the platform health check from passing:
+ * the process keeps serving /health and reports a degraded state through
+ * /health/detailed instead of crashing on startup.
  */
-async function start(): Promise<void> {
+async function initializeDependencies(): Promise<void> {
   try {
-    logger.info('Starting AI Platform backend server...');
-
-    // Connect to database
     logger.info('Connecting to database...');
     await connectDatabase();
     logger.info('Database connected');
 
-    // Initialize database (create indexes, etc.)
     logger.info('Initializing database...');
     await initializeDatabase();
     logger.info('Database initialized');
 
-    // Initialize providers
+    // Mark jobs interrupted by a previous restart as failed so they do not
+    // stay "processing" forever.
+    await recoverStuckJobs();
+  } catch (error) {
+    logger.error(
+      'Database initialization failed - server continues in degraded mode',
+      error,
+    );
+  }
+
+  try {
     logger.info('Initializing providers...');
     await registry.initializeAll();
     const availableProviders = registry.getAvailableProviders();
@@ -40,11 +52,30 @@ async function start(): Promise<void> {
     for (const provider of availableProviders) {
       orchestrator.registerProvider(provider);
     }
+  } catch (error) {
+    logger.error(
+      'Provider initialization failed - server continues without providers',
+      error,
+    );
+  }
+}
 
-    // Create Express app
+/**
+ * Start server
+ */
+async function start(): Promise<void> {
+  try {
+    logger.info('Starting AI Platform backend server...');
+    validateEnvironment();
+
+    // Create the Express app and start listening FIRST. The platform health
+    // check must be reachable immediately, even while the database and AI
+    // providers are still initializing in the background. Previously the
+    // server only began listening after every async initialization step
+    // completed, so an unreachable MongoDB or AI provider caused the health
+    // check to time out ("container may have crashed during startup").
     const app = createApp();
 
-    // Start listening
     const server = app.listen(config.port, config.host, () => {
       logger.info(
         `Server listening on http://${config.host}:${config.port}`
@@ -77,6 +108,9 @@ async function start(): Promise<void> {
 
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
+
+    // Initialize database and providers in the background (non-blocking).
+    void initializeDependencies();
   } catch (error) {
     logger.error('Failed to start server', error);
     process.exit(1);
@@ -88,4 +122,4 @@ if (require.main === module) {
   start();
 }
 
-export { start };
+export { start, initializeDependencies };

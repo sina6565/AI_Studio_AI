@@ -81,6 +81,27 @@ class APIClient {
     return response.data;
   }
 
+  async createGameJob(spec: {
+    title: string;
+    description: string;
+    genre?: string;
+    artStyle?: string;
+    scenes: Array<{
+      id?: string;
+      name: string;
+      description: string;
+      imagePrompt?: string;
+    }>;
+  }): Promise<
+    APIResponse<{ jobId: string; status: string; createdAt: string }>
+  > {
+    const response = await this.client.post('/v1/jobs', {
+      type: 'game_creation',
+      input: spec,
+    });
+    return response.data;
+  }
+
   async listJobs(): Promise<APIResponse<Job[]>> {
     const response = await this.client.get('/v1/jobs');
     return response.data;

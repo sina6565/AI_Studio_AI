@@ -20,7 +20,7 @@ export interface AuthenticatedRequest extends Request {
  */
 export function authenticateToken(
   req: AuthenticatedRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ): void {
   const authHeader = req.headers.authorization;
@@ -50,6 +50,6 @@ export function generateToken(userId: string, email: string, role: string): stri
   return jwt.sign(
     { userId, email, role },
     config.jwt.secret,
-    { expiresIn: config.jwt.expiry },
+    { expiresIn: config.jwt.expiry as jwt.SignOptions['expiresIn'] },
   );
 }
