@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Box, Typography, Chip, LinearProgress, Alert } from '@mui/material';
+import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Box, Typography, Chip, LinearProgress, Alert, Card, CardMedia } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
 import { Job } from '../types';
@@ -79,7 +79,10 @@ const Jobs: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {jobs.map((job) => (
+              {jobs.map((job) => {
+                const manifest = job.result?.metadata?.manifest;
+                return (
+                <React.Fragment key={job.id}>
                 <TableRow key={job.id}>
                   <TableCell>
                     <Chip
@@ -115,7 +118,46 @@ const Jobs: React.FC = () => {
                     )}
                   </TableCell>
                 </TableRow>
-              ))}
+                {(job.error?.message || manifest) && (
+                  <TableRow>
+                    <TableCell colSpan={5} sx={{ bgcolor: '#fafafa' }}>
+                      {job.error?.message && (
+                        <Alert severity="error" sx={{ mb: manifest ? 1 : 0 }}>
+                          {job.error.code}: {job.error.message}
+                        </Alert>
+                      )}
+                      {manifest && (
+                        <Box>
+                          <Typography variant="subtitle2">
+                            {t('game.manifest')}: {manifest.title} — {manifest.assetCount}{' '}
+                            {t('game.assets')}, {manifest.scenes?.length || 0}{' '}
+                            {t('game.scenes')}
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                            {(manifest.scenes || []).map((scene: any) =>
+                              scene.imageUrl ? (
+                                <Card key={scene.id} sx={{ width: 120 }}>
+                                  <CardMedia
+                                    component="img"
+                                    height="80"
+                                    image={scene.imageUrl}
+                                    alt={scene.name}
+                                  />
+                                  <Box sx={{ p: 0.5 }}>
+                                    <Typography variant="caption">{scene.name}</Typography>
+                                  </Box>
+                                </Card>
+                              ) : null,
+                            )}
+                          </Box>
+                        </Box>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )}
+                </React.Fragment>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
