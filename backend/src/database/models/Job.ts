@@ -5,10 +5,15 @@
 import { Schema, model, Document } from 'mongoose';
 import { IJob, JobStatus, JobType, JobPriority } from '../../types';
 
-interface JobDocument extends Omit<IJob, 'id'>, Document {}
+// Jobs use a UUID string _id, so the Document generic is parameterised with string.
+interface JobDocument extends Omit<IJob, 'id'>, Document<string> {}
 
 const jobSchema = new Schema<JobDocument>(
   {
+    // Jobs use a UUID string id (see Orchestrator.createJob) rather than the
+    // default ObjectId. Without this declaration Mongoose rejects the UUID
+    // with "Cast to ObjectId failed", which broke all job creation.
+    _id: { type: String },
     userId: {
       type: String,
       required: true,
