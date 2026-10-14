@@ -52,7 +52,7 @@ const Projects: React.FC = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h3">{t('pages.projects')}</Typography>
         <Button variant="contained" onClick={() => setOpenDialog(true)}>
-          + {t('common.save')}
+          + {t('common.create')}
         </Button>
       </Box>
 
