@@ -12,6 +12,7 @@ import {
 import registry from './providers/registry';
 import orchestrator from './orchestrator/Orchestrator';
 import { recoverStuckJobs } from './jobs/recovery';
+import { validateEnvironment } from './config/validateEnv';
 import logger from './utils/logger';
 
 /**
@@ -65,6 +66,7 @@ async function initializeDependencies(): Promise<void> {
 async function start(): Promise<void> {
   try {
     logger.info('Starting AI Platform backend server...');
+    validateEnvironment();
 
     // Create the Express app and start listening FIRST. The platform health
     // check must be reachable immediately, even while the database and AI
