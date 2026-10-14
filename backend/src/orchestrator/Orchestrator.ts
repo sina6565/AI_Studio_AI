@@ -6,6 +6,8 @@ import { Job as JobModel } from '../database/models';
 import jobQueueProcessor from '../jobs/JobQueueProcessor';
 import logger from '../utils/logger';
 import { AppError, ValidationError } from '../types/errors';
+import { GameService } from '../game/GameService';
+import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
 
 export interface OrchestratorRequest {
   userId: string;
@@ -25,6 +27,7 @@ export interface OrchestratorResponse {
 export class Orchestrator {
   private router = new Router();
   private providers = new Map<string, IProvider>();
+  private gameService = new GameService(this.router);
 
   /**
    * Register an AI provider with the orchestrator
@@ -72,9 +75,12 @@ export class Orchestrator {
       );
     }
 
-    const decision = await this.router.route(request.jobType, providers, {
+    // Game jobs are composite: route on the capability the pipeline needs
+    // rather than asking a single provider to "create a game".
+    const routingCapability = gameJobCapability(request.jobType);
+    const decision = await this.router.route(routingCapability, providers, {
       jobType: request.jobType,
-      capabilities: [request.jobType as any],
+      capabilities: [routingCapability as any],
       userPreferences: request.userPreferences,
     });
 
@@ -176,7 +182,28 @@ export class Orchestrator {
 
       // Execute task based on job type
       let output: any;
-      switch (job.type) {
+      if (isGameJobType(job.type)) {
+        job.progress = { percentage: 10, stage: 'validating_game_spec' };
+        await job.save();
+
+        const manifest = await this.gameService.createGame(
+          job.input as unknown as GameSpec,
+          this.getAvailableProviders(),
+          async (percentage: number, stage: string) => {
+            job.progress = { percentage, stage };
+            await job.save();
+          },
+        );
+
+        output = {
+          id: jobId,
+          url: manifest.assets[0]?.url || '',
+          format: 'application/json',
+          size: 0,
+          metadata: { manifest },
+        };
+      } else {
+        switch (job.type) {
         case JobType.IMAGE_GENERATION:
           job.progress = { percentage: 30, stage: 'generating_image' };
           await job.save();
@@ -203,6 +230,7 @@ export class Orchestrator {
 
         default:
           throw new Error(`Unsupported job type: ${job.type}`);
+        }
       }
 
       // Update job with result
