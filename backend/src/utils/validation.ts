@@ -22,8 +22,15 @@ export function validateWithSchema<T>(
         message: e.message,
         code: e.code,
       }));
+      // Surface the offending fields in the message so clients get an
+      // actionable error instead of a generic "Validation failed".
+      const summary = details
+        .map((detail) =>
+          detail.path ? `${detail.path}: ${detail.message}` : detail.message,
+        )
+        .join('; ');
       throw new ValidationError(
-        context || 'Validation failed',
+        context ? `${context}: ${summary}` : `Validation failed: ${summary}`,
         { errors: details },
       );
     }
@@ -52,6 +59,25 @@ export const schemas = {
     input: z.record(z.any()),
     priority: z.enum(['low', 'normal', 'high']).optional(),
     webhookUrl: z.string().url().optional(),
+  }),
+
+  // Game creation schema
+  gameSpec: z.object({
+    title: z.string().min(1).max(120),
+    description: z.string().min(1).max(4000),
+    genre: z.string().max(60).optional(),
+    artStyle: z.string().max(200).optional(),
+    scenes: z
+      .array(
+        z.object({
+          id: z.string().min(1).max(60).optional(),
+          name: z.string().min(1).max(120),
+          description: z.string().min(1).max(2000),
+          imagePrompt: z.string().max(2000).optional(),
+        }),
+      )
+      .min(1)
+      .max(12),
   }),
 
   // User registration schema
