@@ -24,7 +24,7 @@ const Studio: React.FC = () => {
 
     setLoading(true);
     try {
-      let res;
+      let res: any = undefined;
       if (contentType === 'image') {
         res = await apiClient.generateImage(prompt, '1024x1024', 'standard');
       } else if (contentType === 'video') {
@@ -35,7 +35,7 @@ const Studio: React.FC = () => {
         res = await apiClient.generateSpeech(prompt, 'en');
       }
 
-      if (res.success && res.data) {
+      if (res?.success && res.data) {
         setResult(res.data);
         setSuccess('Content generated successfully!');
         setPrompt('');
