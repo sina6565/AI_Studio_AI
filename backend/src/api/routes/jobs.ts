@@ -27,6 +27,19 @@ router.get('/', async (req: AuthenticatedRequest, res, next) => {
     res.json({ success: true, data: jobs });
   } catch (e) { next(e); }
 });
+router.get('/stats', async (req: AuthenticatedRequest, res, next) => {
+  try {
+    const userId = req.user!.userId;
+    const [total, queued, processing, completed, failed] = await Promise.all([
+      Job.countDocuments({ userId }),
+      Job.countDocuments({ userId, status: 'queued' }),
+      Job.countDocuments({ userId, status: 'processing' }),
+      Job.countDocuments({ userId, status: 'completed' }),
+      Job.countDocuments({ userId, status: 'failed' }),
+    ]);
+    res.json({ success: true, data: { total, queued, processing, completed, failed } });
+  } catch (e) { next(e); }
+});
 router.get('/:jobId', async (req: AuthenticatedRequest, res, next) => {
   try {
     const job = await orchestrator.getJobStatus(req.params.jobId);
