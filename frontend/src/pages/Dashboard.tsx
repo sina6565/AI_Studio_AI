@@ -24,7 +24,9 @@ const Dashboard: React.FC = () => {
 
         const jobsRes = await apiClient.listJobs();
         if (jobsRes.success && jobsRes.data) {
-          setJobs(jobsRes.data.slice(0, 5));
+          // Keep the full list in state so dashboard counts are accurate; the recent
+      // list is sliced at render time.
+      setJobs(jobsRes.data);
         }
       } catch (err: any) {
         if (err.response?.status === 401) {
@@ -111,7 +113,7 @@ const Dashboard: React.FC = () => {
         {jobs.length === 0 ? (
           <Typography color="textSecondary">No jobs yet</Typography>
         ) : (
-          jobs.map((job) => (
+          jobs.slice(0, 5).map((job) => (
             <Box
               key={job.id}
               sx={{
