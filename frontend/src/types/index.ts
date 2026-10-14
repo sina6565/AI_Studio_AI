@@ -13,7 +13,13 @@ export interface Job {
   priority: 'low' | 'normal' | 'high';
   input: Record<string, any>;
   output?: Record<string, any>;
-  result?: { contentUrl: string; format: string; size?: number; duration?: number };
+  result?: {
+    contentUrl: string;
+    format: string;
+    size?: number;
+    duration?: number;
+    metadata?: Record<string, any>;
+  };
   error?: { code: string; message: string };
   progress?: { percentage: number; stage: string };
   createdAt: string;
