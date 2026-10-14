@@ -5,5 +5,7 @@
   "creation": { "whatToCreate": "می‌خواهید چه چیزی بسازید؟", "selectType": "نوع محتوا را انتخاب کنید", "image": "تصویر", "video": "ویدیو", "audio": "صوت", "speech": "گفتار", "text": "متن", "game": "بازی", "character": "کاراکتر", "asset3d": "دارایی 3D", "describe": "آن‌چه می‌خواهید بسازید را توضیح دهید...", "generate": "تولید کن", "cancel": "انصراف" },
   "job": { "status": "وضعیت", "pending": "در انتظار", "queued": "در صف", "processing": "در حال پردازش", "completed": "تکمیل شده", "failed": "ناموفق", "cancelled": "لغو شده", "progress": "پیشرفت", "created": "ایجاد شده", "download": "دانلود" },
   "auth": { "login": "ورود", "signup": "ثبت‌نام", "email": "ایمیل", "password": "رمز عبور", "username": "نام کاربری", "remember": "مرا به خاطر بسپار", "forgotPassword": "رمز عبور را فراموش کردید؟", "noAccount": "حساب کاربری ندارید؟", "haveAccount": "قبلاً حساب کاربری دارید؟" },
-  "common": { "loading": "در حال بارگیری...", "error": "خطا", "success": "موفق", "save": "ذخیره", "delete": "حذف", "close": "بستن", "retry": "تلاش مجدد", "noJobs": "هنوز وظیفه‌ای وجود ندارد." }
+  "common": {
+    "cancel": "انصراف",
+    "create": "ایجاد", "loading": "در حال بارگیری...", "error": "خطا", "success": "موفق", "save": "ذخیره", "delete": "حذف", "close": "بستن", "retry": "تلاش مجدد", "noJobs": "هنوز وظیفه‌ای وجود ندارد." }
 }
