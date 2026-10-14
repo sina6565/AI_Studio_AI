@@ -200,13 +200,18 @@ if (config_.nodeEnv === 'production') {
   if (config_.jwt.secret === 'dev-secret-key') {
     throw new Error('JWT_SECRET must be set in production');
   }
-  if (!config_.providers.agnes.apiKey) {
+  if (!config_.providers.agnes?.apiKey) {
     console.warn(
       'Agnes AI provider not configured - image generation will be unavailable'
     );
   }
   if (!process.env.MONGODB_URI && !process.env.DATABASE_URL) {
-    throw new Error('MONGODB_URI or DATABASE_URL must be set in production');
+    // Do not crash the process here: the HTTP server must still start so the
+    // platform health check can pass. The database layer reports a degraded
+    // state via /health and connectDatabase() logs the failure at runtime.
+    console.warn(
+      'MONGODB_URI/DATABASE_URL not set in production - starting without database; health will report degraded'
+    );
   }
 }
 
