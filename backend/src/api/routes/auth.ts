@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { User } from '../../database/models';
 import { AuthenticatedRequest, authenticateToken, generateToken } from '../middleware/auth';
