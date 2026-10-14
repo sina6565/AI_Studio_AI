@@ -6,6 +6,7 @@
 import mongoose from 'mongoose';
 import config from '../config';
 import logger from '../utils/logger';
+import { User, Job, Project, Content } from './models';
 
 let connectionAttempts = 0;
 const MAX_RETRY_ATTEMPTS = 5;
@@ -89,20 +90,17 @@ export async function initializeDatabase(): Promise<void> {
   try {
     logger.info('Initializing database indexes...');
 
-    const collections = [
-      mongoose.connection.collection('users'),
-      mongoose.connection.collection('jobs'),
-      mongoose.connection.collection('projects'),
-      mongoose.connection.collection('contents'),
-    ];
+    // Use the Mongoose models: syncIndexes() is a Model method, not a
+    // native driver Collection method.
+    const models = [User, Job, Project, Content];
 
-    for (const collection of collections) {
+    for (const model of models) {
       try {
-        await collection.syncIndexes();
-        logger.info(`Indexes synchronized for ${collection.collectionName} collection`);
+        await model.syncIndexes();
+        logger.info(`Indexes synchronized for ${model.modelName} collection`);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logger.warn(`Could not sync indexes for ${collection.collectionName}: ${message}`);
+        logger.warn(`Could not sync indexes for ${model.modelName}: ${message}`);
       }
     }
 
@@ -152,7 +150,7 @@ export function getDatabaseStatus(): {
     details: {
       state: stateByCode[readyState] || 'unknown',
       host: mongoose.connection.host,
-      db: mongoose.connection.db?.getName(),
+      db: mongoose.connection.name,
       collections: mongoose.connection.collections
         ? Object.keys(mongoose.connection.collections).length
         : 0,
