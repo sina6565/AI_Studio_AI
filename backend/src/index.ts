@@ -11,6 +11,7 @@ import {
 } from './database/connection';
 import registry from './providers/registry';
 import orchestrator from './orchestrator/Orchestrator';
+import { recoverStuckJobs } from './jobs/recovery';
 import logger from './utils/logger';
 
 /**
@@ -29,6 +30,10 @@ async function initializeDependencies(): Promise<void> {
     logger.info('Initializing database...');
     await initializeDatabase();
     logger.info('Database initialized');
+
+    // Mark jobs interrupted by a previous restart as failed so they do not
+    // stay "processing" forever.
+    await recoverStuckJobs();
   } catch (error) {
     logger.error(
       'Database initialization failed - server continues in degraded mode',
