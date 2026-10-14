@@ -105,7 +105,7 @@ const Jobs: React.FC = () => {
                   <TableCell>
                     {['processing', 'pending', 'queued'].includes(job.status) && (
                       <Button size="small" color="error" onClick={() => handleCancel(job.id)}>
-                        {t('common.close')}
+                        {t('common.cancel')}
                       </Button>
                     )}
                     {job.status === 'completed' && job.result?.contentUrl && (
