@@ -112,6 +112,9 @@ class JobQueueProcessor {
       const addPromise = this.queue.add(
         { jobId, userId, type: jobType },
         {
+          // Use the application job id as the Bull job id so the job can be
+          // located and removed when it is cancelled.
+          jobId,
           priority: 1, // Default priority
           attempts: config.jobQueue.maxAttempts,
           backoff: {
@@ -139,6 +142,32 @@ class JobQueueProcessor {
       this.lastError = message;
       logger.error(`[Queue] Failed to enqueue job ${jobId}: ${message}`);
       throw error;
+    }
+  }
+
+  /**
+   * Remove a job from the queue. Used when a job is cancelled before it runs.
+   *
+   * Safe to call when Redis is unavailable: returns false and the worker will
+   * still skip the job because its database status is already terminal.
+   */
+  async removeJob(jobId: string): Promise<boolean> {
+    try {
+      if (!this.queue) {
+        return false;
+      }
+      const job = await this.queue.getJob(jobId);
+      if (!job) {
+        return false;
+      }
+      await job.remove();
+      logger.info(`[JobQueue] Removed cancelled job ${jobId}`);
+      return true;
+    } catch (error) {
+      logger.warn(
+        `[JobQueue] Failed to remove job ${jobId}: ${(error as Error).message}`,
+      );
+      return false;
     }
   }
 
