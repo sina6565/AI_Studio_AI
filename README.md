@@ -472,9 +472,11 @@ Not specified
 
 ### Known limitations
 
-- `.github/workflows/ci.yml` is committed but could not be pushed through the GitHub
-  integration (the app lacks the `workflows` permission). Add it manually or grant the
-  permission to enable CI.
+- `.github/workflows/ci.yml` could not be pushed through the GitHub integration: the
+  GitHub App returns `403 Resource not accessible by integration` because it lacks the
+  `workflows` permission. The identical workflow is committed at
+  `.github/ci-workflow.yml.pending`; move it to `.github/workflows/ci.yml` (or grant the
+  permission and re-push) to enable CI.
 - Native mobile builds require the Android SDK / Xcode, which are not available here.
   `npm run type-check` and `npm run lint` pass for the mobile app.
 
