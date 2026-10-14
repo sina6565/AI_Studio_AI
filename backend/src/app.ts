@@ -27,9 +27,25 @@ export function createApp(): Express {
   app.use(compression());
   if (config.nodeEnv !== 'test') app.use(morgan('combined', { stream: { write: (msg) => logger.info(msg.trim()) } }));
   app.use('/api/', rateLimit({ windowMs: config.rateLimit.windowMs, max: config.rateLimit.maxRequests, standardHeaders: true, legacyHeaders: false }));
-  app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+  // Root-level probes (liveness + readiness) plus the versioned API health.
+  app.use('/health', healthRoutes);
   app.use(`${config.apiPrefix}/${config.apiVersion}/health`, healthRoutes);
-  app.use(`${config.apiPrefix}/${config.apiVersion}/auth`, authRoutes);
+  // Authentication endpoints get a stricter limit than the general API limiter
+  // so credential stuffing is throttled without affecting normal API usage.
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+      error: {
+        code: 'RATE_LIMITED',
+        message: 'Too many authentication attempts. Please try again later.',
+      },
+    },
+  });
+  app.use(`${config.apiPrefix}/${config.apiVersion}/auth`, authLimiter, authRoutes);
   app.use(`${config.apiPrefix}/${config.apiVersion}/jobs`, jobRoutes);
   app.use(`${config.apiPrefix}/${config.apiVersion}/users`, userRoutes);
   app.use(`${config.apiPrefix}/${config.apiVersion}/projects`, projectRoutes);
