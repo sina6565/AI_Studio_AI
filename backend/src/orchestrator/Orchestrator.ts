@@ -141,6 +141,13 @@ export class Orchestrator {
       throw new AppError('JOB_NOT_FOUND', 'Job not found', 404);
     }
 
+    // Skip jobs cancelled while queued: the Bull job may already be gone,
+    // but the worker can still be handed a stale job id.
+    if (job.status === JobStatus.CANCELLED) {
+      logger.info(`[Orchestrator] Skipping cancelled job ${jobId}`);
+      return;
+    }
+
     const providerName = String(job.metadata?.provider || '').toLowerCase();
     const provider = this.providers.get(providerName);
     if (!provider) {
@@ -293,6 +300,8 @@ export class Orchestrator {
       );
     }
 
+    // Remove the job from the queue so it cannot start after cancellation.
+    await jobQueueProcessor.removeJob(jobId);
     job.status = JobStatus.CANCELLED;
     job.metadata.completedAt = new Date();
     await job.save();
