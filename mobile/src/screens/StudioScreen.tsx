@@ -35,7 +35,7 @@ export default function StudioScreen() {
     setCreatedJobId('');
     try {
       const job = await api.generate(type, { prompt: prompt.trim() });
-      setCreatedJobId(job.id);
+      setCreatedJobId(job.jobId);
       setPrompt('');
     } catch (err) {
       setError(extractErrorMessage(err));
