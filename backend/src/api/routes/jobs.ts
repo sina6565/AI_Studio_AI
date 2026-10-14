@@ -4,6 +4,7 @@ import orchestrator from '../../orchestrator/Orchestrator';
 import { validateWithSchema, schemas } from '../../utils/validation';
 import { Job } from '../../database/models';
 import { JobPriority } from '../../types';
+import { isGameJobType } from '../../game/types';
 
 interface CreateJobInput {
   type: string;
@@ -17,6 +18,10 @@ router.use(authenticateToken);
 router.post('/', async (req: AuthenticatedRequest, res, next) => {
   try {
     const input = validateWithSchema<CreateJobInput>(req.body, schemas.createJob);
+    if (isGameJobType(input.type)) {
+      // Fail fast with a field-level message instead of a provider error later.
+      validateWithSchema(input.input, schemas.gameSpec);
+    }
     const job = await orchestrator.createJob({ userId: req.user!.userId, jobType: input.type as any, input: input.input, priority: input.priority, webhookUrl: input.webhookUrl });
     res.status(201).json({ success: true, data: job });
   } catch (e) { next(e); }
