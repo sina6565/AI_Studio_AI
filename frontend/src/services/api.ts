@@ -81,23 +81,41 @@ class APIClient {
     return response.data;
   }
 
-  async createGameJob(spec: {
-    title: string;
-    description: string;
-    genre?: string;
-    artStyle?: string;
-    scenes: Array<{
-      id?: string;
-      name: string;
+  async createGameJob(
+    spec: {
+      title: string;
       description: string;
-      imagePrompt?: string;
-    }>;
-  }): Promise<
+      genre?: string;
+      artStyle?: string;
+      scenes: Array<{
+        id?: string;
+        name: string;
+        description: string;
+        imagePrompt?: string;
+      }>;
+    },
+    mode: 'create' | 'build' = 'create',
+  ): Promise<
     APIResponse<{ jobId: string; status: string; createdAt: string }>
   > {
     const response = await this.client.post('/v1/jobs', {
-      type: 'game_creation',
+      type: mode === 'build' ? 'game_build' : 'game_creation',
       input: spec,
+    });
+    return response.data;
+  }
+
+  /**
+   * Build a runnable scene-viewer artifact. Accepts either a game spec (assets
+   * are generated) or a manifest returned by an earlier game_creation job
+   * (assets are reused, so nothing is regenerated).
+   */
+  async buildGameJob(
+    input: Record<string, unknown>,
+  ): Promise<APIResponse<{ jobId: string; status: string; createdAt: string }>> {
+    const response = await this.client.post('/v1/jobs', {
+      type: 'game_build',
+      input,
     });
     return response.data;
   }
