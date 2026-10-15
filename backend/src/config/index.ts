@@ -95,7 +95,11 @@ interface AppConfig {
 
 // Helper function to parse comma-separated strings
 const parseCSV = (value?: string): string[] => {
-  return value ? value.split(',').map((v) => v.trim()) : [];
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0);
 };
 
 // Helper function to validate required environment variables
@@ -139,10 +143,13 @@ const config_: AppConfig = {
   },
 
   cors: {
-    origin: parseCSV(process.env.CORS_ORIGIN) || [
-      'http://localhost:5173',
-      'http://localhost:8081',
-    ],
+    // An empty parse result must fall back to the default dev origins. Note
+    // that `[]` is truthy in JS, so the previous `parseCSV(...) || [...]`
+    // never applied the fallback and rejected every browser origin.
+    origin:
+      parseCSV(process.env.CORS_ORIGIN).length > 0
+        ? parseCSV(process.env.CORS_ORIGIN)
+        : ['http://localhost:5173', 'http://localhost:8081'],
     credentials: true,
   },
 
