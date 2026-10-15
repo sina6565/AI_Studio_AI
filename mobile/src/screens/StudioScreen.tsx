@@ -19,6 +19,7 @@ const TYPES: JobType[] = ['image', 'video', 'audio', 'speech', 'game'];
 export default function StudioScreen() {
   const { t } = useTranslation();
   const [type, setType] = useState<JobType>('image');
+  const [gameMode, setGameMode] = useState<'create' | 'build'>('create');
   const [prompt, setPrompt] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -34,7 +35,7 @@ export default function StudioScreen() {
     setError('');
     setCreatedJobId('');
     try {
-      const job = await api.generate(type, { prompt: prompt.trim() });
+      const job = await api.generate(type, { prompt: prompt.trim() }, gameMode);
       setCreatedJobId(job.jobId);
       setPrompt('');
     } catch (err) {
@@ -61,6 +62,22 @@ export default function StudioScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {type === 'game' && (
+        <View style={styles.types}>
+          {(['create', 'build'] as const).map((option) => (
+            <TouchableOpacity
+              key={option}
+              style={[styles.type, gameMode === option && styles.typeActive]}
+              onPress={() => setGameMode(option)}
+            >
+              <Text style={[styles.typeText, gameMode === option && styles.typeTextActive]}>
+                {t(option === 'build' ? 'creation.gameModeBuild' : 'creation.gameModeCreate')}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       <TextInput
         style={styles.input}
