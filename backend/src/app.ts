@@ -18,8 +18,9 @@ export function createApp(): Express {
   app.set('trust proxy', 1);
   app.use(helmet());
   const allowedOrigins = config.cors.origin;
+  const allowAllOrigins = allowedOrigins.includes('*');
   app.use(cors({ origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (!origin || allowAllOrigins || allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error('Origin not allowed by CORS'));
   }, credentials: true, methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
   app.use(express.json({ limit: '10mb' }));
@@ -30,6 +31,17 @@ export function createApp(): Express {
   // Root-level probes (liveness + readiness) plus the versioned API health.
   app.use('/health', healthRoutes);
   app.use(`${config.apiPrefix}/${config.apiVersion}/health`, healthRoutes);
+  // Root endpoint. Many deployment platforms (including SnapDeploy) probe `/`
+  // by default; returning a cheap 200 here avoids a failed health check even
+  // though the API itself lives under /api/v1 and /health.
+  app.get('/', (_req, res) =>
+    res.json({
+      status: 'ok',
+      service: 'ai-platform-backend',
+      version: '1.0.0',
+      health: '/health',
+    }),
+  );
   // Authentication endpoints get a stricter limit than the general API limiter
   // so credential stuffing is throttled without affecting normal API usage.
   const authLimiter = rateLimit({
