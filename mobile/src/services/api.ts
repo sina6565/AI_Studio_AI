@@ -155,12 +155,13 @@ class MobileAPIClient {
   async generate(
     type: string,
     input: Record<string, unknown>,
+    mode: 'create' | 'build' = 'create',
   ): Promise<CreatedJob> {
     // Game creation needs a structured spec, not just a prompt.
     if (type === 'game') {
       const prompt = String(input.prompt || '').trim();
       return this.createJob({
-        type: 'game_creation',
+        type: mode === 'build' ? 'game_build' : 'game_creation',
         input: {
           title: prompt.slice(0, 60) || 'Untitled game',
           description: prompt,
