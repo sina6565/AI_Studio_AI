@@ -83,10 +83,9 @@ const userSchema = new Schema<UserDocument>(
   },
 );
 
-// Indexes for performance
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
-userSchema.index({ apiKey: 1 });
+// Indexes for performance are declared on the fields above via
+// `unique`/`sparse`. Re-declaring them here produced duplicate-index warnings
+// (and a conflicting non-sparse apiKey index) on every startup.
 
 const User = model<UserDocument>('User', userSchema);
 
