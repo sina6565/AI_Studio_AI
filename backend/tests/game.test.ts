@@ -185,3 +185,79 @@ describe('GameService.createGame', () => {
     expect(generateImage).not.toHaveBeenCalled();
   });
 });
+
+describe('GameService.buildGame', () => {
+  it('generates assets from a spec and renders a scene viewer', async () => {
+    const generateImage = jest.fn(async (_params: any) => ({
+      id: 'asset-1',
+      url: 'https://cdn.test/asset-1.png',
+      format: 'png',
+      size: 128,
+    }));
+    const service = new GameService(new Router());
+
+    const build = await service.buildGame(validSpec, [makeProvider(generateImage)]);
+
+    expect(generateImage).toHaveBeenCalledTimes(validSpec.scenes.length);
+    expect(build.filename).toBe('dungeon-of-echoes-scene-viewer.html');
+    expect(build.html.startsWith('<!DOCTYPE html>')).toBe(true);
+    expect(build.size).toBe(Buffer.byteLength(build.html, 'utf8'));
+    expect(build.dataUrl.startsWith('data:text/html;charset=utf-8;base64,')).toBe(true);
+    expect(build.manifest.scenes).toHaveLength(validSpec.scenes.length);
+  });
+
+  it('embeds the generated scene images in the viewer', async () => {
+    const service = new GameService(new Router());
+    const build = await service.buildGame(validSpec, [makeProvider()]);
+
+    expect(build.html).toContain('https://cdn.test/asset-1.png');
+    expect(build.html).toContain('Entrance');
+  });
+
+  it('reuses an existing manifest instead of regenerating assets', async () => {
+    const generateImage = jest.fn();
+    const service = new GameService(new Router());
+
+    const first = await service.buildGame(validSpec, [makeProvider()]);
+    const rebuilt = await service.buildGame(first.manifest, [makeProvider(generateImage)]);
+
+    expect(generateImage).not.toHaveBeenCalled();
+    expect(rebuilt.html).toContain('https://cdn.test/asset-1.png');
+    expect(rebuilt.filename).toBe(first.filename);
+  });
+
+  it('propagates a provider failure instead of returning a fake artifact', async () => {
+    const generateImage = jest.fn(async (_params: any) => {
+      throw new Error('provider exploded');
+    });
+    const service = new GameService(new Router());
+
+    await expect(
+      service.buildGame(validSpec, [makeProvider(generateImage)]),
+    ).rejects.toThrow('provider exploded');
+  });
+
+  it('reports progress stages while building', async () => {
+    const stages: string[] = [];
+    const service = new GameService(new Router());
+
+    await service.buildGame(validSpec, [makeProvider()], (_percentage, stage) => {
+      stages.push(stage);
+    });
+
+    expect(stages).toContain('rendering_scene_viewer');
+    expect(stages.some((stage) => stage.startsWith('generating_scene_'))).toBe(true);
+  });
+
+  it('reports a reusing_manifest stage when given a manifest', async () => {
+    const stages: string[] = [];
+    const service = new GameService(new Router());
+    const first = await service.buildGame(validSpec, [makeProvider()]);
+
+    await service.buildGame(first.manifest, [makeProvider()], (_p, stage) => {
+      stages.push(stage);
+    });
+
+    expect(stages).toContain('reusing_manifest');
+  });
+});
