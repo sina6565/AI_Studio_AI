@@ -59,4 +59,21 @@ describe('health endpoints', () => {
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe('NOT_FOUND');
   });
+
+  it('root GET / is 200 so a default platform health probe succeeds', async () => {
+    const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.health).toBe('/health');
+  });
+
+  it('CORS allows the default frontend origin', async () => {
+    const res = await request(app)
+      .get('/api/v1/health')
+      .set('Origin', 'http://localhost:5173');
+    expect(res.status).toBe(200);
+    expect(res.headers['access-control-allow-origin']).toBe(
+      'http://localhost:5173',
+    );
+  });
 });
