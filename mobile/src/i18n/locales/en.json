@@ -10,7 +10,9 @@
     "game": "Game",
     "promptPlaceholder": "Describe what you want to create",
     "generate": "Generate",
-    "queued": "Queued as job"
+    "queued": "Queued as job",
+    "gameModeCreate": "Create game definition",
+    "gameModeBuild": "Build scene viewer"
   },
   "auth": {
     "email": "Email",
