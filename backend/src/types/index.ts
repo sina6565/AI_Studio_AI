@@ -53,6 +53,7 @@ export interface JobMetadata {
   requestedAt: Date;
   startedAt?: Date;
   completedAt?: Date;
+  cancelledAt?: Date;
   executionTime?: number;
   retryCount: number;
   maxRetries: number;
