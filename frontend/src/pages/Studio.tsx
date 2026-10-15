@@ -42,6 +42,7 @@ const Studio: React.FC = () => {
   const [genre, setGenre] = useState('');
   const [artStyle, setArtStyle] = useState('');
   const [scenes, setScenes] = useState<SceneDraft[]>([{ name: '', description: '' }]);
+  const [gameMode, setGameMode] = useState<'create' | 'build'>('create');
   const [queuedJobId, setQueuedJobId] = useState<string | null>(null);
 
   const updateScene = (index: number, patch: Partial<SceneDraft>) => {
@@ -87,20 +88,25 @@ const Studio: React.FC = () => {
 
     setLoading(true);
     try {
-      const res = await apiClient.createGameJob({
-        title: gameTitle.trim(),
-        description: gameDescription.trim(),
-        genre: genre.trim() || undefined,
-        artStyle: artStyle.trim() || undefined,
-        scenes: scenes.map((scene) => ({
-          name: scene.name.trim(),
-          description: scene.description.trim(),
-        })),
-      });
+      const res = await apiClient.createGameJob(
+        {
+          title: gameTitle.trim(),
+          description: gameDescription.trim(),
+          genre: genre.trim() || undefined,
+          artStyle: artStyle.trim() || undefined,
+          scenes: scenes.map((scene) => ({
+            name: scene.name.trim(),
+            description: scene.description.trim(),
+          })),
+        },
+        gameMode,
+      );
 
       if (res?.success && res.data) {
         setQueuedJobId(res.data.jobId);
-        setSuccess(t('creation.gameQueued'));
+        setSuccess(
+          t(gameMode === 'build' ? 'creation.gameBuildQueued' : 'creation.gameQueued'),
+        );
       } else {
         setError(t('creation.gameQueuedFailed'));
       }
@@ -198,6 +204,23 @@ const Studio: React.FC = () => {
 
             {isGame ? (
               <Stack spacing={2}>
+                <ToggleButtonGroup
+                  value={gameMode}
+                  exclusive
+                  onChange={(_e, value) => value && setGameMode(value)}
+                  size="small"
+                  disabled={loading}
+                >
+                  <ToggleButton value="create">{t('creation.gameModeCreate')}</ToggleButton>
+                  <ToggleButton value="build">{t('creation.gameModeBuild')}</ToggleButton>
+                </ToggleButtonGroup>
+                <Typography variant="caption" color="text.secondary">
+                  {t(
+                    gameMode === 'build'
+                      ? 'creation.gameModeBuildHint'
+                      : 'creation.gameModeCreateHint',
+                  )}
+                </Typography>
                 <TextField
                   label={t('creation.gameTitle')}
                   value={gameTitle}
