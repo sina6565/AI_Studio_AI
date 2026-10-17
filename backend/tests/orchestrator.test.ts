@@ -4,6 +4,8 @@
 
 import { Orchestrator } from '../src/orchestrator/Orchestrator';
 import { JobType, JobPriority, JobStatus } from '../src/types';
+import { Job } from '../src/database/models';
+import jobQueueProcessor from '../src/jobs/JobQueueProcessor';
 
 // Mock external I/O boundaries so the suite runs without MongoDB or Redis.
 jest.mock('../src/database/models', () => ({
@@ -140,4 +142,37 @@ describe('Orchestrator', () => {
       expect(providers).toContainEqual(mockProvider);
     });
   });
+  describe('executeJob retry behavior', () => {
+    it('delegates retry scheduling to Bull and rejects the failed attempt', async () => {
+      const job = {
+        _id: 'job-retry-1',
+        id: 'job-retry-1',
+        userId: 'test-user-1',
+        type: JobType.IMAGE_GENERATION,
+        status: JobStatus.QUEUED,
+        input: { prompt: 'test image' },
+        progress: { percentage: 0, stage: 'queued' },
+        metadata: { provider: 'FlakyProvider', retryCount: 0, maxRetries: 3 },
+        save: jest.fn(async () => undefined),
+      };
+      (Job.findById as jest.Mock).mockResolvedValue(job);
+      const flakyProvider = {
+        name: 'FlakyProvider',
+        capabilities: ['image_generation'],
+        validateInput: jest.fn(async () => ({ valid: true })),
+        generateImage: jest.fn(async () => { throw new Error('provider temporarily unavailable'); }),
+      } as any;
+      orchestrator.registerProvider(flakyProvider);
+      (jobQueueProcessor.enqueueJob as jest.Mock).mockClear();
+
+      await expect(orchestrator.executeJob('job-retry-1', { attemptsMade: 0, attempts: 3 }))
+        .rejects.toThrow('provider temporarily unavailable');
+
+      expect(job.status).toBe(JobStatus.QUEUED);
+      expect(job.metadata.retryCount).toBe(1);
+      expect(jobQueueProcessor.enqueueJob).not.toHaveBeenCalled();
+      expect(job.save).toHaveBeenCalled();
+    });
+  });
+
 });
