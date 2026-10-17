@@ -1,6 +1,7 @@
 import logger from '../utils/logger';
 import { IProvider } from '../providers/interfaces/IProvider';
 import { RoutingContext } from '../types';
+import { AppError } from '../types/errors';
 
 export class Router {
   /**
@@ -17,7 +18,7 @@ export class Router {
     );
 
     if (!capable.length) {
-      throw new Error(`No provider available for ${type}`);
+      throw new AppError('NO_PROVIDER_AVAILABLE', `No provider available for ${type}`, 503);
     }
 
     // Single provider case
