@@ -54,7 +54,7 @@ export function createApp(): Express {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     logger.error('Unhandled error', err);
     const statusCode = err.statusCode || err.status || 500;
-    res.status(statusCode).json({ success: false, error: { code: err.code || 'INTERNAL_SERVER_ERROR', message: config.nodeEnv === 'production' && statusCode === 500 ? 'Internal Server Error' : (err.message || 'Internal Server Error') } });
+    res.status(statusCode).json({ success: false, error: { code: err.code || 'INTERNAL_SERVER_ERROR', message: config.nodeEnv === 'production' && statusCode === 500 ? 'Internal Server Error' : (err.message || 'Internal Server Error'), ...(statusCode < 500 && err.details ? { details: err.details } : {}) } });
   });
   return app;
 }
