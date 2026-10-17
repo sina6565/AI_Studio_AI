@@ -38,6 +38,7 @@ interface RateLimitConfig {
 interface JobQueueConfig {
   name: string;
   maxAttempts: number;
+  concurrency: number;
   backoffDelay: number;
   timeout: number;
 }
@@ -154,6 +155,7 @@ const config_: AppConfig = {
   jobQueue: {
     name: process.env.JOB_QUEUE_NAME || 'ai-tasks',
     maxAttempts: parseInt(process.env.JOB_MAX_ATTEMPTS || '3', 10),
+    concurrency: Math.max(1, parseInt(process.env.JOB_CONCURRENCY || '5', 10)),
     backoffDelay: parseInt(process.env.JOB_BACKOFF_DELAY || '5000', 10),
     timeout: parseInt(process.env.JOB_TIMEOUT || '300000', 10),
   },
