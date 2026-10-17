@@ -26,6 +26,18 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 
 describe('authentication rate limiting', () => {
+  const originalMax = process.env.AUTH_RATE_LIMIT_MAX;
+
+  beforeEach(() => {
+    // The shared test setup raises this so route tests are not throttled;
+    // lower it here to exercise the limiter itself.
+    process.env.AUTH_RATE_LIMIT_MAX = '20';
+  });
+
+  afterAll(() => {
+    process.env.AUTH_RATE_LIMIT_MAX = originalMax;
+  });
+
   it('throttles repeated login attempts with 429', async () => {
     const app = createApp();
     let lastStatus = 0;
