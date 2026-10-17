@@ -13,6 +13,19 @@ import {
   ValidationResult,
 } from '../interfaces/IProvider';
 
+/**
+ * Axios errors can contain request config, including Authorization headers.
+ * Never pass the raw error object to the logger: it may serialize AGNES_API_KEY.
+ */
+function safeErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    // Axios error.message is useful diagnostic context and does not serialize
+    // the request config/headers. Do not log error.config or error.toJSON().
+    return error.message;
+  }
+  return String(error);
+}
+
 export class AgnesProvider implements IProvider {
   name = 'agnes';
   capabilities = ['image_generation', 'video_generation', 'audio_generation', 'text_to_speech'];
@@ -42,7 +55,7 @@ export class AgnesProvider implements IProvider {
       const response = await this.client.get('/health');
       return response.status === 200;
     } catch (error) {
-      logger.warn('Agnes provider health check failed', error);
+      logger.warn(`Agnes provider health check failed: ${safeErrorMessage(error)}`);
       return false;
     }
   }
@@ -52,7 +65,7 @@ export class AgnesProvider implements IProvider {
       const response = await this.client.get('/rate-limit');
       return response.data;
     } catch (error) {
-      logger.error('Failed to get rate limit status', error);
+      logger.error(`Failed to get rate limit status: ${safeErrorMessage(error)}`);
       return {
         remaining: 0,
         resetTime: Date.now(),
@@ -72,7 +85,7 @@ export class AgnesProvider implements IProvider {
         metadata: response.data.metadata,
       };
     } catch (error) {
-      logger.error('Agnes image generation failed', error);
+      logger.error(`Agnes image generation failed: ${safeErrorMessage(error)}`);
       throw error;
     }
   }
@@ -89,7 +102,7 @@ export class AgnesProvider implements IProvider {
         metadata: response.data.metadata,
       };
     } catch (error) {
-      logger.error('Agnes video generation failed', error);
+      logger.error(`Agnes video generation failed: ${safeErrorMessage(error)}`);
       throw error;
     }
   }
@@ -106,7 +119,7 @@ export class AgnesProvider implements IProvider {
         metadata: response.data.metadata,
       };
     } catch (error) {
-      logger.error('Agnes audio generation failed', error);
+      logger.error(`Agnes audio generation failed: ${safeErrorMessage(error)}`);
       throw error;
     }
   }
@@ -123,7 +136,7 @@ export class AgnesProvider implements IProvider {
         metadata: response.data.metadata,
       };
     } catch (error) {
-      logger.error('Agnes speech synthesis failed', error);
+      logger.error(`Agnes speech synthesis failed: ${safeErrorMessage(error)}`);
       throw error;
     }
   }
