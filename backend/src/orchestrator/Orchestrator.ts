@@ -141,7 +141,7 @@ export class Orchestrator {
   /**
    * Execute a job asynchronously
    */
-  async executeJob(jobId: string): Promise<void> {
+  async executeJob(jobId: string, queueAttempt?: { attemptsMade: number; attempts: number }): Promise<void> {
     const job = await JobModel.findById(jobId);
     if (!job) {
       throw new AppError('JOB_NOT_FOUND', 'Job not found', 404);
@@ -305,45 +305,33 @@ export class Orchestrator {
         return;
       }
 
-      // Handle execution error with retry logic
-      const shouldRetry =
-        (job.metadata.retryCount || 0) <
-        (job.metadata.maxRetries || 3);
-
+      // Let Bull own retries. Re-enqueueing the same jobId is a no-op while
+      // the original Bull job is retained (removeOnComplete: false).
       job.metadata.retryCount = (job.metadata.retryCount || 0) + 1;
       job.error = {
         code: 'EXECUTION_ERROR',
         message: error instanceof Error ? error.message : 'Unknown error',
+        // Kept for operators in persistence; jobs.ts strips this from API output.
         stack: error instanceof Error ? error.stack : undefined,
       };
 
+      const attemptsMade = queueAttempt?.attemptsMade ?? (job.metadata.retryCount - 1);
+      const totalAttempts = queueAttempt?.attempts ?? ((job.metadata.maxRetries || 3) + 1);
+      const shouldRetry = attemptsMade + 1 < totalAttempts;
+      job.status = shouldRetry ? JobStatus.QUEUED : JobStatus.FAILED;
+      await job.save();
+
       if (shouldRetry) {
-        // Re-enqueue job to Bull queue for retry
-        try {
-          job.status = JobStatus.QUEUED;
-          await job.save();
-          
-          await jobQueueProcessor.enqueueJob(jobId, job.userId, job.type);
-          logger.info(
-            `[Orchestrator] Job re-enqueued for retry (${job.metadata.retryCount}/${job.metadata.maxRetries}): ${jobId}`,
-          );
-        } catch (queueError) {
-          logger.error(
-            `[Orchestrator] Failed to re-enqueue job ${jobId} for retry`,
-            queueError,
-          );
-          job.status = JobStatus.FAILED;
-          await job.save();
-        }
+        logger.warn(
+          `[Orchestrator] Job ${jobId} failed; Bull will retry attempt ${attemptsMade + 2}/${totalAttempts}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
       } else {
-        // Max retries exceeded
-        job.status = JobStatus.FAILED;
-        await job.save();
         logger.error(
-          `[Orchestrator] Job execution failed after ${job.metadata.retryCount} retries: ${jobId}`,
-          error,
+          `[Orchestrator] Job ${jobId} failed after ${attemptsMade + 1} attempt(s): ${error instanceof Error ? error.message : 'Unknown error'}`,
         );
       }
+      // Reject the Bull processor so its configured attempts/backoff actually run.
+      throw error;
     }
   }
 
