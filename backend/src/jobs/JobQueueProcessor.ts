@@ -48,15 +48,18 @@ class JobQueueProcessor {
    */
   private setupEventHandlers(): void {
     // Job processing
-    this.queue.process(config.jobQueue.maxAttempts, async (job) => {
+    this.queue.process(config.jobQueue.concurrency, async (job) => {
       logger.info(`[Queue] Processing job ${job.data.jobId}`);
 
       try {
-        await orchestrator.executeJob(job.data.jobId);
+        await orchestrator.executeJob(job.data.jobId, {
+          attemptsMade: job.attemptsMade,
+          attempts: Number(job.opts.attempts) || 1,
+        });
         logger.info(`[Queue] Job ${job.data.jobId} completed`);
         return { status: 'completed' };
       } catch (error) {
-        logger.error(`[Queue] Job ${job.data.jobId} failed`, error);
+        logger.error(`[Queue] Job ${job.data.jobId} failed: ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
     });
@@ -68,7 +71,7 @@ class JobQueueProcessor {
 
     // Job failed
     this.queue.on('failed', (job, err) => {
-      logger.error(`[Queue] Job failed after retries: ${job.data.jobId}`, err);
+      logger.error(`[Queue] Job attempt failed: ${job.data.jobId}: ${err instanceof Error ? err.message : String(err)}`);
     });
 
     // Job error — Redis connection problems can repeat every second, so
