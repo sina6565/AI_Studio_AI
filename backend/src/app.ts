@@ -32,9 +32,10 @@ export function createApp(): Express {
   app.use(`${config.apiPrefix}/${config.apiVersion}/health`, healthRoutes);
   // Authentication endpoints get a stricter limit than the general API limiter
   // so credential stuffing is throttled without affecting normal API usage.
+  // Read per app instance so deployments (and tests) can tune it.
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 20,
+    max: parseInt(process.env.AUTH_RATE_LIMIT_MAX || '20', 10),
     standardHeaders: true,
     legacyHeaders: false,
     message: {
@@ -54,7 +55,7 @@ export function createApp(): Express {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     logger.error('Unhandled error', err);
     const statusCode = err.statusCode || err.status || 500;
-    res.status(statusCode).json({ success: false, error: { code: err.code || 'INTERNAL_SERVER_ERROR', message: config.nodeEnv === 'production' && statusCode === 500 ? 'Internal Server Error' : (err.message || 'Internal Server Error'), ...(statusCode < 500 && err.details ? { details: err.details } : {}) } });
+    res.status(statusCode).json({ success: false, error: { code: err.code || 'INTERNAL_SERVER_ERROR', message: config.nodeEnv === 'production' && statusCode === 500 ? 'Internal Server Error' : (err.message || 'Internal Server Error') } });
   });
   return app;
 }
