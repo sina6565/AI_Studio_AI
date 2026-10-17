@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">SINA AI STUDIO — From a single idea to an entire universe</title>
+  <desc id="desc">A cinematic digital universe with a glowing planet, orbital paths, and cyan, violet, and magenta light.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#030611"/><stop offset=".52" stop-color="#0a1025"/><stop offset="1" stop-color="#160a2d"/>
+    </linearGradient>
+    <radialGradient id="planet" cx=".32" cy=".25" r=".85">
+      <stop offset="0" stop-color="#4df7ff"/><stop offset=".28" stop-color="#3979d9"/><stop offset=".63" stop-color="#5632a7"/><stop offset="1" stop-color="#100d2b"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00e5ff" stop-opacity="0"/><stop offset=".28" stop-color="#00e5ff"/><stop offset=".7" stop-color="#a855f7"/><stop offset="1" stop-color="#ff2e88" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff"/><stop offset=".62" stop-color="#a5f3fc"/><stop offset="1" stop-color="#d8b4fe"/>
+    </linearGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" fill="none" stroke="#7dd3fc" stroke-opacity=".07" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="420" rx="24" fill="url(#bg)"/>
+  <rect width="1200" height="420" rx="24" fill="url(#grid)"/>
+  <circle cx="900" cy="205" r="132" fill="#5b21b6" opacity=".28" filter="url(#glow)"/>
+  <circle cx="900" cy="205" r="104" fill="url(#planet)"/>
+  <path d="M810 150c37-29 100-41 156-13M801 192c49-24 123-24 192 1M816 244c42-14 91-10 154 14" fill="none" stroke="#a5f3fc" stroke-opacity=".4" stroke-width="2"/>
+  <ellipse cx="900" cy="210" rx="177" ry="48" transform="rotate(-19 900 210)" fill="none" stroke="url(#ring)" stroke-width="3"/>
+  <ellipse cx="900" cy="210" rx="202" ry="66" transform="rotate(-19 900 210)" fill="none" stroke="#7c3aed" stroke-opacity=".5" stroke-width="1.5"/>
+  <path d="M790 98c33-23 72-34 111-34" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="742" cy="117" r="3" fill="#00e5ff"/><circle cx="1038" cy="112" r="2.5" fill="#ff2e88"/><circle cx="1074" cy="274" r="3" fill="#c4b5fd"/>
+  <circle cx="742" cy="117" r="10" fill="#00e5ff" opacity=".24" filter="url(#glow)"/>
+  <g fill="#e0f2fe">
+    <circle cx="690" cy="75" r="1.8" opacity=".7"/><circle cx="1083" cy="72" r="1.6" opacity=".7"/><circle cx="1100" cy="330" r="1.7" opacity=".8"/>
+    <circle cx="770" cy="327" r="1.5" opacity=".6"/><circle cx="1012" cy="354" r="1.6" opacity=".7"/><circle cx="665" cy="270" r="1.3" opacity=".7"/>
+    <circle cx="1142" cy="180" r="1.4" opacity=".6"/><circle cx="704" cy="350" r="1.5" opacity=".6"/>
+  </g>
+  <path d="M66 64h34M66 64v34M1134 322h-34M1134 322v-34" fill="none" stroke="#00e5ff" stroke-opacity=".6" stroke-width="2"/>
+  <rect x="72" y="93" width="4" height="26" rx="2" fill="#00e5ff"/>
+  <text x="94" y="111" fill="#a5f3fc" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" letter-spacing="4">A DIGITAL UNIVERSE FACTORY</text>
+  <text x="70" y="178" fill="url(#word)" font-family="Arial, Helvetica, sans-serif" font-size="51" font-weight="800" letter-spacing="1">SINA AI STUDIO</text>
+  <text x="73" y="224" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">FROM A SINGLE IDEA</text>
+  <text x="73" y="257" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">TO AN ENTIRE UNIVERSE.</text>
+  <text x="74" y="303" fill="#a7b4d0" font-family="Arial, Helvetica, sans-serif" font-size="15">One creative platform. Multiple AI capabilities.</text>
+  <text x="74" y="326" fill="#a7b4d0" font-family="Arial, Helvetica, sans-serif" font-size="15">Image · Video · Audio · Speech · Characters · 3D · Games</text>
+  <rect x="73" y="354" width="150" height="34" rx="17" fill="#00e5ff" fill-opacity=".1" stroke="#00e5ff" stroke-opacity=".65"/>
+  <text x="148" y="376" text-anchor="middle" fill="#a5f3fc" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" letter-spacing="1.6">BUILD WORLDS</text>
+</svg>
