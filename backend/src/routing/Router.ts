@@ -18,7 +18,13 @@ export class Router {
     );
 
     if (!capable.length) {
-      throw new AppError('NO_PROVIDER_AVAILABLE', `No provider available for ${type}`, 503);
+      // Typed so the API layer maps this to 503 with an actionable code instead
+      // of a bare 500 whose message is masked in production.
+      throw new AppError(
+        'NO_PROVIDER_AVAILABLE',
+        `No provider available for ${type}`,
+        503,
+      );
     }
 
     // Single provider case
