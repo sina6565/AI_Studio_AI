@@ -86,7 +86,8 @@ export class AgnesProvider implements IProvider {
       };
     } catch (error) {
       logger.error(`Agnes image generation failed: ${safeErrorMessage(error)}`);
-      throw error;
+      // Do not propagate Axios config/headers (which contain the bearer key) into worker logs.
+      throw new Error(safeErrorMessage(error));
     }
   }
 
@@ -103,7 +104,8 @@ export class AgnesProvider implements IProvider {
       };
     } catch (error) {
       logger.error(`Agnes video generation failed: ${safeErrorMessage(error)}`);
-      throw error;
+      // Do not propagate Axios config/headers (which contain the bearer key) into worker logs.
+      throw new Error(safeErrorMessage(error));
     }
   }
 
@@ -120,7 +122,8 @@ export class AgnesProvider implements IProvider {
       };
     } catch (error) {
       logger.error(`Agnes audio generation failed: ${safeErrorMessage(error)}`);
-      throw error;
+      // Do not propagate Axios config/headers (which contain the bearer key) into worker logs.
+      throw new Error(safeErrorMessage(error));
     }
   }
 
@@ -137,7 +140,8 @@ export class AgnesProvider implements IProvider {
       };
     } catch (error) {
       logger.error(`Agnes speech synthesis failed: ${safeErrorMessage(error)}`);
-      throw error;
+      // Do not propagate Axios config/headers (which contain the bearer key) into worker logs.
+      throw new Error(safeErrorMessage(error));
     }
   }
 
