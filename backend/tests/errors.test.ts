@@ -23,6 +23,7 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import config from '../src/config';
 import { generateToken } from '../src/api/middleware/auth';
+import orchestrator from '../src/orchestrator/Orchestrator';
 
 describe('error handling', () => {
   const app = createApp();
@@ -58,4 +59,42 @@ describe('error handling', () => {
     const res = await request(app).get('/api/v1/projects/does-not-exist');
     expect(res.status).toBe(401);
   });
+  it('includes structured field-level details for validation errors', async () => {
+    const res = await request(app)
+      .post('/api/v1/jobs')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ type: 'not-a-supported-type', input: {} });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.details.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'type' }),
+    ]));
+  });
+
+  it('does not expose persisted stack traces in job API responses', async () => {
+    jest.spyOn(orchestrator, 'getJobStatus').mockResolvedValue({
+      id: 'job-1',
+      userId: 'user-1',
+      type: 'image_generation',
+      status: 'failed',
+      priority: 'normal',
+      input: { prompt: 'test' },
+      error: { code: 'EXECUTION_ERROR', message: 'provider failed', stack: 'internal/path/secret.ts:123' },
+      metadata: { retryCount: 0, maxRetries: 3, requestedAt: new Date() },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .get('/api/v1/jobs/job-1')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.error).toEqual({
+      code: 'EXECUTION_ERROR',
+      message: 'provider failed',
+    });
+    expect(JSON.stringify(res.body)).not.toContain('internal/path/secret.ts');
+  });
+
 });
