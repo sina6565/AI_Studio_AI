@@ -8,6 +8,7 @@ import Queue from 'bull';
 import config from '../config';
 import logger from '../utils/logger';
 import orchestrator from '../orchestrator/Orchestrator';
+import { bullJobId, bullJobIds } from './jobIds';
 
 export interface JobQueueData {
   jobId: string;
@@ -48,18 +49,15 @@ class JobQueueProcessor {
    */
   private setupEventHandlers(): void {
     // Job processing
-    this.queue.process(config.jobQueue.concurrency, async (job) => {
+    this.queue.process(config.jobQueue.maxAttempts, async (job) => {
       logger.info(`[Queue] Processing job ${job.data.jobId}`);
 
       try {
-        await orchestrator.executeJob(job.data.jobId, {
-          attemptsMade: job.attemptsMade,
-          attempts: Number(job.opts.attempts) || 1,
-        });
+        await orchestrator.executeJob(job.data.jobId);
         logger.info(`[Queue] Job ${job.data.jobId} completed`);
         return { status: 'completed' };
       } catch (error) {
-        logger.error(`[Queue] Job ${job.data.jobId} failed: ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(`[Queue] Job ${job.data.jobId} failed`, error);
         throw error;
       }
     });
@@ -71,7 +69,7 @@ class JobQueueProcessor {
 
     // Job failed
     this.queue.on('failed', (job, err) => {
-      logger.error(`[Queue] Job attempt failed: ${job.data.jobId}: ${err instanceof Error ? err.message : String(err)}`);
+      logger.error(`[Queue] Job failed after retries: ${job.data.jobId}`, err);
     });
 
     // Job error — Redis connection problems can repeat every second, so
@@ -110,14 +108,20 @@ class JobQueueProcessor {
    * Bounded by ENQUEUE_TIMEOUT_MS so a Redis outage cannot hang the request
    * that created the job.
    */
-  async enqueueJob(jobId: string, userId: string, jobType: string): Promise<void> {
+  async enqueueJob(
+    jobId: string,
+    userId: string,
+    jobType: string,
+    attempt = 0,
+  ): Promise<void> {
     try {
       const addPromise = this.queue.add(
         { jobId, userId, type: jobType },
         {
           // Use the application job id as the Bull job id so the job can be
-          // located and removed when it is cancelled.
-          jobId,
+          // located and removed when it is cancelled. Retries get a suffixed id
+          // so the original entry does not swallow the re-add.
+          jobId: bullJobId(jobId, attempt),
           priority: 1, // Default priority
           attempts: config.jobQueue.maxAttempts,
           backoff: {
@@ -159,13 +163,16 @@ class JobQueueProcessor {
       if (!this.queue) {
         return false;
       }
-      const job = await this.queue.getJob(jobId);
-      if (!job) {
-        return false;
+      // A job may be sitting under its original id or under any retry id.
+      for (const candidate of bullJobIds(jobId, config.jobQueue.maxAttempts)) {
+        const job = await this.queue.getJob(candidate);
+        if (job) {
+          await job.remove();
+          logger.info(`[JobQueue] Removed cancelled job ${candidate}`);
+          return true;
+        }
       }
-      await job.remove();
-      logger.info(`[JobQueue] Removed cancelled job ${jobId}`);
-      return true;
+      return false;
     } catch (error) {
       logger.warn(
         `[JobQueue] Failed to remove job ${jobId}: ${(error as Error).message}`,
