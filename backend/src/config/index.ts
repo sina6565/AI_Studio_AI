@@ -207,8 +207,19 @@ const config_: AppConfig = {
 
 // Validate security-sensitive configuration in production.
 if (config_.nodeEnv === 'production') {
-  if (!process.env.JWT_SECRET || config_.jwt.secret === 'dev-secret-key') {
-    throw new Error('JWT_SECRET must be set to a strong, unique value in production');
+  const jwtSecret = process.env.JWT_SECRET || '';
+  const placeholderSecrets = new Set([
+    'dev-secret-key',
+    'replace-with-unique-local-development-secret',
+    'your-secret-jwt-key-change-in-production',
+    'your-super-secret-jwt-key-change-in-production',
+  ]);
+
+  if (
+    jwtSecret.length < 32 ||
+    placeholderSecrets.has(jwtSecret.trim().toLowerCase())
+  ) {
+    throw new Error('JWT_SECRET must be a unique secret of at least 32 characters in production');
   }
   if (config_.cors.origin.includes('*')) {
     throw new Error('CORS_ORIGIN must list trusted origins in production; wildcard origins are not allowed');
