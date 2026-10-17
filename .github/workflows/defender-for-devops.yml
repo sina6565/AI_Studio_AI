@@ -9,8 +9,10 @@ on:
   schedule:
     - cron: "29 11 * * 2"
 
-# The SARIF upload step needs security-events: write. Keep other permissions read-only.
+# SARIF upload needs security-events: write; the action also reads workflow-run metadata.
+# Keep all other permissions read-only.
 permissions:
+  actions: read
   contents: read
   security-events: write
 
