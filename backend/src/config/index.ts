@@ -117,8 +117,10 @@ const mongodbUri =
   process.env.DATABASE_URL ||
   'mongodb://localhost:27017/ai-platform';
 
+const nodeEnv = (process.env.NODE_ENV as AppConfig['nodeEnv']) || 'development';
+
 const config_: AppConfig = {
-  nodeEnv: (process.env.NODE_ENV as AppConfig['nodeEnv']) || 'development',
+  nodeEnv,
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',
   apiVersion: 'v1',
@@ -137,7 +139,8 @@ const config_: AppConfig = {
   },
 
   jwt: {
-    secret: requireEnv('JWT_SECRET', 'dev-secret-key'),
+    // Keep the convenience fallback for local development/tests only. Production must provide its own secret.
+    secret: requireEnv('JWT_SECRET', nodeEnv === 'production' ? undefined : 'dev-secret-key'),
     expiry: process.env.JWT_EXPIRY || '7d',
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '12', 10),
   },
@@ -202,10 +205,13 @@ const config_: AppConfig = {
   },
 };
 
-// Validate configuration in production
+// Validate security-sensitive configuration in production.
 if (config_.nodeEnv === 'production') {
-  if (config_.jwt.secret === 'dev-secret-key') {
-    throw new Error('JWT_SECRET must be set in production');
+  if (!process.env.JWT_SECRET || config_.jwt.secret === 'dev-secret-key') {
+    throw new Error('JWT_SECRET must be set to a strong, unique value in production');
+  }
+  if (config_.cors.origin.includes('*')) {
+    throw new Error('CORS_ORIGIN must list trusted origins in production; wildcard origins are not allowed');
   }
   if (!config_.providers.agnes?.apiKey) {
     console.warn(
