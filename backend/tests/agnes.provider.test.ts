@@ -5,12 +5,18 @@
  * real Agnes credentials: the axios client is mocked.
  */
 
+jest.mock('../src/utils/logger', () => ({
+  __esModule: true,
+  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() },
+}));
+
 jest.mock('axios', () => ({
   __esModule: true,
   default: { create: jest.fn() },
 }));
 
 import axios from 'axios';
+import logger from '../src/utils/logger';
 import { AgnesProvider } from '../src/providers/agnes/AgnesProvider';
 
 const mockedCreate = axios.create as unknown as jest.Mock;
@@ -58,9 +64,17 @@ describe('AgnesProvider', () => {
     expect(result.url).toBe('https://cdn.test/img-1.png');
   });
 
-  it('propagates provider errors instead of returning a fake result', async () => {
-    post.mockRejectedValue(new Error('agnes unavailable'));
+  it('propagates a sanitized provider error without logging Axios authorization headers', async () => {
+    const secret = 'test-agnes-secret';
+    const axiosError = Object.assign(new Error('agnes unavailable'), {
+      config: { headers: { Authorization: `Bearer ${secret}` } },
+    });
+    post.mockRejectedValue(axiosError);
+    (logger.error as jest.Mock).mockClear();
 
-    await expect(provider.generateImage({ prompt: 'x' })).rejects.toThrow();
+    await expect(provider.generateImage({ prompt: 'x' })).rejects.toThrow('agnes unavailable');
+
+    expect(logger.error).toHaveBeenCalledWith('Agnes image generation failed: agnes unavailable');
+    expect(JSON.stringify((logger.error as jest.Mock).mock.calls)).not.toContain(secret);
   });
 });
