@@ -1,4 +1,4 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express, { Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -12,6 +12,7 @@ import userRoutes from './api/routes/users';
 import projectRoutes from './api/routes/projects';
 import generateRoutes from './api/routes/generate';
 import healthRoutes from './api/routes/health';
+import { errorHandler } from './api/middleware/errorHandler';
 
 export function createApp(): Express {
   const app = express();
@@ -52,11 +53,7 @@ export function createApp(): Express {
   app.use(`${config.apiPrefix}/${config.apiVersion}/projects`, projectRoutes);
   app.use(`${config.apiPrefix}/${config.apiVersion}/generate`, generateRoutes);
   app.use((_req, res) => res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Route not found' } }));
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    logger.error('Unhandled error', err);
-    const statusCode = err.statusCode || err.status || 500;
-    res.status(statusCode).json({ success: false, error: { code: err.code || 'INTERNAL_SERVER_ERROR', message: config.nodeEnv === 'production' && statusCode === 500 ? 'Internal Server Error' : (err.message || 'Internal Server Error') } });
-  });
+  app.use(errorHandler);
   return app;
 }
 
