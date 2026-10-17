@@ -26,6 +26,18 @@ describe('production security configuration', () => {
     expect(() => require('../src/config')).toThrow(/JWT_SECRET/);
   });
 
+  it('rejects weak or placeholder JWT secrets in production', () => {
+    setValidProductionEnv();
+    process.env.JWT_SECRET = 'replace-with-unique-local-development-secret';
+
+    expect(() => require('../src/config')).toThrow(/JWT_SECRET/);
+
+    setValidProductionEnv();
+    process.env.JWT_SECRET = 'too-short';
+
+    expect(() => require('../src/config')).toThrow(/JWT_SECRET/);
+  });
+
   it('rejects wildcard CORS origins in production', () => {
     setValidProductionEnv();
     process.env.CORS_ORIGIN = '*';
