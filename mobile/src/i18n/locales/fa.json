@@ -10,7 +10,9 @@
     "game": "بازی",
     "promptPlaceholder": "توضیح دهید چه چیزی می‌خواهید بسازید",
     "generate": "بساز",
-    "queued": "در صف قرار گرفت"
+    "queued": "در صف قرار گرفت",
+    "gameModeCreate": "ایجاد تعریف بازی",
+    "gameModeBuild": "ساخت نمایشگر صحنه"
   },
   "auth": {
     "email": "ایمیل",

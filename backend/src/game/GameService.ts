@@ -19,6 +19,7 @@ import type {
   GameSceneSpec,
   GameSpec,
 } from './types';
+import { renderSceneViewer, sceneViewerFilename } from './SceneViewerRenderer';
 
 export type GameProgressReporter = (
   percentage: number,
@@ -27,6 +28,36 @@ export type GameProgressReporter = (
 
 export const MAX_GAME_SCENES = 12;
 export const MIN_GAME_SCENES = 1;
+
+export interface GameBuildOptions {
+  /** Routing context for the underlying asset generation. */
+  jobType?: JobType;
+}
+
+/** A rendered, self-contained scene-viewer artifact. */
+export interface GameBuildResult {
+  manifest: GameManifest;
+  html: string;
+  filename: string;
+  /** data: URL so the artifact needs no storage backend to be delivered. */
+  dataUrl: string;
+  size: number;
+}
+
+/**
+ * True when the input is already a built manifest (assets plus per-scene image
+ * URLs) rather than a spec that still needs asset generation.
+ */
+export function isGameManifest(value: unknown): value is GameManifest {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<GameManifest>;
+  if (!Array.isArray(candidate.scenes) || !Array.isArray(candidate.assets)) {
+    return false;
+  }
+  return candidate.scenes.some(
+    (scene) => !!scene && typeof scene.imageUrl === 'string' && !!scene.imageUrl,
+  );
+}
 
 export class GameService {
   constructor(private readonly router: Router) {}
@@ -107,6 +138,7 @@ export class GameService {
     spec: GameSpec,
     providers: IProvider[],
     report?: GameProgressReporter,
+    options?: GameBuildOptions,
   ): Promise<GameManifest> {
     this.validateSpec(spec);
 
@@ -119,7 +151,7 @@ export class GameService {
     }
 
     const decision = await this.router.route('image_generation', providers, {
-      jobType: JobType.GAME_CREATION,
+      jobType: options?.jobType || JobType.GAME_CREATION,
       capabilities: [ProviderCapability.IMAGE_GENERATION],
     });
 
@@ -186,5 +218,42 @@ export class GameService {
       notes:
         'This manifest is a game definition (scene graph + generated assets), not a compiled engine build.',
     };
+  }
+
+  /**
+   * Build a runnable scene-viewer artifact from either a game spec (assets are
+   * generated first) or an already-built manifest (assets are reused, so a
+   * build never regenerates images it already has).
+   */
+  async buildGame(
+    input: GameSpec | GameManifest,
+    providers: IProvider[],
+    report?: GameProgressReporter,
+  ): Promise<GameBuildResult> {
+    let manifest: GameManifest;
+
+    if (isGameManifest(input)) {
+      if (report) await report(50, 'reusing_manifest');
+      manifest = input;
+    } else {
+      manifest = await this.createGame(input as GameSpec, providers, report, {
+        jobType: JobType.GAME_BUILD,
+      });
+    }
+
+    if (report) await report(95, 'rendering_scene_viewer');
+
+    const html = renderSceneViewer(manifest);
+    const filename = sceneViewerFilename(manifest.title);
+    const size = Buffer.byteLength(html, 'utf8');
+    const dataUrl =
+      'data:text/html;charset=utf-8;base64,' +
+      Buffer.from(html, 'utf8').toString('base64');
+
+    logger.info(
+      `[GameService] Built scene viewer ${filename} (${size} bytes, ${manifest.scenes.length} scenes)`,
+    );
+
+    return { manifest, html, filename, dataUrl, size };
   }
 }

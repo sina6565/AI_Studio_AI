@@ -186,22 +186,60 @@ export class Orchestrator {
         job.progress = { percentage: 10, stage: 'validating_game_spec' };
         await job.save();
 
-        const manifest = await this.gameService.createGame(
-          job.input as unknown as GameSpec,
-          this.getAvailableProviders(),
-          async (percentage: number, stage: string) => {
-            job.progress = { percentage, stage };
-            await job.save();
-          },
-        );
-
-        output = {
-          id: jobId,
-          url: manifest.assets[0]?.url || '',
-          format: 'application/json',
-          size: 0,
-          metadata: { manifest },
+        const report = async (percentage: number, stage: string) => {
+          // Cancellation is checked at each stage boundary so a cancel during a
+          // long multi-scene run stops before the next provider call instead of
+          // being ignored until the whole pipeline finishes.
+          const current = await JobModel.findById(jobId);
+          if (current && current.status === JobStatus.CANCELLED) {
+            throw new AppError('JOB_CANCELLED', 'Job was cancelled', 409);
+          }
+          job.progress = { percentage, stage };
+          await job.save();
         };
+
+        if (job.type === JobType.GAME_BUILD) {
+          // Build a runnable scene-viewer artifact from a spec or a manifest
+          // produced by an earlier game_creation job.
+          const build = await this.gameService.buildGame(
+            job.input as unknown as GameSpec,
+            this.getAvailableProviders(),
+            report,
+          );
+
+          output = {
+            id: jobId,
+            url: build.dataUrl,
+            format: 'text/html',
+            size: build.size,
+            metadata: {
+              manifest: build.manifest,
+              artifact: {
+                filename: build.filename,
+                format: 'text/html',
+                runtime: 'html5',
+                navigation: 'click-through',
+                sceneCount: build.manifest.scenes.length,
+                // A scene viewer over a game definition: no gameplay mechanics.
+                gameplayMechanics: false,
+              },
+            },
+          };
+        } else {
+          const manifest = await this.gameService.createGame(
+            job.input as unknown as GameSpec,
+            this.getAvailableProviders(),
+            report,
+          );
+
+          output = {
+            id: jobId,
+            url: manifest.assets[0]?.url || '',
+            format: 'application/json',
+            size: 0,
+            metadata: { manifest },
+          };
+        }
       } else {
         switch (job.type) {
         case JobType.IMAGE_GENERATION:
@@ -254,6 +292,19 @@ export class Orchestrator {
         `[Orchestrator] Job completed: ${jobId} (execution time: ${job.metadata.executionTime}ms)`,
       );
     } catch (error) {
+      // A cancellation is not a failure: never retry it, and never overwrite
+      // the cancelled status with a failure or a re-queue.
+      if ((error as any)?.code === 'JOB_CANCELLED') {
+        logger.info(`[Orchestrator] Job cancelled during execution: ${jobId}`);
+        const current = await JobModel.findById(jobId);
+        if (current && current.status !== JobStatus.CANCELLED) {
+          current.status = JobStatus.CANCELLED;
+          current.metadata.cancelledAt = new Date();
+          await current.save();
+        }
+        return;
+      }
+
       // Handle execution error with retry logic
       const shouldRetry =
         (job.metadata.retryCount || 0) <

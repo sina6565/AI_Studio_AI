@@ -81,6 +81,7 @@ const Jobs: React.FC = () => {
             <TableBody>
               {jobs.map((job) => {
                 const manifest = job.result?.metadata?.manifest;
+                const artifact = job.result?.metadata?.artifact;
                 return (
                 <React.Fragment key={job.id}>
                 <TableRow key={job.id}>
@@ -150,6 +151,36 @@ const Jobs: React.FC = () => {
                               ) : null,
                             )}
                           </Box>
+                        </Box>
+                      )}
+                      {artifact && (
+                        <Box sx={{ mt: manifest ? 2 : 0 }}>
+                          <Typography variant="subtitle2">{t('jobs.artifact')}</Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {artifact.filename} &middot; {artifact.format} &middot;{' '}
+                            {artifact.sceneCount} {t('game.scenes')}
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            sx={{ mt: 1 }}
+                            component="a"
+                            href={job.result?.contentUrl}
+                            download={artifact.filename}
+                          >
+                            {t('jobs.downloadArtifact')}
+                          </Button>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            display="block"
+                            sx={{ mt: 1 }}
+                          >
+                            {t('jobs.artifactHint')}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {t('jobs.gameplayNote')}
+                          </Typography>
                         </Box>
                       )}
                     </TableCell>

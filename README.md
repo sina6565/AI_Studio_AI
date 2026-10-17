@@ -507,6 +507,42 @@ When it completes, `GET /api/v1/jobs/:id` returns the game manifest at
 `playable` is `false` and the declared engine target is `scene-viewer`. A
 provider failure fails the job; it is never reported as a success.
 
+### Building a runnable scene viewer
+
+`game_build` takes that definition one step further and renders it into a
+**self-contained HTML5 scene viewer**: a single `.html` file with no external
+JavaScript or CSS, click-through navigation (buttons, arrow keys, swipe, scene
+dots) and one frame per scene.
+
+```bash
+POST /api/v1/jobs
+
+{ "type": "game_build", "input": { /* same game spec as above */ } }
+```
+
+The input may be either a game spec (assets are generated first) or a
+**manifest returned by an earlier `game_creation` job** — in that case the
+existing assets are reused and nothing is regenerated.
+
+On completion the job result carries the artifact:
+
+- `result.contentUrl` — a `data:text/html;base64,…` URL, so the viewer needs no
+  storage backend to be delivered and can be saved straight from the Jobs page.
+- `result.format` — `text/html`.
+- `result.metadata.artifact` — `{ filename, format, runtime, navigation,
+  sceneCount, gameplayMechanics: false }`.
+- `result.metadata.manifest` — the underlying game definition.
+
+**Honest scope:** the viewer is a scene viewer over a game definition. There is
+no gameplay simulation, physics or scripting, so `gameplayMechanics` is `false`.
+The document is self-contained in its *code*; scene images still load from their
+provider URLs, so displaying them needs a network connection.
+
+Both game job types run through the same queue, progress reporting and cancel
+path as every other job. Cancellation is checked at each stage boundary, so a
+cancel during a multi-scene run stops before the next provider call rather than
+being ignored until the pipeline finishes.
+
 ### Known limitations
 
 - `.github/workflows/ci.yml` could not be pushed through the GitHub integration: the

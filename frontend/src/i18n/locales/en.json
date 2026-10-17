@@ -49,7 +49,12 @@
     "sceneNameRequired": "name is required",
     "sceneDescriptionRequired": "description is required",
     "jobId": "Job ID",
-    "viewJobs": "Track progress on the Jobs page"
+    "viewJobs": "Track progress on the Jobs page",
+    "gameModeCreate": "Create game definition",
+    "gameModeBuild": "Build scene viewer",
+    "gameModeCreateHint": "Generates the scene graph and one image per scene, producing a game definition (manifest).",
+    "gameModeBuildHint": "Generates the assets and renders them into a self-contained HTML5 scene viewer you can click through and download.",
+    "gameBuildQueued": "Scene viewer build queued. Track it on the Jobs page."
   },
   "job": {
     "status": "Status",
@@ -90,5 +95,11 @@
     "manifest": "Game manifest",
     "assets": "assets",
     "scenes": "scenes"
+  },
+  "jobs": {
+    "artifact": "Scene viewer artifact",
+    "downloadArtifact": "Download scene viewer",
+    "artifactHint": "Self-contained HTML file. Scene images load from their provider URLs.",
+    "gameplayNote": "This is a scene viewer over a game definition, not a game engine build."
   }
 }
