@@ -13,6 +13,16 @@ interface CreateJobInput {
   webhookUrl?: string;
 }
 
+/** Strip internal stack traces from every job representation sent to clients. */
+function publicJob(job: any): any {
+  const value = typeof job?.toObject === 'function' ? job.toObject() : { ...job };
+  if (value.error && typeof value.error === 'object') {
+    const { stack: _internalStack, ...safeError } = value.error;
+    value.error = safeError;
+  }
+  return value;
+}
+
 const router = Router();
 router.use(authenticateToken);
 router.post('/', async (req: AuthenticatedRequest, res, next) => {
@@ -29,7 +39,7 @@ router.post('/', async (req: AuthenticatedRequest, res, next) => {
 router.get('/', async (req: AuthenticatedRequest, res, next) => {
   try {
     const jobs = await Job.find({ userId: req.user!.userId }).sort({ createdAt: -1 }).limit(100).lean();
-    res.json({ success: true, data: jobs });
+    res.json({ success: true, data: jobs.map(publicJob) });
   } catch (e) { next(e); }
 });
 router.get('/stats', async (req: AuthenticatedRequest, res, next) => {
@@ -49,7 +59,7 @@ router.get('/:jobId', async (req: AuthenticatedRequest, res, next) => {
   try {
     const job = await orchestrator.getJobStatus(req.params.jobId);
     if (job.userId !== req.user!.userId) { res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'You do not have access to this job' } }); return; }
-    res.json({ success: true, data: job });
+    res.json({ success: true, data: publicJob(job) });
   } catch (e) { next(e); }
 });
 router.post('/:jobId/cancel', async (req: AuthenticatedRequest, res, next) => {
