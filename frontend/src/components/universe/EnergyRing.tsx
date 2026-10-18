@@ -2,14 +2,18 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-export default function EnergyRing() {
+interface EnergyRingProps {
+  progress?: number;
+}
+
+export default function EnergyRing({ progress = 0 }: EnergyRingProps) {
   const ringRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (!ringRef.current) return;
 
-    ringRef.current.rotation.z = state.clock.elapsedTime * 0.3;
-    ringRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.2;
+    ringRef.current.rotation.z = state.clock.elapsedTime * 0.3 + progress * Math.PI * 1.5;
+    ringRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.2 + progress * 0.25;
   });
 
   return (
