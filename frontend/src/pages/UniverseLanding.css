@@ -151,3 +151,34 @@
 @media (prefers-reduced-motion: reduce) {
   .universe-landing *, .universe-landing *::before, .universe-landing *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+
+/* Three.js cinematic hero scene */
+.universe-landing .hero-orbit {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 48%, rgba(0, 229, 255, .07), transparent 64%);
+}
+.universe-landing .hero-orbit canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  outline: none;
+}
+.universe-landing .hero-scene-fallback {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 58% 42%, rgba(0, 229, 255, .24), transparent 24%), radial-gradient(circle at 62% 48%, rgba(124, 58, 237, .32), transparent 48%), #050816;
+}
+@media (max-width: 700px) {
+  .universe-landing .hero-orbit {
+    height: 420px !important;
+    min-height: 0;
+  }
+}
+@media (max-width: 420px) {
+  .universe-landing .hero-orbit {
+    height: 350px !important;
+  }
+}
