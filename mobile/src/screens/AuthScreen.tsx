@@ -38,12 +38,10 @@ export default function AuthScreen() {
     setBusy(true);
     setError('');
     try {
-      if (isRegister) {
-        await api.register(email.trim(), username.trim(), password);
-      } else {
-        await api.login(email.trim(), password);
-      }
-      signIn();
+      const result = isRegister
+        ? await api.register(email.trim(), username.trim(), password)
+        : await api.login(email.trim(), password);
+      await signIn(result.token);
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
