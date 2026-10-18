@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './UniverseLanding.css';
+import { HeroScene } from "../components/universe";
 
 const worlds = [
   { number: '01', title: 'AI STUDIO', detail: 'Images, ideas and intelligent creation.', className: 'world-cyan', tag: 'CREATE' },
@@ -59,24 +60,12 @@ const UniverseLanding: React.FC = () => {
           <div className="hero-proof"><span className="proof-line" /> ONE STUDIO. MULTIPLE WORLDS. YOUR IMAGINATION.</div>
         </div>
 
-        <div className="hero-orbit" aria-label="Abstract cinematic planet illustration">
-          <div className="orbit orbit-one" />
-          <div className="orbit orbit-two" />
-          <div className="orbit orbit-three" />
-          <div className="planet-halo" />
-          <div className="hero-planet">
-            <div className="planet-shade" />
-            <div className="planet-continent continent-one" />
-            <div className="planet-continent continent-two" />
-            <div className="planet-atmosphere" />
-          </div>
-          <div className="energy-ring" />
-          <div className="core-logo"><span>S</span><i>AI CORE</i></div>
-          <div className="orbit-label label-top"><span /> CREATION CORE</div>
-          <div className="orbit-label label-bottom">SYSTEM ONLINE <b>●</b></div>
-          <span className="floating-particle particle-one" />
-          <span className="floating-particle particle-two" />
-          <span className="floating-particle particle-three" />
+        <div
+          className="hero-orbit"
+          style={{ width: "100%", height: "620px" }}
+          aria-label="Animated three-dimensional cinematic planet and SINA AI core"
+        >
+          <HeroScene />
         </div>
         <div className="hero-bottomline"><span>01 / THE BEGINNING</span><span>SCROLL TO EXPLORE <b>↓</b></span><span>BUILT FOR WHAT'S NEXT</span></div>
       </section>
