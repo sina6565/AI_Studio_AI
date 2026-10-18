@@ -1,6 +1,5 @@
 import { remap } from "./progress";
 
-import * as THREE from "three";
 
 interface WorldOrbsProps {
   progress: number;
@@ -30,7 +29,7 @@ export default function WorldOrbs({ progress }: WorldOrbsProps) {
             position={world.position}
             visible={worldsVisible > 0}
           >
-            <mesh scale={new THREE.Vector3(scale, scale, scale)}>
+            <mesh scale={scale}>
               <icosahedronGeometry args={[0.42, 2]} />
               <meshStandardMaterial
                 color={world.color}
@@ -42,7 +41,7 @@ export default function WorldOrbs({ progress }: WorldOrbsProps) {
                 opacity={worldsVisible}
               />
             </mesh>
-            <mesh scale={new THREE.Vector3(scale * 1.18, scale * 1.18, scale * 1.18)}>
+            <mesh scale={scale * 1.18}>
               <torusGeometry args={[0.48, 0.009, 8, 64]} />
               <meshBasicMaterial color={world.color} transparent opacity={worldsVisible * 0.8} />
             </mesh>
