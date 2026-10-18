@@ -6,18 +6,29 @@ export const UNIVERSE_MILESTONES = {
   planetOpened: 1,
 } as const;
 
+/** Clamp a numeric progress value to the normalized 0..1 range. */
 export function clampProgress(progress: number): number {
   return Math.min(1, Math.max(0, Number.isFinite(progress) ? progress : 0));
 }
 
+/**
+ * Remap a value from the [start, end] interval to normalized 0..1 progress.
+ * Values below start return 0; values above end return 1.
+ */
+export function remap(value: number, start: number, end: number): number {
+  if (!Number.isFinite(value) || !Number.isFinite(start) || !Number.isFinite(end)) {
+    return 0;
+  }
+  if (start === end) return value < start ? 0 : 1;
+  return clampProgress((value - start) / (end - start));
+}
+
 export function getFractureProgress(progress: number): number {
-  const start = UNIVERSE_MILESTONES.fractureStart;
-  return clampProgress((clampProgress(progress) - start) / (UNIVERSE_MILESTONES.planetOpened - start));
+  return remap(progress, UNIVERSE_MILESTONES.fractureStart, UNIVERSE_MILESTONES.planetOpened);
 }
 
 export function getExplosionProgress(progress: number): number {
-  const start = UNIVERSE_MILESTONES.energyExplosion;
-  return clampProgress((clampProgress(progress) - start) / (UNIVERSE_MILESTONES.planetOpened - start));
+  return remap(progress, UNIVERSE_MILESTONES.energyExplosion, UNIVERSE_MILESTONES.planetOpened);
 }
 
 export function hasReachedMilestone(progress: number, milestone: number): boolean {
