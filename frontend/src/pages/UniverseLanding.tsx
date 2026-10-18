@@ -1,12 +1,9 @@
 import React from 'react';
-import ScrollController from "../components/universe/ScrollController";
-import { useUniverseProgress } from "../components/universe/useUniverseProgress";
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './UniverseLanding.css';
 import { HeroScene } from "../components/universe";
-import ScrollController from "../components/universe/ScrollController";
-import { useUniverseProgress } from "../components/universe/useUniverseProgress";
+import { remap } from "../components/universe/progress";
 
 const worlds = [
   { number: '01', title: 'AI STUDIO', detail: 'Images, ideas and intelligent creation.', className: 'world-cyan', tag: 'CREATE' },
@@ -21,7 +18,7 @@ const UniverseLanding: React.FC = () => {
   const { i18n } = useTranslation();
   const { progress, updateProgress } = useUniverseProgress();
   const isPersian = i18n.language.startsWith('fa');
-  const { progress, updateProgress } = useUniverseProgress();
+  const worldsVisible = remap(progress, 0.75, 1.0);
 
   const toggleLanguage = () => {
     const next = isPersian ? 'en' : 'fa';
@@ -33,7 +30,6 @@ const UniverseLanding: React.FC = () => {
 
   return (
     <main className={`universe-landing ${isPersian ? 'is-persian' : ''}`} data-universe-progress={progress.toFixed(3)}>
-      <ScrollController onProgress={updateProgress} />
       <ScrollController onProgress={updateProgress} />
       <header className="universe-nav">
         <a className="brand-lockup" href="#top" aria-label="Sina Studio AI home">
@@ -94,7 +90,7 @@ const UniverseLanding: React.FC = () => {
           <div><div className="section-kicker">SIX WORLDS. ONE UNIVERSE <span>— 002</span></div><h2>CHOOSE YOUR <em>DIMENSION.</em></h2></div>
           <p>Different creative paths.<br />One place to bring them together.</p>
         </div>
-        <div className="worlds-grid">
+        <div className="worlds-grid" style={{ opacity: worldsVisible, transform: `translateY(${(1 - worldsVisible) * 32}px)`, pointerEvents: worldsVisible > 0.98 ? "auto" : "none" }}>
           {worlds.map((world) => (
             <article className={`world-card ${world.className}`} key={world.number}>
               <div className="world-card-top"><span>{world.number} / WORLD</span><span className="world-tag">{world.tag} ↗</span></div>
