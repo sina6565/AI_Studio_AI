@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { Text } from "@react-three/drei";
 import * as THREE from "three";
 
 export default function LogoCore() {
@@ -39,22 +40,17 @@ export default function LogoCore() {
         />
       </mesh>
 
-      <mesh position={[0, 0, 0.88]}>
-        <planeGeometry args={[0.72, 0.92]} />
-        <meshBasicMaterial color="#050816" />
-      </mesh>
-      <mesh position={[0, 0, 0.9]}>
-        <planeGeometry args={[0.58, 0.78]} />
-        <meshBasicMaterial color="#E8FBFF" />
-      </mesh>
-      <mesh position={[0, 0, 0.92]}>
-        <planeGeometry args={[0.48, 0.68]} />
-        <meshBasicMaterial color="#050816" />
-      </mesh>
-      <mesh position={[0, 0, 0.94]}>
-        <planeGeometry args={[0.38, 0.56]} />
-        <meshBasicMaterial color="#00E5FF" />
-      </mesh>
+      <Text
+        position={[0, 0, 0.92]}
+        fontSize={1.45}
+        color="#E8FBFF"
+        outlineWidth={0.025}
+        outlineColor="#00E5FF"
+        anchorX="center"
+        anchorY="middle"
+      >
+        S
+      </Text>
     </group>
   );
 }
