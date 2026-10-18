@@ -9,7 +9,7 @@ interface ScrollControllerProps {
   onProgress: (progress: number) => void;
 }
 
-/** Owns the single page-level ScrollTrigger that drives the universe timeline. */
+/** Single page-level ScrollTrigger; owns and cleans up only its own resources. */
 export default function ScrollController({ onProgress }: ScrollControllerProps) {
   const onProgressRef = useRef(onProgress);
 
@@ -18,8 +18,13 @@ export default function ScrollController({ onProgress }: ScrollControllerProps) 
   }, [onProgress]);
 
   useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (media.matches) {
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const setReducedMotionProgress = () => {
+      // Keep the full composition visible without attaching a scroll-driven animation.
+      onProgressRef.current(motionPreference.matches ? 1 : 0);
+    };
+
+    if (motionPreference.matches) {
       onProgressRef.current(1);
       return;
     }
@@ -33,8 +38,9 @@ export default function ScrollController({ onProgress }: ScrollControllerProps) 
       onUpdate: (self) => onProgressRef.current(clampProgress(self.progress)),
     });
 
+    motionPreference.addEventListener?.("change", setReducedMotionProgress);
     return () => {
-      // Kill only the trigger owned by this component; do not affect other page features.
+      motionPreference.removeEventListener?.("change", setReducedMotionProgress);
       trigger.kill();
     };
   }, []);
