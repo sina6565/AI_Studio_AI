@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './UniverseLanding.css';
 import { HeroScene } from "../components/universe";
+import ScrollController from "../components/universe/ScrollController";
+import { useUniverseProgress } from "../components/universe/useUniverseProgress";
 import { remap } from "../components/universe/progress";
 
 const worlds = [
