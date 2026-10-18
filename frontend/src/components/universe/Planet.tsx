@@ -57,13 +57,18 @@ const planetFragmentShader = `
   }
 `;
 
-export default function Planet() {
+interface PlanetProps {
+  progress?: number;
+}
+
+export default function Planet({ progress = 0 }: PlanetProps) {
   const groupRef = useRef<THREE.Group>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.045;
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.045 + progress * 0.12;
+      groupRef.current.scale.setScalar(1 - progress * 0.06);
     }
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
