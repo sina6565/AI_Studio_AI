@@ -19,7 +19,7 @@ export default function EnergyRing({ progress = 0 }: EnergyRingProps) {
   return (
     <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
       <torusGeometry args={[2.2, 0.04, 16, 200]} />
-      <meshBasicMaterial color="#FF2E88" />
+      <meshBasicMaterial color="#FF2E88" transparent opacity={0.55 + progress * 0.45} />
     </mesh>
   );
 }
