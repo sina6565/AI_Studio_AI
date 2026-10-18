@@ -4,9 +4,8 @@
  */
 
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import { API_BASE_URL } from '../config/env';
 import type { Job, JobStats, Project, User } from '../types';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -38,7 +37,7 @@ class MobileAPIClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_URL,
+      baseURL: API_BASE_URL,
       timeout: 30000,
     });
 

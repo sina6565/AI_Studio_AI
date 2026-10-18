@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -60,7 +61,16 @@ function MainTabs() {
 }
 
 function RootNavigator() {
-  const { authenticated } = useAuth();
+  const { authenticated, ready } = useAuth();
+
+  // Avoid flashing the login screen before the secure-storage session check.
+  if (!ready) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -82,5 +92,14 @@ function App() {
     </AuthProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+});
 
 export default App;

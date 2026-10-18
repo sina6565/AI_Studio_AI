@@ -87,8 +87,36 @@ npm run dev  # http://localhost:5173
 # Mobile (new terminal)
 cd mobile
 npm install
-npm start
+cp .env.example .env   # optional; the Android emulator default is 10.0.2.2:3000
+npm start              # Metro bundler
+# In a second terminal, build and install the Android debug app:
+npm run android
 ```
+
+#### Running the mobile app on Android
+
+The React Native runtime and the native Android project live in `mobile/`.
+
+```bash
+cd mobile
+npm install
+cp .env.example .env   # optional: point API_URL at a LAN/device/deployed backend
+npm run android        # JDK 17 + Android SDK required (see versions below)
+npm start              # Metro, if run-android did not start it
+```
+
+- **Node.js**: 22.8.0 or newer (22.7.0 is known to be broken).
+- **Toolchain**: JDK 17; Android SDK with platform 34, build-tools 34.0.0 and
+  NDK 23.1.7779620 (the versions pinned in `mobile/android/build.gradle`).
+- **API base URL**: configurable via `API_URL` in `mobile/.env` (build-time,
+  injected by `react-native-dotenv`). When unset, Android emulators use
+  `http://10.0.2.2:3000/api` and iOS simulators use `http://localhost:3000/api`.
+  `.env` is git-ignored — never place provider/API secrets in it, they would be
+  bundled into the app.
+- **Session token**: stored in the platform keychain (`react-native-keychain`,
+  Android Keystore-backed), never in plain storage.
+- **Checks**: `npm run type-check` and `npm run lint` are the fast gates;
+  `npm run android` performs the real native build.
 
 ## 📁 Project Structure
 
@@ -324,11 +352,11 @@ See [Deployment Guide](./docs/DEPLOYMENT.md) for:
 - **RTL**: Built-in support
 
 ### Mobile
-- **Framework**: React Native
+- **Framework**: React Native 0.72 (Android first)
 - **Language**: TypeScript
-- **Navigation**: React Navigation
-- **State**: Redux Toolkit (shared)
-- **HTTP**: Axios (shared)
+- **Navigation**: React Navigation 7 (native stack + bottom tabs)
+- **Secure storage**: react-native-keychain (Android Keystore / iOS Keychain)
+- **HTTP**: Axios
 - **i18n**: i18next (shared)
 
 ### DevOps
@@ -461,7 +489,7 @@ Not specified
 
 1. ✅ Core API foundation with content generation
 2. ✅ Web frontend UI development (React + Vite, real API integration)
-3. 🚧 Mobile app development (screens and API client implemented and type-checked; a native Android/iOS build needs platform tooling that is not available in this environment)
+3. 🚧 Mobile app development (React Native runtime bootstrap + native Android project added; `npm ci`, `npm run type-check` and `npm run lint` pass. The Android debug build is exercised by the CI `mobile-android` job — verify it there, since the sandbox used for development has no stable Android SDK/JDK)
 4. ✅ Job queue & orchestration system (Bull/Redis, retries, stats, cancellation, interrupted-job recovery)
 5. ✅ Game creation workflow (spec validation, per-scene asset generation, game manifest)
 6. ✅ Advanced provider selection & routing (provider-agnostic registry + router)
@@ -545,13 +573,13 @@ being ignored until the pipeline finishes.
 
 ### Known limitations
 
-- `.github/workflows/ci.yml` could not be pushed through the GitHub integration: the
-  GitHub App returns `403 Resource not accessible by integration` because it lacks the
-  `workflows` permission. The identical workflow is committed at
-  `.github/ci-workflow.yml.pending`; move it to `.github/workflows/ci.yml` (or grant the
-  permission and re-push) to enable CI.
-- Native mobile builds require the Android SDK / Xcode, which are not available here.
-  `npm run type-check` and `npm run lint` pass for the mobile app.
+- Native mobile builds require JDK 17 plus the Android SDK (platform 34,
+  build-tools 34.0.0, NDK 23.1.7779620). These are not preinstalled in the
+  development sandbox, so the Android build is verified through the CI
+  `mobile-android` job rather than locally. `npm ci`, `npm run type-check` and
+  `npm run lint` pass locally for the mobile app.
+- `.github/workflows/ci.yml` now includes `mobile` and `mobile-android` jobs in
+  addition to the backend and frontend jobs.
 
 ---
 

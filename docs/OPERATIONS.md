@@ -61,12 +61,29 @@ is committed). The production stage installs runtime dependencies only
 
 ## CI
 
-`.github/workflows/ci.yml` runs the backend build + tests and the frontend build
-on push and pull request.
+`.github/workflows/ci.yml` runs the backend build + tests, the frontend build,
+and two mobile jobs on push and pull request:
+
+- `mobile` — `npm ci`, TypeScript check and lint.
+- `mobile-android` — installs dependencies with JDK 17 and runs
+  `./gradlew assembleDebug` to prove the Android project actually builds.
 
 > **Note:** creating or updating files under `.github/workflows/` through the
 > GitHub integration requires the app to hold the `workflows` permission. If the
 > integration lacks it, the workflow file must be committed manually.
+
+### Mobile local checks
+
+```bash
+cd mobile
+npm ci
+npm run type-check
+npm run lint
+```
+
+A native Android build additionally needs JDK 17 and an Android SDK with
+platform 34, build-tools 34.0.0 and NDK 23.1.7779620. Node.js 22.8.0 or newer is
+required (22.7.0 is broken).
 
 ## Free-tier constraints
 
