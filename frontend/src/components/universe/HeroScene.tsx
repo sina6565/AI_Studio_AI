@@ -5,6 +5,7 @@ import Planet from "./Planet";
 import LogoCore from "./LogoCore";
 import PostEffects from "./PostEffects";
 import EnergyRing from "./EnergyRing";
+import WorldOrbs from "./WorldOrbs";
 
 interface HeroSceneProps {
   progress?: number;
@@ -29,6 +30,7 @@ export default function HeroScene({ progress = 0 }: HeroSceneProps) {
 
       <Planet progress={progress} />
       <EnergyRing progress={progress} />
+      <WorldOrbs progress={progress} />
       <LogoCore />
       <PostEffects />
     </Canvas>
