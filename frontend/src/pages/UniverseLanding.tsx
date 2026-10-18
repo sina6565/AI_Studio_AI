@@ -1,4 +1,6 @@
 import React from 'react';
+import ScrollController from "../components/universe/ScrollController";
+import { useUniverseProgress } from "../components/universe/useUniverseProgress";
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './UniverseLanding.css';
@@ -17,6 +19,7 @@ const worlds = [
 
 const UniverseLanding: React.FC = () => {
   const { i18n } = useTranslation();
+  const { progress, updateProgress } = useUniverseProgress();
   const isPersian = i18n.language.startsWith('fa');
   const { progress, updateProgress } = useUniverseProgress();
 
@@ -29,7 +32,8 @@ const UniverseLanding: React.FC = () => {
   };
 
   return (
-    <main className={`universe-landing ${isPersian ? 'is-persian' : ''}`}>
+    <main className={`universe-landing ${isPersian ? 'is-persian' : ''}`} data-universe-progress={progress.toFixed(3)}>
+      <ScrollController onProgress={updateProgress} />
       <ScrollController onProgress={updateProgress} />
       <header className="universe-nav">
         <a className="brand-lockup" href="#top" aria-label="Sina Studio AI home">
