@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './UniverseLanding.css';
 import { HeroScene } from "../components/universe";
+import ScrollController from "../components/universe/ScrollController";
+import { useUniverseProgress } from "../components/universe/useUniverseProgress";
 
 const worlds = [
   { number: '01', title: 'AI STUDIO', detail: 'Images, ideas and intelligent creation.', className: 'world-cyan', tag: 'CREATE' },
@@ -16,6 +18,7 @@ const worlds = [
 const UniverseLanding: React.FC = () => {
   const { i18n } = useTranslation();
   const isPersian = i18n.language.startsWith('fa');
+  const { progress, updateProgress } = useUniverseProgress();
 
   const toggleLanguage = () => {
     const next = isPersian ? 'en' : 'fa';
@@ -27,6 +30,7 @@ const UniverseLanding: React.FC = () => {
 
   return (
     <main className={`universe-landing ${isPersian ? 'is-persian' : ''}`}>
+      <ScrollController onProgress={updateProgress} />
       <header className="universe-nav">
         <a className="brand-lockup" href="#top" aria-label="Sina Studio AI home">
           <span className="brand-mark">S</span>
@@ -65,7 +69,7 @@ const UniverseLanding: React.FC = () => {
           style={{ width: "100%", height: "620px" }}
           aria-label="Animated three-dimensional cinematic planet and SINA AI core"
         >
-          <HeroScene />
+          <HeroScene progress={progress} />
         </div>
         <div className="hero-bottomline"><span>01 / THE BEGINNING</span><span>SCROLL TO EXPLORE <b>↓</b></span><span>BUILT FOR WHAT'S NEXT</span></div>
       </section>
