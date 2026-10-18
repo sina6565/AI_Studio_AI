@@ -6,7 +6,11 @@ import LogoCore from "./LogoCore";
 import PostEffects from "./PostEffects";
 import EnergyRing from "./EnergyRing";
 
-export default function HeroScene() {
+interface HeroSceneProps {
+  progress?: number;
+}
+
+export default function HeroScene({ progress = 0 }: HeroSceneProps) {
   return (
     <Canvas
       dpr={[1, 1.5]}
@@ -23,8 +27,8 @@ export default function HeroScene() {
 
       <Stars radius={200} depth={70} count={7000} factor={6} saturation={0} fade />
 
-      <Planet />
-      <EnergyRing />
+      <Planet progress={progress} />
+      <EnergyRing progress={progress} />
       <LogoCore />
       <PostEffects />
     </Canvas>
