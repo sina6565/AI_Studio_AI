@@ -3,3 +3,7 @@ export { default as Planet } from "./Planet";
 export { default as LogoCore } from "./LogoCore";
 export { default as EnergyRing } from "./EnergyRing";
 export { default as PostEffects } from "./PostEffects";
+
+export { default as ScrollController } from "./ScrollController";
+export { useUniverseProgress } from "./useUniverseProgress";
+export * from "./progress";
