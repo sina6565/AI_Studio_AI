@@ -151,3 +151,62 @@
 @media (prefers-reduced-motion: reduce) {
   .universe-landing *, .universe-landing *::before, .universe-landing *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+
+/* Functional polish: clear focus states, real RTL layout, and honest concept labels. */
+.universe-landing { scroll-behavior: smooth; }
+.universe-landing a:focus-visible,
+.universe-landing button:focus-visible {
+  outline: 2px solid var(--u-cyan);
+  outline-offset: 4px;
+}
+.universe-landing ::selection { background: rgba(0, 229, 255, .3); color: #fff; }
+.universe-landing.is-persian { letter-spacing: 0; }
+.universe-landing.is-persian .desktop-nav a,
+.universe-landing.is-persian .language-toggle,
+.universe-landing.is-persian .nav-cta,
+.universe-landing.is-persian .button-primary,
+.universe-landing.is-persian .button-secondary,
+.universe-landing.is-persian .section-kicker,
+.universe-landing.is-persian .eyebrow,
+.universe-landing.is-persian .hero-proof,
+.universe-landing.is-persian .hero-bottomline,
+.universe-landing.is-persian .world-card-top,
+.universe-landing.is-persian .world-card-copy h3,
+.universe-landing.is-persian .founders-card h3,
+.universe-landing.is-persian .founders-card-label,
+.universe-landing.is-persian .footer-copyright {
+  letter-spacing: 0;
+}
+.universe-landing.is-persian .hero-description,
+.universe-landing.is-persian .intro-copy p,
+.universe-landing.is-persian .section-heading-row > p,
+.universe-landing.is-persian .creation-copy > p,
+.universe-landing.is-persian .founders-content p,
+.universe-landing.is-persian .world-card-copy p,
+.universe-landing.is-persian .creation-steps small,
+.universe-landing.is-persian .founders-card small {
+  line-height: 2;
+}
+.universe-landing.is-persian .intro-copy,
+.universe-landing.is-persian .creation-copy,
+.universe-landing.is-persian .founders-content > div:first-child,
+.universe-landing.is-persian .section-heading-row > div,
+.universe-landing.is-persian .world-card-copy,
+.universe-landing.is-persian .founders-card,
+.universe-landing.is-persian .universe-footer > p {
+  text-align: right;
+}
+.universe-landing.is-persian .hero-proof { flex-direction: row-reverse; justify-content: flex-end; }
+.universe-landing.is-persian .section-kicker span { margin-left: 0; margin-right: 12px; }
+.universe-landing.is-persian .world-card-copy { left: 21px; right: 21px; }
+.universe-landing.is-persian .creation-steps > div { flex-direction: row; }
+.universe-landing.is-persian .creation-steps > div > b { min-width: 28px; }
+.universe-landing.is-persian .universe-footer { direction: rtl; }
+.universe-landing.is-persian .universe-footer > p { text-align: center; }
+.universe-landing.is-persian .back-top { white-space: nowrap; }
+@media (max-width: 700px) {
+  .universe-landing.is-persian .world-card-copy { left: 14px; right: 14px; }
+  .universe-landing.is-persian .hero-proof { align-items: flex-start; }
+  .universe-landing.is-persian .universe-footer > p { text-align: right; }
+}
