@@ -441,31 +441,30 @@ For issues, questions, or contributions:
 
 Not specified
 
-## 📊 Current Status
+## 📊 Current Status (as of 2026-10-20)
 
-- ✅ Core Express.js backend setup
-- ✅ Authentication framework
-- ✅ Database models and connection
-- ✅ Agnes AI provider integration
-- ✅ Content generation endpoints (Image, Video, Audio, Text-to-Speech)
-- ✅ Security middleware (helmet, CORS, rate limiting)
-- ✅ Error handling and logging
-- ⏳ Frontend Web UI
-- ⏳ Mobile app
-- ⏳ Job orchestration system
-- ⏳ Game creation workflows
-- ⏳ Advanced provider routing
-- ⏳ Production deployment configuration
+This status reflects the repository's current implementation roadmap. A checked item means the capability is reported as implemented; it does **not** by itself prove end-to-end testing against live external services.
+
+- ✅ Core Express.js API, authentication framework, database models/connection code, Agnes provider integration, content-generation endpoints, security middleware, error handling, and logging
+- ✅ Web UI built with React + Vite; API integration is implemented. Full live-service/end-to-end coverage must be verified separately.
+- 🚧 Mobile app: screens and API client are implemented and type-checked; native Android/iOS builds still require platform tooling.
+- ✅ Job orchestration code: Bull/Redis queue, retries, statistics, cancellation, and interrupted-job recovery
+- ✅ Game creation pipeline and manifest generation; a generated scene viewer is not equivalent to a full gameplay engine
+- ✅ Provider-agnostic provider registry and routing
+- ✅ GitHub Actions CI has passed on the main branch after the frontend dependency fix (PR #18, commit `725abc5764f9e55f9826b18fe23ae38fa2982679`). This does not establish that every integration or production service has been tested.
+- 🚧 Performance profiling and optimization
+- 🚧 Security audit and remediation
+- 🚧 Production deployment validation and release
 
 ## 🗓️ Roadmap to Release
 
 1. ✅ Core API foundation with content generation
-2. ✅ Web frontend UI development (React + Vite, real API integration)
-3. 🚧 Mobile app development (screens and API client implemented and type-checked; a native Android/iOS build needs platform tooling that is not available in this environment)
+2. ✅ Web frontend UI development (React + Vite, API integration implemented; end-to-end verification remains separate)
+3. 🚧 Mobile app development (screens and API client implemented and type-checked; a native Android/iOS build needs platform tooling)
 4. ✅ Job queue & orchestration system (Bull/Redis, retries, stats, cancellation, interrupted-job recovery)
-5. ✅ Game creation workflow (spec validation, per-scene asset generation, game manifest)
+5. ✅ Game creation workflow (spec validation, per-scene asset generation, game manifest; not a full gameplay engine)
 6. ✅ Advanced provider selection & routing (provider-agnostic registry + router)
-7. ✅ Testing & quality assurance (backend unit tests, frontend build, CI workflow)
+7. 🚧 Testing & quality assurance (main-branch CI is green; complete integration/live-service coverage still needs verification)
 8. 🚧 Performance optimization
 9. 🚧 Security audit
 10. 🚧 Production deployment & release
@@ -545,16 +544,15 @@ being ignored until the pipeline finishes.
 
 ### Known limitations
 
-- `.github/workflows/ci.yml` could not be pushed through the GitHub integration: the
-  GitHub App returns `403 Resource not accessible by integration` because it lacks the
-  `workflows` permission. The identical workflow is committed at
-  `.github/ci-workflow.yml.pending`; move it to `.github/workflows/ci.yml` (or grant the
-  permission and re-push) to enable CI.
+- The main-branch GitHub Actions CI workflow is now running and passed after PR #18
+  (commit `725abc5764f9e55f9826b18fe23ae38fa2982679`). Treat that result as CI evidence only;
+  live Agnes/provider calls, production database/Redis behavior, native mobile builds, and
+  full deployed end-to-end flows must be verified separately.
 - Native mobile builds require the Android SDK / Xcode, which are not available here.
   `npm run type-check` and `npm run lint` pass for the mobile app.
 
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: 2026-10-14  
+**Last Updated**: 2026-10-20  
 **Status**: Core Features Implemented - Production Development Phase
