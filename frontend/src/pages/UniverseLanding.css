@@ -210,3 +210,67 @@
   .universe-landing.is-persian .hero-proof { align-items: flex-start; }
   .universe-landing.is-persian .universe-footer > p { text-align: right; }
 }
+
+
+/* Release fix: keep the compact brand/navigation on one horizontal row at 390px. */
+@media (max-width: 420px) {
+  .universe-nav {
+    padding-inline: 14px;
+    gap: 8px;
+  }
+  .brand-lockup {
+    min-width: 0;
+    flex-shrink: 1;
+    gap: 7px;
+  }
+  .brand-name {
+    min-width: 0;
+    font-size: 9px;
+    line-height: 1.2;
+    letter-spacing: .06em;
+  }
+  .brand-name small {
+    font-size: 6px;
+    line-height: 1.2;
+    letter-spacing: .08em;
+    margin-top: 1px;
+    white-space: nowrap;
+  }
+  .nav-actions {
+    flex-shrink: 0;
+    gap: 8px;
+  }
+  .language-toggle {
+    padding-block: 6px;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+  .nav-cta {
+    max-width: 82px;
+    padding: 8px 7px;
+    font-size: 7px;
+    line-height: 1.25;
+    letter-spacing: 0;
+    white-space: normal;
+    text-align: center;
+  }
+  .nav-cta span {
+    margin-inline-start: 4px;
+    margin-inline-end: 0;
+  }
+}
+
+/* Persian is a layout direction, not just right-aligned text. */
+.universe-landing.is-persian {
+  direction: rtl;
+}
+.universe-landing.is-persian .brand-name,
+.universe-landing.is-persian .nav-actions,
+.universe-landing.is-persian .hero-buttons {
+  direction: rtl;
+}
+.universe-landing.is-persian .nav-cta span,
+.universe-landing.is-persian .language-toggle span {
+  margin-inline-start: 0;
+  margin-inline-end: 5px;
+}
