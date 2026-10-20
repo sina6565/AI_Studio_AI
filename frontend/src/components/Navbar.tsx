@@ -54,18 +54,18 @@ const Navbar: React.FC = () => {
         <Stack direction="row" spacing={1}>
           {isLoggedIn && (
             <>
-              <Button color="inherit" component={RouterLink} to="/dashboard">
-                {t('nav.home')}
-              </Button>
-              <Button color="inherit" component={RouterLink} to="/studio">
-                {t('nav.create')}
-              </Button>
-              <Button color="inherit" component={RouterLink} to="/projects">
-                {t('nav.projects')}
-              </Button>
-              <Button color="inherit" component={RouterLink} to="/jobs">
-                {t('nav.jobs')}
-              </Button>
+              <RouterLink to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.home')}</Button>
+              </RouterLink>
+              <RouterLink to="/studio" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.create')}</Button>
+              </RouterLink>
+              <RouterLink to="/projects" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.projects')}</Button>
+              </RouterLink>
+              <RouterLink to="/jobs" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.jobs')}</Button>
+              </RouterLink>
             </>
           )}
           <Button color="inherit" onClick={toggleLanguage}>
