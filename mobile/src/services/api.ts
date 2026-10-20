@@ -168,7 +168,31 @@ class MobileAPIClient {
         },
       });
     }
-    return this.createJob({ type, input });
+    // Match the backend createJob schema: it accepts canonical job types,
+    // not the short UI labels used by the mobile studio.
+    const jobTypeMap: Record<string, string> = {
+      image: 'image_generation',
+      video: 'video_generation',
+      audio: 'audio_generation',
+      speech: 'text_to_speech',
+    };
+    const jobType = jobTypeMap[type] || type;
+
+    // The backend/provider TTS contract requires input.text. The mobile form
+    // supplies input.prompt, so normalize it at the API boundary.
+    const normalizedInput =
+      jobType === 'text_to_speech'
+        ? {
+            ...input,
+            text: String(input.text ?? input.prompt ?? '').trim(),
+          }
+        : input;
+
+    if (jobType === 'text_to_speech' && !normalizedInput.text) {
+      throw new Error('Text is required for speech synthesis');
+    }
+
+    return this.createJob({ type: jobType, input: normalizedInput });
   }
 }
 
