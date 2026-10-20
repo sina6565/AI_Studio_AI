@@ -26,6 +26,7 @@ const Navbar: React.FC = () => {
     const newLang = i18n.language === 'en' ? 'fa' : 'en';
     i18n.changeLanguage(newLang);
     localStorage.setItem('language', newLang);
+    document.documentElement.lang = newLang;
     document.documentElement.dir = newLang === 'fa' ? 'rtl' : 'ltr';
   };
 
@@ -44,7 +45,7 @@ const Navbar: React.FC = () => {
     <AppBar position="static">
       <Toolbar>
         <Box sx={{ flexGrow: 1 }}>
-          <RouterLink to="/" style={{ textDecoration: 'none', color: 'white' }}>
+          <RouterLink to={isLoggedIn ? '/dashboard' : '/'} style={{ textDecoration: 'none', color: 'white' }}>
             <Button color="inherit" size={isMobile ? 'small' : 'medium'}>
               {t('app.title')}
             </Button>
@@ -53,7 +54,7 @@ const Navbar: React.FC = () => {
         <Stack direction="row" spacing={1}>
           {isLoggedIn && (
             <>
-              <Button color="inherit" component={RouterLink} to="/">
+              <Button color="inherit" component={RouterLink} to="/dashboard">
                 {t('nav.home')}
               </Button>
               <Button color="inherit" component={RouterLink} to="/studio">
@@ -72,20 +73,9 @@ const Navbar: React.FC = () => {
           </Button>
           {isLoggedIn && (
             <>
-              <Button
-                color="inherit"
-                onClick={(e) => setAnchorEl(e.currentTarget)}
-              >
-                ⋮
-              </Button>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={() => setAnchorEl(null)}
-              >
-                <MenuItem onClick={handleLogout}>
-                  {t('nav.logout')}
-                </MenuItem>
+              <Button color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>⋮</Button>
+              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+                <MenuItem onClick={handleLogout}>{t('nav.logout')}</MenuItem>
               </Menu>
             </>
           )}
