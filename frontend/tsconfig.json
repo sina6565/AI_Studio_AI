@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -19,9 +23,23 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/components/universe/HeroScene": [
+        "./src/components/universe/HeroScene.shim.d.ts"
+      ],
+      "@/*": [
+        "src/*"
+      ]
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ],
+  "exclude": [
+    "src/components/universe"
+  ]
 }

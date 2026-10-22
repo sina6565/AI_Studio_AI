@@ -2,7 +2,6 @@ import React from 'react';
 import {
   AppBar,
   Toolbar,
-  Box,
   Button,
   Stack,
   useMediaQuery,
@@ -43,28 +42,31 @@ const Navbar: React.FC = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Box sx={{ flexGrow: 1 }}>
-          <RouterLink to="/" style={{ textDecoration: 'none', color: 'white' }}>
+        <div style={{ flexGrow: 1 }}>
+          <RouterLink to={isLoggedIn ? '/dashboard' : '/'} style={{ textDecoration: 'none', color: 'white' }}>
             <Button color="inherit" size={isMobile ? 'small' : 'medium'}>
               {t('app.title')}
             </Button>
           </RouterLink>
-        </Box>
+        </div>
         <Stack direction="row" spacing={1}>
           {isLoggedIn && (
             <>
-              <Button color="inherit" component={RouterLink} to="/">
-                {t('nav.home')}
-              </Button>
-              <Button color="inherit" component={RouterLink} to="/studio">
-                {t('nav.create')}
-              </Button>
-              <Button color="inherit" component={RouterLink} to="/projects">
-                {t('nav.projects')}
-              </Button>
-              <Button color="inherit" component={RouterLink} to="/jobs">
-                {t('nav.jobs')}
-              </Button>
+              <RouterLink to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.home')}</Button>
+              </RouterLink>
+              <RouterLink to="/studio" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.create')}</Button>
+              </RouterLink>
+              <RouterLink to="/projects" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.projects')}</Button>
+              </RouterLink>
+              <RouterLink to="/jobs" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.jobs')}</Button>
+              </RouterLink>
+              <RouterLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.universe')}</Button>
+              </RouterLink>
             </>
           )}
           <Button color="inherit" onClick={toggleLanguage}>

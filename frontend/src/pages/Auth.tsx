@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Container, Paper, TextField, Button, Box, Typography, Alert, Tabs, Tab } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
@@ -7,7 +7,13 @@ import apiClient from '../services/api';
 const Auth: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [tab, setTab] = useState(0);
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+  const safeRedirect =
+    redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')
+      ? redirectParam
+      : '/dashboard';
+  const [tab, setTab] = useState(searchParams.get('mode') === 'signup' ? 1 : 0);
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +35,7 @@ const Auth: React.FC = () => {
       const res = await apiClient.register(email, username, password);
       if (res.success && res.data) {
         apiClient.setToken(res.data.token);
-        navigate('/');
+        navigate(safeRedirect);
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Registration failed');
@@ -49,7 +55,7 @@ const Auth: React.FC = () => {
       const res = await apiClient.login(email, password);
       if (res.success && res.data) {
         apiClient.setToken(res.data.token);
-        navigate('/');
+        navigate(safeRedirect);
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Login failed');

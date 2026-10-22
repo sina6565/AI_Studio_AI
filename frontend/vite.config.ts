@@ -10,6 +10,8 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
+    allowedHosts: true,
     port: 5173,
     proxy: {
       '/api': {
@@ -17,6 +19,11 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  },
+  preview: {
+    host: true,
+    allowedHosts: true,
+    port: 5173,
   },
   build: {
     outDir: 'dist',

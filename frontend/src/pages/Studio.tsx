@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Container,
   Grid,
@@ -44,6 +45,20 @@ const Studio: React.FC = () => {
   const [scenes, setScenes] = useState<SceneDraft[]>([{ name: '', description: '' }]);
   const [gameMode, setGameMode] = useState<'create' | 'build'>('create');
   const [queuedJobId, setQueuedJobId] = useState<string | null>(null);
+
+  // Deep-link from the cinematic landing page: /studio?prompt=...&type=...
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const typeParam = searchParams.get('type');
+    const promptParam = searchParams.get('prompt');
+    if (typeParam && ['image', 'video', 'audio', 'speech', 'game'].includes(typeParam)) {
+      setContentType(typeParam as ContentType);
+    }
+    if (promptParam) {
+      setPrompt(promptParam);
+      if (typeParam === 'game') setGameDescription(promptParam);
+    }
+  }, [searchParams]);
 
   const updateScene = (index: number, patch: Partial<SceneDraft>) => {
     setScenes((current) =>
