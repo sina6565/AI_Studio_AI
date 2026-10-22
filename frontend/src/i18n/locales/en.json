@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "AI Creation Studio",
-    "subtitle": "Create amazing content with AI"
+    "title": "SINA STUDIO AI",
+    "subtitle": "From a single idea to an entire universe"
   },
   "nav": {
     "home": "Home",
@@ -9,7 +9,8 @@
     "projects": "Projects",
     "jobs": "Tasks",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "universe": "Universe"
   },
   "pages": {
     "dashboard": "Dashboard",
@@ -101,5 +102,224 @@
     "downloadArtifact": "Download scene viewer",
     "artifactHint": "Self-contained HTML file. Scene images load from their provider URLs.",
     "gameplayNote": "This is a scene viewer over a game definition, not a game engine build."
+  },
+  "landing": {
+    "nav": {
+      "worlds": "THE WORLDS",
+      "create": "CREATE",
+      "featured": "SHOWCASE",
+      "ads": "GLOBAL ADS",
+      "preorder": "PRE-ORDER",
+      "enterStudio": "ENTER STUDIO",
+      "signIn": "SIGN IN"
+    },
+    "skipIntro": "SKIP INTRO",
+    "hero": {
+      "kicker": "A DIGITAL UNIVERSE FACTORY",
+      "slogan1": "FROM A SINGLE IDEA TO AN ENTIRE UNIVERSE",
+      "slogan2": "CREATE ANYTHING. BECOME EVERYTHING.",
+      "subtitle": "Create Games, Websites, Videos, Music, Characters and 3D Worlds with AI — one studio, infinite universes.",
+      "promptPlaceholder": "What will you create?",
+      "startCreating": "Start Creating",
+      "preorderNow": "Pre-Order Now",
+      "scroll": "SCROLL TO EXPLORE",
+      "stats": {
+        "creators": "Creators",
+        "assets": "Assets",
+        "generations": "Generations"
+      }
+    },
+    "worlds": {
+      "kicker": "SIX WORLDS · ONE UNIVERSE",
+      "title": "Six worlds born from a single explosion of imagination",
+      "subtitle": "Every world is a complete creative power. Enter one — or connect them all into your own universe.",
+      "enter": "Enter World",
+      "items": {
+        "games": {
+          "name": "Games",
+          "tag": "PLAY",
+          "desc": "Characters, scenes and playable multi-scene worlds generated from your story."
+        },
+        "websites": {
+          "name": "Websites",
+          "tag": "BUILD",
+          "desc": "Sleek websites and digital products shaped from a single prompt."
+        },
+        "videos": {
+          "name": "Videos",
+          "tag": "MOVE",
+          "desc": "Cinematic trailers, motion stories and film-grade sequences."
+        },
+        "audio": {
+          "name": "Audio",
+          "tag": "LISTEN",
+          "desc": "Original music, voice and sound design in English & Persian."
+        },
+        "characters": {
+          "name": "Characters",
+          "tag": "IMAGINE",
+          "desc": "Heroes, villains and living personas with identity and style."
+        },
+        "assets3d": {
+          "name": "3D Assets",
+          "tag": "CREATE",
+          "desc": "Worlds, props and 3D assets ready for games and film."
+        }
+      }
+    },
+    "featured": {
+      "kicker": "FEATURED CREATIONS",
+      "title": "Powered by Sina AI Studio",
+      "subtitle": "Real prompts. Real universes. Try one and make it yours.",
+      "tryPrompt": "Try This Prompt",
+      "items": {
+        "game": {
+          "title": "Epic Adventure Game",
+          "prompt": "An epic open-world adventure game in a lush valley of towering rock spires at golden sunset"
+        },
+        "web": {
+          "title": "Sleek Portfolio Website",
+          "prompt": "A sleek futuristic portfolio website with neon glass interface for a digital artist"
+        },
+        "scifi": {
+          "title": "Cinematic Sci-Fi Trailer",
+          "prompt": "A cinematic sci-fi trailer of a colossal mechanical citadel city at dusk"
+        }
+      }
+    },
+    "workflow": {
+      "kicker": "HOW IT WORKS",
+      "title": "From Idea → To Real Product",
+      "steps": {
+        "idea": {
+          "title": "01 · Imagine",
+          "desc": "It starts in darkness — a single spark of an idea."
+        },
+        "prompt": {
+          "title": "02 · Describe",
+          "desc": "Tell the universe what to create, in English or Persian."
+        },
+        "generate": {
+          "title": "03 · Generate",
+          "desc": "AI providers forge images, worlds, motion and sound in minutes."
+        },
+        "universe": {
+          "title": "04 · Expand",
+          "desc": "Connect every creation into games, films and products that grow."
+        }
+      }
+    },
+    "ads": {
+      "kicker": "GLOBAL ADS THEATER",
+      "title": "Watch the world's ads. Power your creations.",
+      "subtitle": "A cinema of international campaigns and showreels. Watch, get inspired — and earn creation credits for every screening.",
+      "watch": "Watch",
+      "reward": "+{{count}} credits",
+      "note": "Showcase previews. Credit rewards activate with founder accounts at launch.",
+      "close": "Close",
+      "nowShowing": "NOW SHOWING",
+      "items": {
+        "neon": {
+          "title": "Neon Drive — EV Launch Film",
+          "region": "Japan · Automotive",
+          "duration": "0:45"
+        },
+        "gold": {
+          "title": "Gold Essence — Luxury Campaign",
+          "region": "France · Beauty",
+          "duration": "0:30"
+        },
+        "orbit": {
+          "title": "Orbit One — Space Tourism",
+          "region": "USA · Travel",
+          "duration": "1:00"
+        },
+        "velocity": {
+          "title": "Velocity X — Sport Film",
+          "region": "Germany · Sport",
+          "duration": "0:38"
+        }
+      }
+    },
+    "preorder": {
+      "kicker": "FOUNDER ACCESS",
+      "title": "Pre-order your place in the universe",
+      "subtitle": "Sina Studio Plus — build without limits. Reserve founder access today; payment opens at launch.",
+      "reserve": "Reserve Access",
+      "note": "No charge today. Founder pricing is locked for early reservations and revealed before launch.",
+      "mostPopular": "MOST POPULAR",
+      "tiers": {
+        "explorer": {
+          "name": "EXPLORER",
+          "tag": "Start creating",
+          "price": "Free at launch",
+          "features": [
+            "Core creation studio",
+            "Image & text generation",
+            "Community worlds access",
+            "720p video exports"
+          ]
+        },
+        "creator": {
+          "name": "CREATOR PLUS",
+          "tag": "For serious creators",
+          "price": "Founder pricing at launch",
+          "features": [
+            "Everything in Explorer",
+            "Games & multi-scene world builder",
+            "Cinematic video & voice (EN/FA)",
+            "4K exports & priority queue"
+          ]
+        },
+        "studio": {
+          "name": "STUDIO FOUNDER",
+          "tag": "For teams & studios",
+          "price": "Founder pricing at launch",
+          "features": [
+            "Everything in Creator Plus",
+            "3D assets & character pipeline",
+            "Team workspaces & API access",
+            "Founder badge · lifetime locked rate"
+          ]
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Your universe is waiting to be born",
+      "subtitle": "From darkness, particles gathered. From your idea, a universe will.",
+      "button": "Enter the Universe"
+    },
+    "footer": {
+      "tagline": "A Digital Universe Factory",
+      "rights": "© {{year}} Sina Studio AI. All rights reserved.",
+      "about": "About",
+      "blog": "Blog",
+      "support": "Support",
+      "creator": "Creator · Producer · Director — Safarpour"
+    }
+  },
+  "preorderPage": {
+    "title": "Pre-Order Founder Access",
+    "subtitle": "Reserve your founder seat in SINA STUDIO AI. No payment today — founders are invited first at launch.",
+    "form": {
+      "name": "Full name",
+      "email": "Email address",
+      "plan": "Choose your plan",
+      "submit": "Reserve My Access",
+      "success": "You are on the founder list.",
+      "successHint": "We saved your reservation on this device. Create your account to lock it to your profile at launch.",
+      "createAccount": "Create Account",
+      "backHome": "Back to the Universe",
+      "invalid": "Please enter a valid name and email."
+    },
+    "faq": {
+      "title": "Questions",
+      "q1": "When do I pay?",
+      "a1": "Not today. Founder pricing is announced before launch and early reservations lock the founder rate.",
+      "q2": "What do founders receive?",
+      "a2": "Priority access, the founder badge, locked pricing and first entry to new worlds as they open.",
+      "q3": "Can I cancel my reservation?",
+      "a3": "Anytime — a reservation is a promise, not a purchase."
+    }
   }
 }
