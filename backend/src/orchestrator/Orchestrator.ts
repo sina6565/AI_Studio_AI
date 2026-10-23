@@ -111,7 +111,7 @@ export class Orchestrator {
         request.userId,
         request.jobType,
       );
-      logger.info(`[Orchestrator] Job ${job.id} enqueued to Bull queue`);
+      logger.info(`[Orchestrator] Job ${job.id} submitted for processing`);
     } catch (error) {
       logger.error(
         `[Orchestrator] Failed to enqueue job ${job.id} to Bull queue`,
@@ -147,10 +147,17 @@ export class Orchestrator {
       throw new AppError('JOB_NOT_FOUND', 'Job not found', 404);
     }
 
-    // Skip jobs cancelled while queued: the Bull job may already be gone,
-    // but the worker can still be handed a stale job id.
-    if (job.status === JobStatus.CANCELLED) {
-      logger.info(`[Orchestrator] Skipping cancelled job ${jobId}`);
+    // Skip jobs that already reached a terminal state. A duplicate queue
+    // delivery (Redis reconnect after an in-process fallback) must not rerun
+    // a completed or failed job.
+    if (
+      [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED].includes(
+        job.status as JobStatus,
+      )
+    ) {
+      logger.info(
+        `[Orchestrator] Skipping job ${jobId} in terminal status ${job.status}`,
+      );
       return;
     }
 
