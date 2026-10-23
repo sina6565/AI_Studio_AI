@@ -12,6 +12,7 @@ import {
 import registry from './providers/registry';
 import orchestrator from './orchestrator/Orchestrator';
 import { recoverStuckJobs } from './jobs/recovery';
+import jobQueueProcessor from './jobs/JobQueueProcessor';
 import { validateEnvironment } from './config/validateEnv';
 import logger from './utils/logger';
 
@@ -90,6 +91,12 @@ async function start(): Promise<void> {
 
       server.close(async () => {
         logger.info('HTTP server closed');
+        try {
+          await jobQueueProcessor.close();
+          logger.info('Job queue closed');
+        } catch (error) {
+          logger.error('Error closing job queue:', error);
+        }
         try {
           await disconnectDatabase();
           logger.info('Database disconnected');
