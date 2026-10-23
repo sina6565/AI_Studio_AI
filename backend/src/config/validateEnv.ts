@@ -42,7 +42,7 @@ export function validateEnvironment(): { ok: boolean; checks: EnvCheck[] } {
       name: 'REDIS_URL',
       present: has('REDIS_URL'),
       required: false,
-      note: 'job queue (falls back to redis://localhost:6379)',
+      note: 'job queue (optional; QUEUE_MODE=auto falls back to in-process)',
     },
     {
       name: 'AGNES_ENABLED',
@@ -57,6 +57,13 @@ export function validateEnvironment(): { ok: boolean; checks: EnvCheck[] } {
       note: 'Agnes provider credentials',
     },
   ];
+
+  logger.info(
+    `[Startup] Job queue mode: ${config.jobQueue.mode}` +
+      (config.jobQueue.mode === 'auto'
+        ? ' (Redis when reachable, in-process fallback otherwise)'
+        : ''),
+  );
 
   for (const check of checks) {
     if (!check.present) {
