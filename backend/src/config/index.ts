@@ -40,6 +40,14 @@ interface JobQueueConfig {
   maxAttempts: number;
   backoffDelay: number;
   timeout: number;
+  /**
+   * 'auto'   - use Redis/Bull when it is reachable, otherwise run the job
+   *            in-process (single-container deployments without Redis).
+   * 'redis'  - require Redis; job creation fails when it is unavailable.
+   * 'inline' - never open a Redis connection; always run in-process.
+   */
+  mode: 'auto' | 'redis' | 'inline';
+  inlineConcurrency: number;
 }
 
 interface StorageConfig {
@@ -92,6 +100,17 @@ interface AppConfig {
   providers: ProviderConfig;
   logging: LoggingConfig;
 }
+
+// Helper function to validate the queue mode. Unsupported values must not
+// silently disable the queue: fall back to the safe default 'auto'.
+const parseQueueMode = (value?: string): 'auto' | 'redis' | 'inline' => {
+  const mode = (value || 'auto').trim().toLowerCase();
+  if (mode === 'redis' || mode === 'inline' || mode === 'auto') return mode;
+  console.warn(
+    `Unsupported QUEUE_MODE "${value}" - falling back to "auto" (redis with in-process fallback)`
+  );
+  return 'auto';
+};
 
 // Helper function to parse comma-separated strings
 const parseCSV = (value?: string): string[] => {
@@ -163,6 +182,11 @@ const config_: AppConfig = {
     maxAttempts: parseInt(process.env.JOB_MAX_ATTEMPTS || '3', 10),
     backoffDelay: parseInt(process.env.JOB_BACKOFF_DELAY || '5000', 10),
     timeout: parseInt(process.env.JOB_TIMEOUT || '300000', 10),
+    mode: parseQueueMode(process.env.QUEUE_MODE),
+    inlineConcurrency: Math.max(
+      1,
+      parseInt(process.env.QUEUE_INLINE_CONCURRENCY || '2', 10) || 2,
+    ),
   },
 
   storage: {
