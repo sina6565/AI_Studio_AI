@@ -1,7 +1,21 @@
 /**
  * Job Queue Processor
- * Processes jobs using Bull queue with Redis backend
- * Integrates with Orchestrator for job execution
+ *
+ * Preferred backend: Bull queue on Redis.
+ *
+ * SnapDeploy runs this platform as a single container backed by MongoDB Atlas
+ * only. Requiring Redis there made every generation request fail with
+ * QUEUE_ENQUEUE_FAILED, so the processor supports three modes:
+ *
+ *   auto   (default) - try Redis; if it is unavailable, run the job
+ *                      in-process so the product keeps working.
+ *   redis  - strict: fail job creation when Redis is unavailable.
+ *   inline - never connect to Redis; always run in-process.
+ *
+ * In-process execution is sequential per slot (QUEUE_INLINE_CONCURRENCY,
+ * default 2) and keeps the same job lifecycle: the job is persisted in MongoDB
+ * first and Orchestrator.executeJob updates queued -> processing -> completed
+ * or failed. On restart, recoverStuckJobs() fails interrupted jobs.
  */
 
 import Queue from 'bull';
@@ -18,21 +32,39 @@ export interface JobQueueData {
 export interface QueueConnectionStatus {
   connected: boolean;
   state: string;
+  mode: 'auto' | 'redis' | 'inline';
   lastError?: string;
 }
 
 /** How long a single enqueue may block while Redis is unavailable. */
 const ENQUEUE_TIMEOUT_MS = 5000;
+/** Shorter budget in 'auto' mode so a missing Redis never delays a request. */
+const AUTO_FALLBACK_TIMEOUT_MS = 2000;
 /** Minimum interval between repeated connection-error log lines. */
 const ERROR_LOG_THROTTLE_MS = 30000;
 
-class JobQueueProcessor {
-  private queue: Queue.Queue<JobQueueData>;
+export class JobQueueProcessor {
+  private queue: Queue.Queue<JobQueueData> | null = null;
   private lastError?: string;
   private lastErrorLoggedAt = 0;
+  private readonly mode: 'auto' | 'redis' | 'inline';
 
-  constructor() {
-    this.queue = new Queue('ai-jobs', config.redis.url, {
+  /** Job ids waiting for an in-process slot. */
+  private inlinePending: string[] = [];
+  /** Number of in-process jobs currently executing. */
+  private inlineActive = 0;
+
+  constructor(modeOverride?: 'auto' | 'redis' | 'inline') {
+    this.mode = modeOverride || config.jobQueue.mode;
+
+    if (this.mode === 'inline') {
+      logger.info(
+        '[Queue] Inline mode: jobs run in-process, no Redis connection is opened',
+      );
+      return;
+    }
+
+    this.queue = new Queue(config.jobQueue.name, config.redis.url, {
       // Keep the HTTP process responsive when Redis is unavailable instead of
       // blocking requests on the offline command queue.
       redis: {
@@ -47,6 +79,8 @@ class JobQueueProcessor {
    * Setup queue event handlers
    */
   private setupEventHandlers(): void {
+    if (!this.queue) return;
+
     // Job processing
     this.queue.process(config.jobQueue.maxAttempts, async (job) => {
       logger.info(`[Queue] Processing job ${job.data.jobId}`);
@@ -84,7 +118,7 @@ class JobQueueProcessor {
       }
     });
 
-    logger.info('[Queue] Job queue processor initialized');
+    logger.info('[Queue] Job queue processor initialized (Bull/Redis)');
   }
 
   /**
@@ -92,11 +126,16 @@ class JobQueueProcessor {
    * Safe to call when Redis is down (does not await a connection).
    */
   getConnectionStatus(): QueueConnectionStatus {
-    const client = (this.queue as unknown as { client?: { status?: string } }).client;
+    if (this.mode === 'inline') {
+      return { connected: true, state: 'inline', mode: this.mode };
+    }
+    const client = (this.queue as unknown as { client?: { status?: string } })
+      ?.client;
     const state = client?.status || 'unknown';
     return {
       connected: state === 'ready',
       state,
+      mode: this.mode,
       lastError: this.lastError,
     };
   }
@@ -104,44 +143,115 @@ class JobQueueProcessor {
   /**
    * Enqueue a job for processing.
    *
-   * Bounded by ENQUEUE_TIMEOUT_MS so a Redis outage cannot hang the request
-   * that created the job.
+   * Redis enqueue is bounded by a timeout, so a Redis outage cannot hang the
+   * request that created the job. In 'auto' mode an unavailable Redis falls
+   * back to in-process execution instead of failing the request.
    */
   async enqueueJob(jobId: string, userId: string, jobType: string): Promise<void> {
-    try {
-      const addPromise = this.queue.add(
-        { jobId, userId, type: jobType },
-        {
-          // Use the application job id as the Bull job id so the job can be
-          // located and removed when it is cancelled.
-          jobId,
-          priority: 1, // Default priority
-          attempts: config.jobQueue.maxAttempts,
-          backoff: {
-            type: 'exponential',
-            delay: config.jobQueue.backoffDelay,
-          },
-          timeout: config.jobQueue.timeout,
-          removeOnComplete: false, // Keep job history
-        },
-      );
+    if (this.mode === 'inline' || !this.queue) {
+      this.enqueueInline(jobId);
+      return;
+    }
 
+    const timeoutMs =
+      this.mode === 'auto' ? AUTO_FALLBACK_TIMEOUT_MS : ENQUEUE_TIMEOUT_MS;
+
+    const addPromise = this.queue.add(
+      { jobId, userId, type: jobType },
+      {
+        // Use the application job id as the Bull job id so the job can be
+        // located and removed when it is cancelled.
+        jobId,
+        priority: 1, // Default priority
+        attempts: config.jobQueue.maxAttempts,
+        backoff: {
+          type: 'exponential',
+          delay: config.jobQueue.backoffDelay,
+        },
+        timeout: config.jobQueue.timeout,
+        removeOnComplete: false, // Keep job history
+      },
+    );
+
+    // The timeout handle is cleared in `finally` so a successful enqueue does
+    // not leave a pending 2-5s timer behind in the process.
+    let timeoutHandle: NodeJS.Timeout | undefined;
+    try {
       const job = await Promise.race([
         addPromise,
-        new Promise<never>((_, reject) =>
-          setTimeout(
-            () => reject(new Error(`Queue enqueue timed out after ${ENQUEUE_TIMEOUT_MS}ms (Redis unavailable)`)),
-            ENQUEUE_TIMEOUT_MS,
-          ),
-        ),
+        new Promise<never>((_, reject) => {
+          timeoutHandle = setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `Queue enqueue timed out after ${timeoutMs}ms (Redis unavailable)`,
+                ),
+              ),
+            timeoutMs,
+          );
+        }),
       ]);
 
       logger.info(`[Queue] Job ${jobId} enqueued with ID ${job.id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.lastError = message;
-      logger.error(`[Queue] Failed to enqueue job ${jobId}: ${message}`);
-      throw error;
+
+      if (this.mode === 'redis') {
+        logger.error(`[Queue] Failed to enqueue job ${jobId}: ${message}`);
+        throw error;
+      }
+
+      logger.warn(
+        `[Queue] Redis enqueue failed for job ${jobId} (${message}) - falling back to in-process execution`,
+      );
+
+      // The Bull add may still resolve later, when Redis reconnects. Remove
+      // that duplicate so the job is not executed twice.
+      void addPromise
+        .then((job) => job?.remove().catch(() => undefined))
+        .catch(() => undefined);
+
+      this.enqueueInline(jobId);
+    } finally {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+    }
+  }
+
+  /**
+   * Queue a job for in-process execution and start draining if a slot is free.
+   */
+  private enqueueInline(jobId: string): void {
+    if (this.inlinePending.includes(jobId)) return;
+    this.inlinePending.push(jobId);
+    logger.info(
+      `[Queue] Job ${jobId} queued in-process (pending: ${this.inlinePending.length})`,
+    );
+    this.drainInline();
+  }
+
+  /**
+   * Start in-process jobs up to the configured concurrency.
+   * setImmediate keeps job execution off the HTTP request path.
+   */
+  private drainInline(): void {
+    while (
+      this.inlineActive < config.jobQueue.inlineConcurrency &&
+      this.inlinePending.length > 0
+    ) {
+      const jobId = this.inlinePending.shift();
+      if (!jobId) return;
+      this.inlineActive += 1;
+      setImmediate(async () => {
+        try {
+          await orchestrator.executeJob(jobId);
+        } catch (error) {
+          logger.error(`[Queue] In-process job ${jobId} failed`, error);
+        } finally {
+          this.inlineActive -= 1;
+          this.drainInline();
+        }
+      });
     }
   }
 
@@ -152,6 +262,13 @@ class JobQueueProcessor {
    * still skip the job because its database status is already terminal.
    */
   async removeJob(jobId: string): Promise<boolean> {
+    const pendingIndex = this.inlinePending.indexOf(jobId);
+    if (pendingIndex !== -1) {
+      this.inlinePending.splice(pendingIndex, 1);
+      logger.info(`[JobQueue] Removed cancelled in-process job ${jobId}`);
+      return true;
+    }
+
     try {
       if (!this.queue) {
         return false;
@@ -174,7 +291,20 @@ class JobQueueProcessor {
   /**
    * Get queue statistics
    */
-  async getStats(): Promise<{ waiting: number; active: number; completed: number; failed: number }> {
+  async getStats(): Promise<{
+    waiting: number;
+    active: number;
+    completed: number;
+    failed: number;
+  }> {
+    if (!this.queue) {
+      return {
+        waiting: this.inlinePending.length,
+        active: this.inlineActive,
+        completed: 0,
+        failed: 0,
+      };
+    }
     const counts = await this.queue.getJobCounts();
     return {
       waiting: counts.waiting,
@@ -188,6 +318,7 @@ class JobQueueProcessor {
    * Clean up queue (close connection)
    */
   async close(): Promise<void> {
+    if (!this.queue) return;
     await this.queue.close();
     logger.info('[Queue] Job queue processor closed');
   }
