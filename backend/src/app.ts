@@ -43,10 +43,18 @@ export function createApp(): Express {
   app.use(helmet());
   const allowedOrigins = config.cors.origin;
   const allowAllOrigins = allowedOrigins.includes('*');
-  app.use(cors({ origin: (origin, callback) => {
-    if (!origin || allowAllOrigins || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Origin not allowed by CORS'));
-  }, credentials: true, methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
+  // Credentialed CORS cannot safely use Access-Control-Allow-Origin: *.
+  // Production wildcard origins are rejected during config validation; in
+  // development, wildcard mode is allowed only without credentials.
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin || allowAllOrigins || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('Origin not allowed by CORS'));
+    },
+    credentials: allowAllOrigins ? false : config.cors.credentials,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
   app.use(compression());
