@@ -23,7 +23,7 @@
     "game-creation"
   ],
   "author": "AI Platform Team",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "dependencies": {
     "express": "^4.18.2",
     "mongoose": "^8.0.0",
