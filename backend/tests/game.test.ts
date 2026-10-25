@@ -204,6 +204,8 @@ describe('GameService.buildGame', () => {
     expect(build.size).toBe(Buffer.byteLength(build.html, 'utf8'));
     expect(build.dataUrl.startsWith('data:text/html;charset=utf-8;base64,')).toBe(true);
     expect(build.manifest.scenes).toHaveLength(validSpec.scenes.length);
+    expect(build.playableGame.schemaVersion).toBe(1);
+    expect(build.playableGame.world.layout.join('')).toContain('P');
   });
 
   it('embeds the generated scene images in the viewer', async () => {

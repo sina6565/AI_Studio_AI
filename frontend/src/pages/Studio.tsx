@@ -14,10 +14,15 @@ import {
   LinearProgress,
   Card,
   CardMedia,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
+import type { Project } from '../types';
 
 type ContentType = 'image' | 'video' | 'audio' | 'speech' | 'game';
 
@@ -44,6 +49,8 @@ const Studio: React.FC = () => {
   const [artStyle, setArtStyle] = useState('');
   const [scenes, setScenes] = useState<SceneDraft[]>([{ name: '', description: '' }]);
   const [gameMode, setGameMode] = useState<'create' | 'build'>('create');
+  const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const [queuedJobId, setQueuedJobId] = useState<string | null>(null);
 
   // Deep-link from the cinematic landing page: /studio?prompt=...&type=...
@@ -59,6 +66,23 @@ const Studio: React.FC = () => {
       if (typeParam === 'game') setGameDescription(promptParam);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (contentType !== 'game') return;
+    let active = true;
+    void apiClient.listProjects()
+      .then((response) => {
+        if (active && response.success && response.data) {
+          setAvailableProjects(response.data);
+        }
+      })
+      .catch(() => {
+        if (active) setAvailableProjects([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [contentType]);
 
   const updateScene = (index: number, patch: Partial<SceneDraft>) => {
     setScenes((current) =>
@@ -115,6 +139,7 @@ const Studio: React.FC = () => {
           })),
         },
         gameMode,
+        selectedProjectId || undefined,
       );
 
       if (res?.success && res.data) {
@@ -272,6 +297,23 @@ const Studio: React.FC = () => {
                     inputProps={{ maxLength: 200 }}
                   />
                 </Stack>
+                <FormControl fullWidth disabled={loading}>
+                  <InputLabel id="game-project-label">{t('creation.attachProject')}</InputLabel>
+                  <Select
+                    labelId="game-project-label"
+                    value={selectedProjectId}
+                    label={t('creation.attachProject')}
+                    onChange={(event) => setSelectedProjectId(event.target.value)}
+                  >
+                    <MenuItem value=""><em>{t('creation.noProject')}</em></MenuItem>
+                    {availableProjects.map((project) => {
+                      const projectId = project.id || project._id;
+                      return projectId ? (
+                        <MenuItem key={projectId} value={projectId}>{project.name}</MenuItem>
+                      ) : null;
+                    })}
+                  </Select>
+                </FormControl>
 
                 <Typography variant="h6">
                   {t('creation.scenes')} ({scenes.length}/{MAX_SCENES})

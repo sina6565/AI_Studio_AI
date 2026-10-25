@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { APIResponse, Job, Project, User } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 class APIClient {
   private client: AxiosInstance;
@@ -76,6 +76,7 @@ class APIClient {
     type: string;
     input: Record<string, any>;
     priority?: string;
+    projectId?: string;
   }): Promise<APIResponse<Job>> {
     const response = await this.client.post('/v1/jobs', jobData);
     return response.data;
@@ -95,27 +96,30 @@ class APIClient {
       }>;
     },
     mode: 'create' | 'build' = 'create',
+    projectId?: string,
   ): Promise<
     APIResponse<{ jobId: string; status: string; createdAt: string }>
   > {
     const response = await this.client.post('/v1/jobs', {
       type: mode === 'build' ? 'game_build' : 'game_creation',
       input: spec,
+      ...(projectId ? { projectId } : {}),
     });
     return response.data;
   }
 
   /**
-   * Build a runnable scene-viewer artifact. Accepts either a game spec (assets
-   * are generated) or a manifest returned by an earlier game_creation job
-   * (assets are reused, so nothing is regenerated).
+   * Build a Phaser 2D game definition plus the compatible scene-viewer fallback.
+   * Accepts a game spec or an earlier manifest whose image assets are reused.
    */
   async buildGameJob(
-    input: Record<string, unknown>,
+    input: object,
+    projectId?: string,
   ): Promise<APIResponse<{ jobId: string; status: string; createdAt: string }>> {
     const response = await this.client.post('/v1/jobs', {
       type: 'game_build',
       input,
+      ...(projectId ? { projectId } : {}),
     });
     return response.data;
   }

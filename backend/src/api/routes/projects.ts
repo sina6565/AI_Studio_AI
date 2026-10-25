@@ -10,7 +10,10 @@ router.use(authenticateToken);
 router.get('/', async (req: AuthenticatedRequest, res, next) => {
   try {
     const projects = await Project.find({ userId: req.user!.userId }).sort({ updatedAt: -1 }).lean();
-    res.json({ success: true, data: projects });
+    res.json({
+      success: true,
+      data: projects.map((project) => ({ ...project, id: String(project._id) })),
+    });
   } catch (e) { next(e); }
 });
 

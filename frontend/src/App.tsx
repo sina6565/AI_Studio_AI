@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Studio from './pages/Studio';
 import Jobs from './pages/Jobs';
 import Projects from './pages/Projects';
+import PlayableGamePage from './pages/PlayableGamePage';
 import Auth from './pages/Auth';
 import UniverseLanding from './pages/UniverseLanding';
 import PreOrder from './pages/PreOrder';
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
         <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+        <Route path="/play/:jobId" element={<ProtectedRoute><PlayableGamePage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

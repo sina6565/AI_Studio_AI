@@ -22,12 +22,14 @@ export interface Job {
   };
   error?: { code: string; message: string };
   progress?: { percentage: number; stage: string };
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Project {
   id: string;
+  _id?: string;
   name: string;
   type: string;
   description?: string;

@@ -1,10 +1,10 @@
 /**
  * Game creation service.
  *
- * Turns a validated game spec into a game manifest by generating one image
- * asset per scene through the provider-agnostic router. It never fabricates
- * assets: if a provider fails, the error propagates so the job is marked
- * failed instead of reporting a fake success.
+ * Turns a validated game spec into a scene manifest through the existing
+ * provider-agnostic image router. Builds also create a versioned, data-only
+ * Phaser gameplay definition and retain the standalone scene-viewer fallback.
+ * It never fabricates scene images: provider failures propagate to the job.
  */
 
 import logger from '../utils/logger';
@@ -20,6 +20,10 @@ import type {
   GameSpec,
 } from './types';
 import { renderSceneViewer, sceneViewerFilename } from './SceneViewerRenderer';
+import {
+  createPlayableGameDefinition,
+  PlayableGameDefinition,
+} from './PlayableGameDefinition';
 
 export type GameProgressReporter = (
   percentage: number,
@@ -34,9 +38,10 @@ export interface GameBuildOptions {
   jobType?: JobType;
 }
 
-/** A rendered, self-contained scene-viewer artifact. */
+/** Playable 2D definition plus the backward-compatible scene-viewer artifact. */
 export interface GameBuildResult {
   manifest: GameManifest;
+  playableGame: PlayableGameDefinition;
   html: string;
   filename: string;
   /** data: URL so the artifact needs no storage backend to be delivered. */
@@ -221,9 +226,8 @@ export class GameService {
   }
 
   /**
-   * Build a runnable scene-viewer artifact from either a game spec (assets are
-   * generated first) or an already-built manifest (assets are reused, so a
-   * build never regenerates images it already has).
+   * Build a validated Phaser 2D definition and safe scene-viewer fallback from
+   * either a game spec or an existing manifest (whose assets are reused).
    */
   async buildGame(
     input: GameSpec | GameManifest,
@@ -243,6 +247,7 @@ export class GameService {
 
     if (report) await report(95, 'rendering_scene_viewer');
 
+    const playableGame = createPlayableGameDefinition(manifest);
     const html = renderSceneViewer(manifest);
     const filename = sceneViewerFilename(manifest.title);
     const size = Buffer.byteLength(html, 'utf8');
@@ -254,6 +259,6 @@ export class GameService {
       `[GameService] Built scene viewer ${filename} (${size} bytes, ${manifest.scenes.length} scenes)`,
     );
 
-    return { manifest, html, filename, dataUrl, size };
+    return { manifest, playableGame, html, filename, dataUrl, size };
   }
 }

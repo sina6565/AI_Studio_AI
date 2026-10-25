@@ -58,6 +58,7 @@ export const schemas = {
     ]),
     input: z.record(z.any()),
     priority: z.enum(['low', 'normal', 'high']).optional(),
+    projectId: z.string().regex(/^[a-fA-F0-9]{24}$/).optional(),
     webhookUrl: z.string().url().optional(),
   }),
 
