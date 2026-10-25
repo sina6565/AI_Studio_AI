@@ -95,9 +95,6 @@ const UniverseLanding: React.FC = () => {
   const [adProgress, setAdProgress] = useState(0);
   const [earnedAds, setEarnedAds] = useState<ReadonlySet<string>>(new Set());
 
-  const creators = useCountUp(500, phase === 'ready');
-  const assets = useCountUp(10, phase === 'ready');
-  const generations = useCountUp(1, phase === 'ready', 900);
 
   /* ---- Intro orchestration: HTML beats locked to the WebGL timeline ---- */
   useEffect(() => {
@@ -240,10 +237,11 @@ const UniverseLanding: React.FC = () => {
     setAdPlaying(true);
   };
 
+  // Use verifiable beta facts instead of fabricated user, asset, or generation counts.
   const stats = [
-    { icon: GroupsIcon, value: `${creators}+`, label: t('landing.hero.stats.creators') },
-    { icon: ViewInArIcon, value: `${assets}K+`, label: t('landing.hero.stats.assets') },
-    { icon: BoltIcon, value: `${generations}M+`, label: t('landing.hero.stats.generations') },
+    { icon: GroupsIcon, value: isPersian ? 'بتا' : 'BETA', label: isPersian ? 'نسخهٔ آزمایشی دعوتی' : 'Invite-led testing' },
+    { icon: ViewInArIcon, value: '6', label: isPersian ? 'جهان خلاق' : 'Creative worlds' },
+    { icon: BoltIcon, value: isPersian ? 'بازخورد' : 'FEEDBACK', label: isPersian ? 'بهبود با کمک کاربران' : 'Shaped by testers' },
   ];
 
   const tierFeatures = (tier: string): string[] => {
