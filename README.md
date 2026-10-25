@@ -1,6 +1,6 @@
-# AI Content Creation Platform
+# SINA AI STUDIO
 
-A unified, production-grade platform for AI-powered content creation across multiple mediums including images, videos, audio, text, characters, 3D assets, and complete games.
+An AI-assisted digital creation platform with web and mobile clients, provider-routed content generation, and early game-world / scene-viewer workflows. Production readiness and each live provider capability must be verified in the deployed environment.
 
 ## 🎯 Platform Vision
 
@@ -15,7 +15,7 @@ One unified platform accessible via Web and Mobile applications that allows user
 - 📝 **Text**: AI-powered text generation
 - 👤 **Characters**: Character design and generation
 - 🎮 **3D Assets**: 3D model and asset generation
-- 🕹️ **Games**: Complete AI-assisted game creation with scenes, levels, characters, and logic
+- 🕹️ **Game worlds**: AI-assisted game concepts and scene-viewer prototypes; not a full gameplay engine
 
 ## 🏗️ Architecture Overview
 
@@ -199,7 +199,7 @@ npm start
 - Clear provider interface for future integrations (OpenAI, Stability AI, etc.)
 - Automatic provider selection based on capability and constraints
 
-### Production-Ready
+### Operational foundations (live deployment still requires verification)
 - Asynchronous job processing
 - Comprehensive error handling with retries
 - Structured logging and monitoring
