@@ -1,6 +1,7 @@
 {
   "name": "ai-platform-mobile",
   "version": "1.0.0",
+  "license": "UNLICENSED",
   "description": "AI Platform Mobile Application",
   "scripts": {
     "start": "react-native start",
