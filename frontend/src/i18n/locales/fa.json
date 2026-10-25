@@ -100,6 +100,10 @@
   "jobs": {
     "artifact": "خروجی نمایشگر صحنه",
     "downloadArtifact": "دانلود نمایشگر صحنه",
+    "previewSceneViewer": "پیش‌نمایش نمایشگر صحنه",
+    "previousScene": "قبلی",
+    "nextScene": "بعدی",
+    "sceneCounter": "صحنه {{current}} از {{total}}",
     "artifactHint": "فایل HTML مستقل. تصاویر صحنه از آدرس ارائه‌دهنده بارگذاری می‌شوند.",
     "gameplayNote": "این یک نمایشگر صحنه روی تعریف بازی است، نه خروجی موتور بازی."
   },

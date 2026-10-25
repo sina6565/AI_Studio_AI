@@ -3,12 +3,18 @@ import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHea
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
 import { Job } from '../types';
+import SceneViewerPreviewDialog, {
+  isSceneViewerPreviewManifest,
+  safePreviewImageUrl,
+  SceneViewerPreviewManifest,
+} from '../components/games/SceneViewerPreviewDialog';
 
 const Jobs: React.FC = () => {
   const { t } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [previewManifest, setPreviewManifest] = useState<SceneViewerPreviewManifest | null>(null);
 
   useEffect(() => {
     const loadJobs = async () => {
@@ -80,7 +86,11 @@ const Jobs: React.FC = () => {
             </TableHead>
             <TableBody>
               {jobs.map((job) => {
-                const manifest = job.result?.metadata?.manifest;
+                const manifestCandidate = job.result?.metadata?.manifest;
+                const manifest = isSceneViewerPreviewManifest(manifestCandidate)
+                  ? manifestCandidate
+                  : null;
+                const previewableManifest = job.type === 'game_build' ? manifest : null;
                 const artifact = job.result?.metadata?.artifact;
                 return (
                 <React.Fragment key={job.id}>
@@ -135,21 +145,22 @@ const Jobs: React.FC = () => {
                             {t('game.scenes')}
                           </Typography>
                           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
-                            {(manifest.scenes || []).map((scene: any) =>
-                              scene.imageUrl ? (
-                                <Card key={scene.id} sx={{ width: 120 }}>
+                            {manifest.scenes.map((scene) => {
+                              const imageUrl = safePreviewImageUrl(scene.imageUrl);
+                              return imageUrl ? (
+                                <Card key={scene.id || scene.name} sx={{ width: 120 }}>
                                   <CardMedia
                                     component="img"
                                     height="80"
-                                    image={scene.imageUrl}
+                                    image={imageUrl}
                                     alt={scene.name}
                                   />
                                   <Box sx={{ p: 0.5 }}>
                                     <Typography variant="caption">{scene.name}</Typography>
                                   </Box>
                                 </Card>
-                              ) : null,
-                            )}
+                              ) : null;
+                            })}
                           </Box>
                         </Box>
                       )}
@@ -160,16 +171,27 @@ const Jobs: React.FC = () => {
                             {artifact.filename} &middot; {artifact.format} &middot;{' '}
                             {artifact.sceneCount} {t('game.scenes')}
                           </Typography>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            sx={{ mt: 1 }}
-                            component="a"
-                            href={job.result?.contentUrl}
-                            download={artifact.filename}
-                          >
-                            {t('jobs.downloadArtifact')}
-                          </Button>
+                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              component="a"
+                              href={job.result?.contentUrl}
+                              download={artifact.filename}
+                            >
+                              {t('jobs.downloadArtifact')}
+                            </Button>
+                            {previewableManifest && (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                aria-label={t('jobs.previewSceneViewer')}
+                                onClick={() => setPreviewManifest(previewableManifest)}
+                              >
+                                {t('jobs.previewSceneViewer')}
+                              </Button>
+                            )}
+                          </Box>
                           <Typography
                             variant="caption"
                             color="text.secondary"
@@ -192,6 +214,13 @@ const Jobs: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+      )}
+      {previewManifest && (
+        <SceneViewerPreviewDialog
+          open
+          manifest={previewManifest}
+          onClose={() => setPreviewManifest(null)}
+        />
       )}
     </Container>
   );

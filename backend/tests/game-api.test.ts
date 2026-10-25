@@ -31,6 +31,7 @@ jest.mock('../src/database/models', () => ({
 
 import request from 'supertest';
 import { createApp } from '../src/app';
+import { Job } from '../src/database/models';
 import orchestrator from '../src/orchestrator/Orchestrator';
 import { generateToken } from '../src/api/middleware/auth';
 import type { IProvider } from '../src/providers/interfaces/IProvider';
@@ -80,6 +81,50 @@ describe('POST /api/v1/jobs with a game spec', () => {
     expect(res.body.success).toBe(true);
     expect(typeof res.body.data.jobId).toBe('string');
     expect(res.body.data.status).toBe('queued');
+  });
+
+  it('accepts a previously generated manifest as game_build input without stripping its assets', async () => {
+    const manifest = {
+      version: '1.0',
+      title: validSpec.title,
+      description: validSpec.description,
+      genre: validSpec.genre,
+      artStyle: validSpec.artStyle,
+      scenes: [
+        {
+          id: 'scene-1',
+          name: 'Entrance',
+          description: 'A mossy stone doorway.',
+          imageUrl: 'https://cdn.test/entrance.png',
+        },
+      ],
+      assets: [
+        {
+          sceneId: 'scene-1',
+          url: 'https://cdn.test/entrance.png',
+          format: 'png',
+          provider: 'fake-image',
+        },
+      ],
+      assetCount: 1,
+      playable: false,
+      engine: { type: 'scene-viewer', runtime: 'html5' },
+      generatedAt: '2026-10-25T00:00:00.000Z',
+      notes: 'game definition',
+    };
+    const createJob = Job.create as jest.Mock;
+    createJob.mockClear();
+
+    const res = await request(app)
+      .post('/api/v1/jobs')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ type: 'game_build', input: manifest });
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(createJob).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'game_build', input: manifest }),
+    );
   });
 
   it('rejects a game spec with no scenes and explains why', async () => {

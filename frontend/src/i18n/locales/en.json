@@ -100,6 +100,10 @@
   "jobs": {
     "artifact": "Scene viewer artifact",
     "downloadArtifact": "Download scene viewer",
+    "previewSceneViewer": "Preview scene viewer",
+    "previousScene": "Previous",
+    "nextScene": "Next",
+    "sceneCounter": "Scene {{current}} of {{total}}",
     "artifactHint": "Self-contained HTML file. Scene images load from their provider URLs.",
     "gameplayNote": "This is a scene viewer over a game definition, not a game engine build."
   },
