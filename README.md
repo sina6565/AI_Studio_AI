@@ -50,8 +50,8 @@ Web Client + Mobile Client
 
 ```bash
 # Clone repository
-git clone https://github.com/sina656/AI.git
-cd AI
+git clone https://github.com/sina6565/AI_Studio_AI.git
+cd AI_Studio_AI
 
 # Copy environment files
 cp backend/.env.example backend/.env
@@ -434,14 +434,14 @@ STORAGE_PATH=/tmp/ai-platform-storage
 For issues, questions, or contributions:
 
 1. Check [Troubleshooting](./docs/DEVELOPMENT.md#troubleshooting)
-2. Review existing [GitHub Issues](https://github.com/sina656/AI/issues)
+2. Review existing [GitHub Issues](https://github.com/sina6565/AI_Studio_AI/issues)
 3. Create new issue with details
 
 ## 📄 License
 
-Not specified
+Proprietary — all rights reserved. See LICENSE. Third-party dependencies retain their respective licenses.
 
-## 📊 Current Status (as of 2026-10-20)
+## 📊 Current Status (as of 2026-10-25)
 
 This status reflects the repository's current implementation roadmap. A checked item means the capability is reported as implemented; it does **not** by itself prove end-to-end testing against live external services.
 
@@ -554,5 +554,5 @@ being ignored until the pipeline finishes.
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: 2026-10-20  
+**Last Updated**: 2026-10-25  
 **Status**: Core Features Implemented - Production Development Phase
