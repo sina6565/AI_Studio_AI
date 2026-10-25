@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Box, Typography, Chip, LinearProgress, Alert, Card, CardMedia } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import apiClient from '../services/api';
+import { parsePlayableGameDefinition } from '../games/playableGame';
 import { Job } from '../types';
 import SceneViewerPreviewDialog, {
   isSceneViewerPreviewManifest,
@@ -9,11 +11,24 @@ import SceneViewerPreviewDialog, {
   SceneViewerPreviewManifest,
 } from '../components/games/SceneViewerPreviewDialog';
 
+function getApiErrorMessage(error: unknown): string | undefined {
+  if (!error || typeof error !== 'object' || !('response' in error)) return undefined;
+  const response = error.response;
+  if (!response || typeof response !== 'object' || !('data' in response)) return undefined;
+  const data = response.data;
+  if (!data || typeof data !== 'object' || !('error' in data)) return undefined;
+  const payload = data.error;
+  if (!payload || typeof payload !== 'object' || !('message' in payload)) return undefined;
+  return typeof payload.message === 'string' ? payload.message : undefined;
+}
+
 const Jobs: React.FC = () => {
   const { t } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [buildNotice, setBuildNotice] = useState<string | null>(null);
+  const [buildingJobId, setBuildingJobId] = useState<string | null>(null);
   const [previewManifest, setPreviewManifest] = useState<SceneViewerPreviewManifest | null>(null);
 
   useEffect(() => {
@@ -45,6 +60,30 @@ const Jobs: React.FC = () => {
     }
   };
 
+  const handleBuildPlayableGame = async (
+    sourceJob: Job,
+    manifest: SceneViewerPreviewManifest,
+  ) => {
+    setError(null);
+    setBuildNotice(null);
+    setBuildingJobId(sourceJob.id);
+    try {
+      const projectId = typeof sourceJob.metadata?.projectId === 'string'
+        ? sourceJob.metadata.projectId
+        : undefined;
+      const response = await apiClient.buildGameJob(manifest, projectId);
+      if (response.success && response.data) {
+        setBuildNotice(t('jobs.playableBuildQueued', { jobId: response.data.jobId }));
+      } else {
+        setError(t('creation.gameQueuedFailed'));
+      }
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err) || t('creation.gameQueuedFailed'));
+    } finally {
+      setBuildingJobId(null);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -66,6 +105,7 @@ const Jobs: React.FC = () => {
         {t('pages.jobs')}
       </Typography>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {buildNotice && <Alert severity="success" sx={{ mb: 2 }}>{buildNotice}</Alert>}
       {loading ? (
         <LinearProgress />
       ) : jobs.length === 0 ? (
@@ -91,6 +131,9 @@ const Jobs: React.FC = () => {
                   ? manifestCandidate
                   : null;
                 const previewableManifest = job.type === 'game_build' ? manifest : null;
+                const playableGame = job.type === 'game_build'
+                  ? parsePlayableGameDefinition(job.result?.metadata?.playableGame)
+                  : null;
                 const artifact = job.result?.metadata?.artifact;
                 return (
                 <React.Fragment key={job.id}>
@@ -125,6 +168,15 @@ const Jobs: React.FC = () => {
                     {job.status === 'completed' && job.result?.contentUrl && (
                       <Button size="small" href={job.result.contentUrl} target="_blank">
                         {t('job.download')}
+                      </Button>
+                    )}
+                    {job.status === 'completed' && playableGame && (
+                      <Button
+                        size="small"
+                        component={Link}
+                        to={`/play/${encodeURIComponent(job.id)}`}
+                      >
+                        {t('jobs.playGame')}
                       </Button>
                     )}
                   </TableCell>
@@ -162,6 +214,19 @@ const Jobs: React.FC = () => {
                               ) : null;
                             })}
                           </Box>
+                          {job.type === 'game_creation' && job.status === 'completed' && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              sx={{ mt: 1 }}
+                              disabled={buildingJobId === job.id}
+                              onClick={() => handleBuildPlayableGame(job, manifest)}
+                            >
+                              {buildingJobId === job.id
+                                ? t('common.loading')
+                                : t('jobs.buildPlayableGame')}
+                            </Button>
+                          )}
                         </Box>
                       )}
                       {artifact && (

@@ -59,6 +59,7 @@ export interface JobMetadata {
   maxRetries: number;
   cost?: number;
   provider?: string;
+  projectId?: string;
 }
 
 export interface JobResult {

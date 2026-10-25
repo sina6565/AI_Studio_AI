@@ -78,6 +78,7 @@ const jobSchema = new Schema<JobDocument>(
       },
       cost: Number,
       provider: String,
+      projectId: String,
     },
     webhookUrl: String,
   },

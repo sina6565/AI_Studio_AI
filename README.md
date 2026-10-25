@@ -1,6 +1,6 @@
 # AI Content Creation Platform
 
-A unified, production-grade platform for AI-powered content creation across multiple mediums including images, videos, audio, text, characters, 3D assets, and complete games.
+An AI-powered content creation platform for images, videos, audio, text, characters, 3D assets, and experimental 2D games.
 
 ## 🎯 Platform Vision
 
@@ -15,7 +15,7 @@ One unified platform accessible via Web and Mobile applications that allows user
 - 📝 **Text**: AI-powered text generation
 - 👤 **Characters**: Character design and generation
 - 🎮 **3D Assets**: 3D model and asset generation
-- 🕹️ **Games**: Complete AI-assisted game creation with scenes, levels, characters, and logic
+- 🕹️ **Games (experimental 2D MVP)**: Generate a validated Phaser game definition, play a crystal-collection game in the browser, and retain a safe scene-viewer fallback
 
 ## 🏗️ Architecture Overview
 
@@ -215,13 +215,13 @@ npm start
 - Authentication & authorization
 - Data encryption support
 
-### Game Creation First-Class
-- Dedicated game project workflows
-- Multi-step generation (concept → design → assets → scenes → code → build)
-- Scene and level management
-- Character and animation support
-- Audio integration
-- Validation and build system
+### Experimental 2D Game Creation
+- Structured scene prompts and provider-generated scene art
+- Versioned, validated, data-only gameplay definitions
+- Phaser 4 browser runtime with movement, wall/hazard collisions, scoring, lives, timer, and a collect-then-exit win condition
+- Safe HTML scene-viewer export remains available as a fallback
+- Optional association of game jobs with existing user-owned projects
+- No arbitrary model-generated JavaScript execution; full 3D generation remains out of scope
 
 ### Internationalization
 - Persian (Farsi) and English support
@@ -254,16 +254,15 @@ npm start
 - Stability AI (Stable Diffusion)
 - Replicate (Multi-provider marketplace)
 
-## 🎮 Game Creation Features
+## 🎮 Game Creation Features (experimental 2D scope)
 
-- **Game Design Generation**: AI-assisted game concept and design
-- **Character Generation**: Procedural character creation
-- **Level Design**: Automated level generation
-- **Asset Generation**: 3D models, sprites, animations
-- **Script Generation**: Game logic and behavior code
-- **Audio Integration**: Background music and sound effects
-- **Build & Export**: Compile to multiple game engines
-- **Project Management**: Version control and iterations
+- **Scene generation**: validated structured game specs and one generated image per scene
+- **Playable 2D MVP**: deterministic Phaser 4 collect-the-crystals game generated from a versioned JSON definition
+- **Gameplay**: keyboard movement, wall and hazard collisions, score, lives, timer, and win/loss states
+- **Safe fallback**: downloadable HTML scene viewer and in-app scene preview; generated HTML is not executed by the app
+- **Project integration**: optionally attach game jobs to a project and launch completed builds from Jobs or Projects
+
+Character/animation generation, arbitrary generated scripts, multiplayer, and full 3D game generation are not part of this MVP.
 
 ## 🔒 Security
 
@@ -449,7 +448,7 @@ This status reflects the repository's current implementation roadmap. A checked 
 - ✅ Web UI built with React + Vite; API integration is implemented. Full live-service/end-to-end coverage must be verified separately.
 - 🚧 Mobile app: screens and API client are implemented and type-checked; native Android/iOS builds still require platform tooling.
 - ✅ Job orchestration code: Bull/Redis queue, retries, statistics, cancellation, and interrupted-job recovery
-- ✅ Game creation pipeline and manifest generation; a generated scene viewer is not equivalent to a full gameplay engine
+- ✅ Experimental playable Phaser 2D MVP: versioned/validated game definition, in-app movement/collisions/scoring/win-loss flow, and safe scene-viewer fallback; full 3D remains out of scope
 - ✅ Provider-agnostic provider registry and routing
 - ✅ GitHub Actions CI has passed on the main branch after the frontend dependency fix (PR #18, commit `725abc5764f9e55f9826b18fe23ae38fa2982679`). This does not establish that every integration or production service has been tested.
 - 🚧 Performance profiling and optimization
@@ -462,7 +461,7 @@ This status reflects the repository's current implementation roadmap. A checked 
 2. ✅ Web frontend UI development (React + Vite, API integration implemented; end-to-end verification remains separate)
 3. 🚧 Mobile app development (screens and API client implemented and type-checked; a native Android/iOS build needs platform tooling)
 4. ✅ Job queue & orchestration system (Bull/Redis, retries, stats, cancellation, interrupted-job recovery)
-5. ✅ Game creation workflow (spec validation, per-scene asset generation, game manifest; not a full gameplay engine)
+5. ✅ Experimental 2D game workflow (spec validation, per-scene asset generation, versioned Phaser definition and browser play route; full 3D/game-engine export remains out of scope)
 6. ✅ Advanced provider selection & routing (provider-agnostic registry + router)
 7. 🚧 Testing & quality assurance (main-branch CI is green; complete integration/live-service coverage still needs verification)
 8. 🚧 Performance optimization
@@ -471,18 +470,19 @@ This status reflects the repository's current implementation roadmap. A checked 
 
 ## 🎮 Game creation
 
-Game creation is a **composite** job: the orchestrator routes it on the capability
-its pipeline needs (`image_generation`) rather than asking one provider to
-"create a game".
+Game jobs use the existing authenticated job queue and image-provider routing.
+The current playable scope is an **experimental 2D MVP**—not a general-purpose
+AI game engine, full 3D generation, or generated-code runner.
 
-Submit a game through the existing jobs API:
+Submit the existing structured game spec through the Jobs API:
 
 ```bash
 POST /api/v1/jobs
 Authorization: Bearer <token>
 
 {
-  "type": "game_creation",
+  "type": "game_build",
+  "projectId": "507f1f77bcf86cd799439011",
   "input": {
     "title": "Dungeon of Echoes",
     "description": "A short dungeon-crawling adventure.",
@@ -495,52 +495,44 @@ Authorization: Bearer <token>
 }
 ```
 
-Rules: 1–12 scenes, each with a name and a description; title and description are
-required. Invalid input returns `400` naming the offending field. The job is
-queued, tracked, cancelled and inspected through the existing job endpoints.
+`projectId` is optional and must identify a project owned by the authenticated
+user. Rules: 1–12 scenes, each with a name and description; title and description
+are required. Existing user-scoped job and project endpoints remain in use.
 
-When it completes, `GET /api/v1/jobs/:id` returns the game manifest at
-`result.metadata.manifest` (scene graph + one generated asset per scene).
+### Generated definition and runtime
 
-**The manifest is a game definition, not a compiled engine build** —
-`playable` is `false` and the declared engine target is `scene-viewer`. A
-provider failure fails the job; it is never reported as a success.
+`game_creation` produces scene art and a manifest. The job result includes a
+versioned, data-only `result.metadata.playableGame` blueprint. `game_build` can
+accept a game spec (generates its scene assets first) or an earlier manifest
+(reuses those assets), then returns both the same playable definition and the
+legacy HTML scene-viewer artifact.
 
-### Building a runnable scene viewer
+The playable definition has `schemaVersion: 1`, targets Phaser `4.2.1`, and
+contains a validated 20 × 15 tile map plus allow-listed movement and objective
+rules. In the browser, Phaser runs a deterministic crystal-collection game:
+move with arrow keys or WASD, collide with walls, collect crystals for points,
+avoid hazards, and reach the exit before time expires. Three hazard hits or the
+time limit ends the run. The win condition is collecting all crystals and then
+reaching the exit. The backend and frontend both validate the definition; unknown
+fields/versions are rejected, and model-provided JavaScript is never evaluated.
 
-`game_build` takes that definition one step further and renders it into a
-**self-contained HTML5 scene viewer**: a single `.html` file with no external
-JavaScript or CSS, click-through navigation (buttons, arrow keys, swipe, scene
-dots) and one frame per scene.
+Completed `game_build` jobs have a **Play 2D game** action on Jobs. The Studio can
+attach a job to a project; Projects lists linked builds and can launch playable
+ones. A completed `game_creation` manifest can also be built from Jobs without
+regenerating its scene images.
 
-```bash
-POST /api/v1/jobs
+### Safe scene-viewer fallback
 
-{ "type": "game_build", "input": { /* same game spec as above */ } }
-```
+`result.contentUrl` remains a `data:text/html;base64,…` downloadable `.html`
+scene viewer with scene navigation and no external JavaScript or CSS. Its
+`result.metadata.artifact.gameplayMechanics` remains `false`: that file itself is
+not the Phaser game. The in-app Play route runs the validated JSON definition;
+the React scene preview never injects or executes the HTML artifact. Provider
+images still load from their remote URLs, so images require network access.
 
-The input may be either a game spec (assets are generated first) or a
-**manifest returned by an earlier `game_creation` job** — in that case the
-existing assets are reused and nothing is regenerated.
-
-On completion the job result carries the artifact:
-
-- `result.contentUrl` — a `data:text/html;base64,…` URL, so the viewer needs no
-  storage backend to be delivered and can be saved straight from the Jobs page.
-- `result.format` — `text/html`.
-- `result.metadata.artifact` — `{ filename, format, runtime, navigation,
-  sceneCount, gameplayMechanics: false }`.
-- `result.metadata.manifest` — the underlying game definition.
-
-**Honest scope:** the viewer is a scene viewer over a game definition. There is
-no gameplay simulation, physics or scripting, so `gameplayMechanics` is `false`.
-The document is self-contained in its *code*; scene images still load from their
-provider URLs, so displaying them needs a network connection.
-
-Both game job types run through the same queue, progress reporting and cancel
-path as every other job. Cancellation is checked at each stage boundary, so a
-cancel during a multi-scene run stops before the next provider call rather than
-being ignored until the pipeline finishes.
+Both game job types continue through the existing provider, queue, progress,
+cancellation and recovery code paths. A configured image-generation provider is
+still required by the current job-creation/router architecture.
 
 ### Known limitations
 

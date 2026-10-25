@@ -30,7 +30,30 @@ import { recoverStuckJobs } from '../src/jobs/recovery';
 const mockJob = Job as unknown as {
   updateMany: jest.Mock;
   countDocuments: jest.Mock;
+  find: jest.Mock;
 };
+
+describe('GET /api/v1/jobs', () => {
+  const app = createApp();
+  const token = generateToken('user-1', 'user@example.com', 'user');
+
+  it('normalizes Mongo job ids for Jobs and Projects clients', async () => {
+    const query = {
+      sort: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue([{ _id: 'job-1', userId: 'user-1', type: 'game_build' }]),
+    };
+    mockJob.find.mockReturnValue(query);
+
+    const res = await request(app)
+      .get('/api/v1/jobs')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data[0].id).toBe('job-1');
+    expect(mockJob.find).toHaveBeenCalledWith({ userId: 'user-1' });
+  });
+});
 
 describe('GET /api/v1/jobs/stats', () => {
   const app = createApp();

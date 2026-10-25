@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import orchestrator from '../../orchestrator/Orchestrator';
 import { validateWithSchema, schemas } from '../../utils/validation';
-import { Job } from '../../database/models';
+import { Job, Project } from '../../database/models';
+import { AppError } from '../../types/errors';
+import logger from '../../utils/logger';
 import { JobPriority } from '../../types';
 import { isGameJobType } from '../../game/types';
 
@@ -10,6 +12,7 @@ interface CreateJobInput {
   type: string;
   input: Record<string, any>;
   priority?: JobPriority;
+  projectId?: string;
   webhookUrl?: string;
 }
 
@@ -22,14 +25,41 @@ router.post('/', async (req: AuthenticatedRequest, res, next) => {
       // Fail fast with a field-level message instead of a provider error later.
       validateWithSchema(input.input, schemas.gameSpec);
     }
-    const job = await orchestrator.createJob({ userId: req.user!.userId, jobType: input.type as any, input: input.input, priority: input.priority, webhookUrl: input.webhookUrl });
+    const userId = req.user!.userId;
+    if (input.projectId) {
+      const project = await Project.findOne({ _id: input.projectId, userId });
+      if (!project) throw new AppError('PROJECT_NOT_FOUND', 'Project not found', 404);
+    }
+    const job = await orchestrator.createJob({
+      userId,
+      jobType: input.type as any,
+      input: input.input,
+      priority: input.priority,
+      projectId: input.projectId,
+      webhookUrl: input.webhookUrl,
+    });
+    if (input.projectId) {
+      try {
+        await Project.updateOne(
+          { _id: input.projectId, userId },
+          { $addToSet: { jobs: job.jobId } },
+        );
+      } catch (error) {
+        // The job keeps projectId in its own metadata, so project pages can
+        // still recover the association if this denormalized list update fails.
+        logger.warn('[Jobs API] Could not add job id to project history', error);
+      }
+    }
     res.status(201).json({ success: true, data: job });
   } catch (e) { next(e); }
 });
 router.get('/', async (req: AuthenticatedRequest, res, next) => {
   try {
     const jobs = await Job.find({ userId: req.user!.userId }).sort({ createdAt: -1 }).limit(100).lean();
-    res.json({ success: true, data: jobs });
+    res.json({
+      success: true,
+      data: jobs.map((job) => ({ ...job, id: String(job._id) })),
+    });
   } catch (e) { next(e); }
 });
 router.get('/stats', async (req: AuthenticatedRequest, res, next) => {

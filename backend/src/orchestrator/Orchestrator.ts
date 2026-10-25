@@ -8,12 +8,14 @@ import logger from '../utils/logger';
 import { AppError, ValidationError } from '../types/errors';
 import { GameService } from '../game/GameService';
 import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
+import { createPlayableGameDefinition } from '../game/PlayableGameDefinition';
 
 export interface OrchestratorRequest {
   userId: string;
   jobType: JobType;
   input: Record<string, any>;
   priority?: JobPriority;
+  projectId?: string;
   webhookUrl?: string;
   userPreferences?: UserPreferences;
 }
@@ -96,6 +98,7 @@ export class Orchestrator {
         retryCount: 0,
         maxRetries: 3,
         provider: decision.providerName,
+        projectId: request.projectId,
       },
       webhookUrl: request.webhookUrl,
     });
@@ -206,8 +209,8 @@ export class Orchestrator {
         };
 
         if (job.type === JobType.GAME_BUILD) {
-          // Build a runnable scene-viewer artifact from a spec or a manifest
-          // produced by an earlier game_creation job.
+          // Build the playable Phaser definition plus scene-viewer fallback
+          // from a spec or a manifest produced by an earlier game_creation job.
           const build = await this.gameService.buildGame(
             job.input as unknown as GameSpec,
             this.getAvailableProviders(),
@@ -221,6 +224,7 @@ export class Orchestrator {
             size: build.size,
             metadata: {
               manifest: build.manifest,
+              playableGame: build.playableGame,
               artifact: {
                 filename: build.filename,
                 format: 'text/html',
@@ -238,13 +242,14 @@ export class Orchestrator {
             this.getAvailableProviders(),
             report,
           );
+          const playableGame = createPlayableGameDefinition(manifest);
 
           output = {
             id: jobId,
             url: manifest.assets[0]?.url || '',
             format: 'application/json',
             size: 0,
-            metadata: { manifest },
+            metadata: { manifest, playableGame },
           };
         }
       } else {

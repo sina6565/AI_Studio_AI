@@ -25,13 +25,16 @@ jest.mock('../src/database/models', () => ({
     countDocuments: jest.fn(),
     updateMany: jest.fn(),
   },
-  Project: {},
+  Project: {
+    findOne: jest.fn(),
+    updateOne: jest.fn(),
+  },
   User: {},
 }));
 
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { Job } from '../src/database/models';
+import { Job, Project } from '../src/database/models';
 import orchestrator from '../src/orchestrator/Orchestrator';
 import { generateToken } from '../src/api/middleware/auth';
 import type { IProvider } from '../src/providers/interfaces/IProvider';
@@ -125,6 +128,52 @@ describe('POST /api/v1/jobs with a game spec', () => {
     expect(createJob).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'game_build', input: manifest }),
     );
+  });
+
+  it('attaches generated game jobs to an owned project', async () => {
+    const projectId = '507f1f77bcf86cd799439011';
+    const findProject = Project.findOne as jest.Mock;
+    const updateProject = Project.updateOne as jest.Mock;
+    const createJob = Job.create as jest.Mock;
+    findProject.mockReset().mockResolvedValueOnce({ _id: projectId });
+    updateProject.mockReset().mockResolvedValueOnce({ matchedCount: 1 });
+    createJob.mockClear();
+
+    const res = await request(app)
+      .post('/api/v1/jobs')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ type: 'game_build', input: validSpec, projectId });
+
+    expect(res.status).toBe(201);
+    expect(findProject).toHaveBeenCalledWith({ _id: projectId, userId: 'user-1' });
+    expect(createJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({ projectId }),
+      }),
+    );
+    expect(updateProject).toHaveBeenCalledWith(
+      { _id: projectId, userId: 'user-1' },
+      { $addToSet: { jobs: expect.any(String) } },
+    );
+  });
+
+  it('rejects linking a job to a project the user does not own', async () => {
+    const findProject = Project.findOne as jest.Mock;
+    const createJob = Job.create as jest.Mock;
+    findProject.mockReset().mockResolvedValueOnce(null);
+    createJob.mockClear();
+
+    const res = await request(app)
+      .post('/api/v1/jobs')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        type: 'game_build',
+        input: validSpec,
+        projectId: '507f1f77bcf86cd799439011',
+      });
+
+    expect(res.status).toBe(404);
+    expect(createJob).not.toHaveBeenCalled();
   });
 
   it('rejects a game spec with no scenes and explains why', async () => {
