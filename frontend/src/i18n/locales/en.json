@@ -246,10 +246,10 @@
     "ads": {
       "kicker": "GLOBAL ADS THEATER",
       "title": "Watch the world's ads. Power your creations.",
-      "subtitle": "A cinema of international campaigns and showreels. Watch, get inspired — and earn creation credits for every screening.",
+      "subtitle": "Concept previews for a possible ad-supported model. No live ad network or real credit rewards are active in this beta.",
       "watch": "Watch",
       "reward": "+{{count}} credits",
-      "note": "Showcase previews. Credit rewards activate with founder accounts at launch.",
+      "note": "Preview only. Watching these sample ads does not issue credits or create a reward in your account.",
       "close": "Close",
       "nowShowing": "NOW SHOWING",
       "items": {
@@ -278,9 +278,9 @@
     "preorder": {
       "kicker": "FOUNDER ACCESS",
       "title": "Pre-order your place in the universe",
-      "subtitle": "Sina Studio Plus — build without limits. Reserve founder access today; payment opens at launch.",
-      "reserve": "Reserve Access",
-      "note": "No charge today. Founder pricing is locked for early reservations and revealed before launch.",
+      "subtitle": "Explore the planned founder tiers. They are a roadmap preview, not a live purchase or a confirmed reservation.",
+      "reserve": "Explore access",
+      "note": "No payment is taken here. Plan features and founder pricing are not final; the form below saves a draft only in this browser and does not submit a reservation.",
       "mostPopular": "MOST POPULAR",
       "tiers": {
         "explorer": {
@@ -333,27 +333,27 @@
     }
   },
   "preorderPage": {
-    "title": "Pre-Order Founder Access",
-    "subtitle": "Reserve your founder seat in SINA STUDIO AI. No payment today — founders are invited first at launch.",
+    "title": "Founder Access Preview",
+    "subtitle": "This is a local demo only. The form stores a draft in this browser; it does not send your name or email to SINA, create a reservation, or lock pricing. To try the current beta, create an account.",
     "form": {
       "name": "Full name",
       "email": "Email address",
       "plan": "Choose your plan",
-      "submit": "Reserve My Access",
-      "success": "You are on the founder list.",
-      "successHint": "We saved your reservation on this device. Create your account to lock it to your profile at launch.",
+      "submit": "Save Local Draft",
+      "success": "Local draft saved on this device.",
+      "successHint": "SINA did not receive your name or email. No reservation was created and no price was locked. Create an account to try the current beta.",
       "createAccount": "Create Account",
       "backHome": "Back to the Universe",
-      "invalid": "Please enter a valid name and email."
+      "invalid": "Please enter a valid name and email to save a local draft."
     },
     "faq": {
-      "title": "Questions",
-      "q1": "When do I pay?",
-      "a1": "Not today. Founder pricing is announced before launch and early reservations lock the founder rate.",
+      "title": "Before you continue",
+      "q1": "Are these prices final?",
+      "a1": "No. The plan details and founder pricing are roadmap ideas and may change before any launch.",
       "q2": "What do founders receive?",
-      "a2": "Priority access, the founder badge, locked pricing and first entry to new worlds as they open.",
-      "q3": "Can I cancel my reservation?",
-      "a3": "Anytime — a reservation is a promise, not a purchase."
+      "a2": "Founder benefits are planned and are not being promised or sold through this preview.",
+      "q3": "Is this a real reservation?",
+      "a3": "No. This page saves a draft only in your current browser. It does not contact SINA or create a reservation."
     }
   }
 }

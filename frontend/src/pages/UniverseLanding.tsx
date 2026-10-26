@@ -46,31 +46,14 @@ const FEATURED = [
 ] as const;
 
 const ADS = [
-  { key: 'neon', img: '/assets/ad-neon-drive.jpg', credits: 5 },
-  { key: 'gold', img: '/assets/ad-gold-essence.jpg', credits: 5 },
-  { key: 'orbit', img: '/assets/ad-orbit.jpg', credits: 10 },
-  { key: 'velocity', img: '/assets/ad-velocity.jpg', credits: 5 },
+  { key: 'neon', img: '/assets/ad-neon-drive.jpg' },
+  { key: 'gold', img: '/assets/ad-gold-essence.jpg' },
+  { key: 'orbit', img: '/assets/ad-orbit.jpg' },
+  { key: 'velocity', img: '/assets/ad-velocity.jpg' },
 ] as const;
 
 const TIERS = ['explorer', 'creator', 'studio'] as const;
 const WORKFLOW = ['idea', 'prompt', 'generate', 'universe'] as const;
-
-function useCountUp(target: number, start: boolean, duration = 1600): number {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let raf = 0;
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - t0) / duration);
-      setValue(Math.round(target * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [start, target, duration]);
-  return value;
-}
 
 const UniverseLanding: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -93,11 +76,7 @@ const UniverseLanding: React.FC = () => {
   const [activeAd, setActiveAd] = useState<number | null>(null);
   const [adPlaying, setAdPlaying] = useState(false);
   const [adProgress, setAdProgress] = useState(0);
-  const [earnedAds, setEarnedAds] = useState<ReadonlySet<string>>(new Set());
 
-  const creators = useCountUp(500, phase === 'ready');
-  const assets = useCountUp(10, phase === 'ready');
-  const generations = useCountUp(1, phase === 'ready', 900);
 
   /* ---- Intro orchestration: HTML beats locked to the WebGL timeline ---- */
   useEffect(() => {
@@ -179,10 +158,7 @@ const UniverseLanding: React.FC = () => {
   }, [activeAd, adPlaying]);
 
   useEffect(() => {
-    if (activeAd !== null && adProgress >= 100) {
-      setAdPlaying(false);
-      setEarnedAds((prev) => new Set(prev).add(ADS[activeAd].key));
-    }
+    if (activeAd !== null && adProgress >= 100) setAdPlaying(false);
   }, [adProgress, activeAd]);
 
   useEffect(() => {
@@ -240,10 +216,11 @@ const UniverseLanding: React.FC = () => {
     setAdPlaying(true);
   };
 
+  // Use verifiable beta facts instead of fabricated user, asset, or generation counts.
   const stats = [
-    { icon: GroupsIcon, value: `${creators}+`, label: t('landing.hero.stats.creators') },
-    { icon: ViewInArIcon, value: `${assets}K+`, label: t('landing.hero.stats.assets') },
-    { icon: BoltIcon, value: `${generations}M+`, label: t('landing.hero.stats.generations') },
+    { icon: GroupsIcon, value: isPersian ? 'بتا' : 'BETA', label: isPersian ? 'نسخهٔ آزمایشی دعوتی' : 'Invite-led testing' },
+    { icon: ViewInArIcon, value: '6', label: isPersian ? 'جهان خلاق' : 'Creative worlds' },
+    { icon: BoltIcon, value: isPersian ? 'بازخورد' : 'FEEDBACK', label: isPersian ? 'بهبود با کمک کاربران' : 'Shaped by testers' },
   ];
 
   const tierFeatures = (tier: string): string[] => {
@@ -516,7 +493,7 @@ const UniverseLanding: React.FC = () => {
                     <img src={ad.img} alt="" loading="lazy" />
                     <span className="ad-reward">
                       <MonetizationOnIcon style={{ fontSize: 14 }} />
-                      {earnedAds.has(ad.key) ? <CheckIcon style={{ fontSize: 14 }} /> : t('landing.ads.reward', { count: ad.credits })}
+                      {isPersian ? 'پیش‌نمایش' : 'PREVIEW'}
                     </span>
                     <span className="ad-duration">{t(`landing.ads.items.${ad.key}.duration`)}</span>
                     <span className="ad-play">
@@ -648,12 +625,11 @@ const UniverseLanding: React.FC = () => {
                 <div className="ad-modal-title">{t(`landing.ads.items.${ADS[activeAd].key}.title`)}</div>
                 <div className="ad-modal-region">{t(`landing.ads.items.${ADS[activeAd].key}.region`)} · {t(`landing.ads.items.${ADS[activeAd].key}.duration`)}</div>
               </div>
-              {earnedAds.has(ADS[activeAd].key) && adProgress >= 100 && (
-                <span className="ad-earned">
-                  <CheckIcon style={{ fontSize: 16 }} />
-                  {t('landing.ads.reward', { count: ADS[activeAd].credits })}
-                </span>
-              )}
+              <span className="ad-region">
+                {isPersian
+                  ? 'این بخش نمایشی است؛ در نسخهٔ بتا اعتبار واقعی صادر نمی‌شود.'
+                  : 'Preview only — no real credits are issued in this beta.'}
+              </span>
               <button type="button" className="ad-close-btn" onClick={() => setActiveAd(null)}>
                 <CloseIcon style={{ fontSize: 16 }} />
                 {t('landing.ads.close')}

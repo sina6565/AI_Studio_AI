@@ -1,6 +1,6 @@
-# AI Content Creation Platform
+# SINA AI STUDIO
 
-A unified, production-grade platform for AI-powered content creation across multiple mediums including images, videos, audio, text, characters, 3D assets, and complete games.
+An AI-assisted digital creation platform with web and mobile clients, provider-routed content generation, and early game-world / scene-viewer workflows. Production readiness and each live provider capability must be verified in the deployed environment.
 
 ## 🎯 Platform Vision
 
@@ -15,7 +15,7 @@ One unified platform accessible via Web and Mobile applications that allows user
 - 📝 **Text**: AI-powered text generation
 - 👤 **Characters**: Character design and generation
 - 🎮 **3D Assets**: 3D model and asset generation
-- 🕹️ **Games**: Complete AI-assisted game creation with scenes, levels, characters, and logic
+- 🕹️ **Game worlds**: AI-assisted game concepts and scene-viewer prototypes; not a full gameplay engine
 
 ## 🏗️ Architecture Overview
 
@@ -50,8 +50,8 @@ Web Client + Mobile Client
 
 ```bash
 # Clone repository
-git clone https://github.com/sina656/AI.git
-cd AI
+git clone https://github.com/sina6565/AI_Studio_AI.git
+cd AI_Studio_AI
 
 # Copy environment files
 cp backend/.env.example backend/.env
@@ -199,7 +199,7 @@ npm start
 - Clear provider interface for future integrations (OpenAI, Stability AI, etc.)
 - Automatic provider selection based on capability and constraints
 
-### Production-Ready
+### Operational foundations (live deployment still requires verification)
 - Asynchronous job processing
 - Comprehensive error handling with retries
 - Structured logging and monitoring
@@ -434,14 +434,14 @@ STORAGE_PATH=/tmp/ai-platform-storage
 For issues, questions, or contributions:
 
 1. Check [Troubleshooting](./docs/DEVELOPMENT.md#troubleshooting)
-2. Review existing [GitHub Issues](https://github.com/sina656/AI/issues)
+2. Review existing [GitHub Issues](https://github.com/sina6565/AI_Studio_AI/issues)
 3. Create new issue with details
 
 ## 📄 License
 
-Not specified
+Proprietary — all rights reserved. See LICENSE. Third-party dependencies retain their respective licenses.
 
-## 📊 Current Status (as of 2026-10-20)
+## 📊 Current Status (as of 2026-10-25)
 
 This status reflects the repository's current implementation roadmap. A checked item means the capability is reported as implemented; it does **not** by itself prove end-to-end testing against live external services.
 
@@ -548,5 +548,5 @@ still required by the current job-creation/router architecture.
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: 2026-10-20  
+**Last Updated**: 2026-10-25  
 **Status**: Core Features Implemented - Production Development Phase
