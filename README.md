@@ -543,6 +543,21 @@ still required by the current job-creation/router architecture.
 - Native mobile builds require the Android SDK / Xcode, which are not available here.
   `npm run type-check` and `npm run lint` pass for the mobile app.
 
+
+### Longer-term game creation roadmap (planned, not current MVP)
+
+The following ambitions appeared in earlier README versions and remain **future goals, not claims about the current implementation**. The current playable release is the experimental 2D Phaser MVP described above.
+
+- **Game design**: AI-assisted concept and design workflows.
+- **Characters and animation**: character creation, animation support, and reusable character assets.
+- **Levels and scenes**: assisted level design, scene organization, and iteration across a game project.
+- **Assets and audio**: generation and integration of 3D models, sprites, animations, background music, and sound effects.
+- **Game logic**: validated game behavior and scripting workflows, subject to a secure execution model; arbitrary model-generated JavaScript is not supported by the current MVP.
+- **Build and export**: future integration with additional game engines and export targets; compiling to multiple engines is not currently available.
+- **Project lifecycle**: versioned assets, project history, and iteration tools.
+
+These goals must not be interpreted as shipped features. Full 3D game generation, general-purpose gameplay simulation, arbitrary generated scripts, multiplayer, and multi-engine export remain outside the current MVP.
+
 ---
 
 **Version**: 1.0.0  
