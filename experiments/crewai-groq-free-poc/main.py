@@ -12,11 +12,22 @@ from crewai import Agent, Crew, LLM, Process, Task
 def main() -> int:
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        print("Missing GROQ_API_KEY. Set it in your local environment; never commit it.", file=sys.stderr)
+        print(
+            "Missing GROQ_API_KEY. Set it in your local environment; never commit it.",
+            file=sys.stderr,
+        )
         return 2
 
-    model_name = os.getenv("GROQ_MODEL", "groq/llama-3.3-70b-versatile")
-    llm = LLM(model=model_name, api_key=api_key, temperature=0.2)
+    # Groq exposes an OpenAI-compatible endpoint. This avoids requiring the
+    # Groq LiteLLM provider path for this isolated proof of concept.
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+    llm = LLM(
+        model=model_name,
+        custom_openai=True,
+        base_url="https://api.groq.com/openai/v1",
+        api_key=api_key,
+        temperature=0.2,
+    )
 
     analyst = Agent(
         role="Technical Analyst",
