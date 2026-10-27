@@ -1,552 +1,183 @@
-# AI Content Creation Platform
+# SINA AI STUDIO
 
-A unified, production-grade platform for AI-powered content creation across multiple mediums including images, videos, audio, text, characters, 3D assets, and complete games.
+SINA AI STUDIO is an existing, provider-agnostic AI creation platform for web and mobile workflows spanning image, video, audio, speech, text, characters, 3D assets, and experimental game creation.
 
-## 🎯 Platform Vision
+> **Source of truth:** this repository and its current default branch, `main`. Keep project documentation and implementation aligned with the code. Do not treat planned integrations as completed features.
 
-One unified platform accessible via Web and Mobile applications that allows users to create various types of digital content through a simple, intuitive experience.
+## Product direction
 
-### Supported Capabilities
+Turn a user's idea into one or more coordinated outputs through a single experience. The platform should route requests to the appropriate capability, track asynchronous work, preserve project/job history, and assemble the results.
 
-- 🖼️ **Images & Photos**: AI image and photo generation
-- 🎬 **Video & Animation**: Video creation and animation generation
-- 🎵 **Audio & Music**: Audio and music generation
-- 🗣️ **Speech**: Text-to-speech synthesis (Persian & English)
-- 📝 **Text**: AI-powered text generation
-- 👤 **Characters**: Character design and generation
-- 🎮 **3D Assets**: 3D model and asset generation
-- 🕹️ **Games**: Complete AI-assisted game creation with scenes, levels, characters, and logic
+Core capability areas:
+- Image and visual asset generation
+- Video and animation
+- Audio and music
+- Speech / text-to-speech (Persian and English where supported by the configured provider)
+- Text generation
+- Character creation
+- 3D assets (scope depends on implemented providers and workflows)
+- AI-assisted game creation
+- Web projects, user projects, jobs, and generated-asset management
 
-## 🏗️ Architecture Overview
+Availability and quality depend on the implemented workflow, provider configuration, credentials, and deployment environment. A listed capability is not proof of a successful live end-to-end run.
 
-```
-Web Client + Mobile Client
-        ↓
-   Backend API (Express)
-        ↓
-   Authentication / Users / Projects
-        ↓
-      Orchestrator (Multi-step workflows)
-        ↓
-     Routing Layer (Intelligent provider selection)
-        ↓
-   AI Provider Layer (Agnes, OpenAI, etc.)
-        ↓
-   Sandbox (Secure isolated execution)
-        ↓
-    Storage & Results
-```
+## Existing architecture to preserve
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Docker & Docker Compose 20.10+
-- Node.js 20+ (for development without Docker)
-- Git
-- Agnes AI API Key (set via environment variable)
-
-### Development Setup
-
-```bash
-# Clone repository
-git clone https://github.com/sina656/AI.git
-cd AI
-
-# Copy environment files
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-cp mobile/.env.example mobile/.env
-
-# Add your Agnes AI API Key to backend/.env
-# AGNES_API_KEY=your_key_here
-
-# Start with Docker Compose
-docker-compose up -d
-
-# Access:
-# Web App: http://localhost:5173
-# API: http://localhost:3000
-# API Docs: http://localhost:3000/api/v1/docs
-# Health: http://localhost:3000/health
+```text
+Web client (React + Vite) / Mobile client (React Native)
+                         |
+                  Express + TypeScript API
+                         |
+            Authentication / Users / Projects
+                         |
+             Existing Orchestrator / Task Planner
+                         |
+             Provider-agnostic routing layer
+                         |
+               Provider adapters (including Agnes)
+                         |
+             Redis + Bull asynchronous jobs
+                         |
+       Specialized workers / safe execution boundary
+                         |
+           MongoDB + storage + job results/history
+                         |
+             Progress updates to the client
 ```
 
-### Manual Development Setup
-
-```bash
-# Backend
-cd backend
-npm install
-npm run dev  # http://localhost:3000
-
-# Frontend (new terminal)
-cd frontend
-npm install
-npm run dev  # http://localhost:5173
-
-# Mobile (new terminal)
-cd mobile
-npm install
-npm start
-```
-
-## 📁 Project Structure
-
-```
-.
-├── backend/                    # Express API + Orchestrator + Providers
-│   ├── src/
-│   │   ├── api/               # REST endpoints & routes
-│   │   │   ├── routes/
-│   │   │   │   ├── auth.ts    # Authentication routes
-│   │   │   │   ├── jobs.ts    # Job management
-│   │   │   │   ├── users.ts   # User routes
-│   │   │   │   ├── projects.ts # Project management
-│   │   │   │   └── generate.ts # Content generation (NEW - Studio)
-│   │   │   └── middleware/    # Express middleware
-│   │   ├── orchestrator/       # Central orchestration engine
-│   │   ├── routing/           # Intelligent routing layer
-│   │   ├── providers/         # AI provider implementations (Agnes)
-│   │   ├── sandbox/           # Secure execution environment
-│   │   ├── jobs/              # Job queue and management
-│   │   ├── storage/           # Content storage abstraction
-│   │   ├── database/          # Database models
-│   │   ├── services/          # Business logic services
-│   │   ├── config/            # Configuration management
-│   │   ├── utils/             # Utilities and helpers
-│   │   └── types/             # TypeScript type definitions
-│   ├── tests/                 # Test suite
-│   ├── docker/                # Docker configuration
-│   ├── .env.example
-│   ├── Dockerfile
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── frontend/                  # React Web Application
-│   ├── src/
-│   │   ├── components/        # React components
-│   │   ├── pages/             # Route pages
-│   │   ├── services/          # API client
-│   │   ├── store/             # State management
-│   │   ├── i18n/              # Localization (Persian/English)
-│   │   ├── types/             # TypeScript types
-│   │   └── styles/            # Global styles
-│   ├── public/                # Static assets
-│   ├── .env.example
-│   ├── Dockerfile
-│   ├── vite.config.ts
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── mobile/                    # React Native Mobile Application
-│   ├── src/
-│   │   ├── screens/           # Mobile screens
-│   │   ├── components/        # Reusable components
-│   │   ├── services/          # API client (shared)
-│   │   ├── store/             # State management (shared)
-│   │   ├── navigation/        # Navigation setup
-│   │   ├── i18n/              # Localization (shared)
-│   │   └── types/             # Types (shared)
-│   ├── .env.example
-│   ├── app.json
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── docs/                      # Documentation
-│   ├── ARCHITECTURE.md
-│   ├── API.md
-│   ├── PROVIDERS.md
-│   ├── SANDBOX.md
-│   ├── GAME_CREATION.md
-│   ├── DEPLOYMENT.md
-│   ├── DEVELOPMENT.md
-│   └── SECURITY.md
-│
-├── docker-compose.yml         # Development environment
-├── docker-compose.prod.yml    # Production environment
-├── nginx.conf                 # Reverse proxy configuration
-├── .env.example               # Root environment template
-├── .gitignore
-└── README.md
-```
-
-## 🔑 Key Features
-
-### Content Generation (via Agnes AI)
-- **Image Generation**: Generate high-quality images from text prompts
-  - POST `/api/v1/generate/image` - Generate images (512x512, 1024x1024, 1024x768)
-  - Configurable quality (standard, high, ultra)
-- **Video Generation**: Create videos from text descriptions
-  - POST `/api/v1/generate/video` - Generate videos with customizable duration and FPS
-  - Async processing with status tracking
-- **Audio Generation**: Generate audio content from prompts
-  - POST `/api/v1/generate/audio` - Generate audio from text prompts
-  - Multiple voice options and durations
-- **Text-to-Speech**: Convert text to natural speech
-  - POST `/api/v1/generate/speech` - Persian (Farsi) and English support
-  - Multiple voice styles
-
-### Unified User Experience
-- Single platform identity (providers are transparent infrastructure)
-- Simple creation workflow: request → automatic routing → result
-- Support for complex multi-step workflows (e.g., game generation)
-- Real-time progress tracking
-- Project management and content library
-
-### Extensible Architecture
-- Modular provider system for adding new AI services
-- Agnes AI fully integrated as first provider
-- Clear provider interface for future integrations (OpenAI, Stability AI, etc.)
-- Automatic provider selection based on capability and constraints
-
-### Production-Ready
-- Asynchronous job processing
-- Comprehensive error handling with retries
-- Structured logging and monitoring
-- Input validation and sanitization
-- Rate limiting and quota management
-- Audit trails for all operations
-
-### Security First
-- All credentials via environment variables
-- No hardcoded secrets
-- Secure sandbox execution
-- Input validation on all endpoints
-- Authentication & authorization
-- Data encryption support
-
-### Experimental 2D Game Creation
-- Structured scene prompts and provider-generated scene art
-- Versioned, validated, data-only gameplay definitions
-- Phaser 4 browser runtime with movement, wall/hazard collisions, scoring, lives, timer, and a collect-then-exit win condition
-- Safe HTML scene-viewer export remains available as a fallback
-- Optional association of game jobs with existing user-owned projects
-- No arbitrary model-generated JavaScript execution; full 3D generation remains out of scope
-
-### Internationalization
-- Persian (Farsi) and English support
-- Full RTL (Right-to-Left) support
-- Localized UI for both web and mobile
-- Culturally appropriate defaults
-
-## 📚 Documentation
-
-- [Architecture Overview](./docs/ARCHITECTURE.md) - Detailed system design
-- [API Documentation](./docs/API.md) - REST API reference
-- [Provider Integration](./docs/PROVIDERS.md) - Adding new AI providers
-- [Sandbox System](./docs/SANDBOX.md) - Secure execution environment
-- [Game Creation](./docs/GAME_CREATION.md) - Game platform capabilities
-- [Deployment Guide](./docs/DEPLOYMENT.md) - Production deployment
-- [Development Guide](./docs/DEVELOPMENT.md) - Local development
-- [Security Guide](./docs/SECURITY.md) - Security practices
-
-## 🔌 Providers
-
-### Currently Integrated
-- **Agnes AI** - Full production integration with all capabilities
-  - Image generation (agnes-image-2.1-flash)
-  - Video generation (agnes-video-2.0)
-  - Audio generation (agnes-audio-2.0)
-  - Text-to-speech with Persian support
-
-### Planned
-- OpenAI (GPT-4, DALL-E, Whisper)
-- Stability AI (Stable Diffusion)
-- Replicate (Multi-provider marketplace)
-
-## 🎮 Game Creation Features
-
-- **Game Design Generation**: AI-assisted game concept and design
-- **Character Generation**: Procedural character creation
-- **Level Design**: Automated level generation
-- **Asset Generation**: 3D models, sprites, animations
-- **Script Generation**: Game logic and behavior code
-- **Audio Integration**: Background music and sound effects
-- **Build & Export**: Compile to multiple game engines
-- **Project Management**: Version control and iterations
-
-## 🔒 Security
-
-- ✅ Environment-based credential management
-- ✅ Input validation and sanitization
-- ✅ Sandbox execution with resource limits
-- ✅ JWT authentication
-- ✅ Rate limiting and quota enforcement
-- ✅ Audit logging
-- ✅ HTTPS/TLS ready
-- ✅ Database encryption support
-
-See [Security Guide](./docs/SECURITY.md) for detailed security practices.
-
-## 🚀 Deployment
-
-### Docker Compose (Recommended for Single Server)
-
-```bash
-# Development
-docker-compose up -d
-
-# Production
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-### Manual Deployment
-
-See [Deployment Guide](./docs/DEPLOYMENT.md) for:
-- Environment configuration
-- Database setup
-- Service startup
-- Monitoring setup
-- Backup strategies
-
-## 📊 Technology Stack
-
-### Backend
-- **Runtime**: Node.js 20+
-- **Framework**: Express.js
-- **Language**: TypeScript
-- **Database**: MongoDB
-- **Cache/Queue**: Redis + Bull
-- **Storage**: S3-compatible (MinIO)
-- **Validation**: Zod
-- **Logging**: Winston
-- **Testing**: Jest
-- **HTTP Client**: Axios
-
-### Frontend (Web)
-- **Framework**: React 18+
-- **Language**: TypeScript
-- **Build**: Vite
-- **UI**: Material-UI / Shadcn/ui
-- **State**: Redux Toolkit
-- **HTTP**: Axios
-- **i18n**: i18next
-- **RTL**: Built-in support
-
-### Mobile
-- **Framework**: React Native
-- **Language**: TypeScript
-- **Navigation**: React Navigation
-- **State**: Redux Toolkit (shared)
-- **HTTP**: Axios (shared)
-- **i18n**: i18next (shared)
-
-### DevOps
-- **Containerization**: Docker & Docker Compose
-- **Reverse Proxy**: Nginx
-- **CI/CD**: GitHub Actions
-- **Monitoring**: Prometheus + Grafana (ready)
-
-## 📝 API Endpoints
-
-### Content Generation
-
-```bash
-# Generate Image
-POST /api/v1/generate/image
-Content-Type: application/json
-
-{
-  "prompt": "a beautiful sunset over mountains",
-  "size": "1024x1024",      # optional: 512x512, 1024x1024, 1024x768
-  "quality": "high"          # optional: standard, high, ultra
-}
-
-# Generate Video
-POST /api/v1/generate/video
-{
-  "prompt": "a person walking in a forest",
-  "duration": 10,           # seconds, 1-120
-  "fps": 24                 # frames per second, 1-60
-}
-
-# Generate Audio
-POST /api/v1/generate/audio
-{
-  "prompt": "sound of rain falling",
-  "voice": "neutral",       # optional voice style
-  "duration": 30            # seconds, 1-300
-}
-
-# Text to Speech
-POST /api/v1/generate/speech
-{
-  "text": "سلام، خوش‌آمدید",
-  "voice": "neutral",       # optional
-  "language": "fa"          # fa (Persian) or en (English)
-}
-
-# Health Check
-GET /health
-```
-
-## 🤝 Contributing
-
-1. Create feature branch
-2. Implement with tests
-3. Ensure linting passes
-4. Submit pull request
-
-See [Development Guide](./docs/DEVELOPMENT.md) for details.
-
-## 📝 Environment Configuration
-
-All configuration uses environment variables. See `.env.example` files:
-
-- `backend/.env.example` - Backend services configuration
-- `frontend/.env.example` - Frontend API endpoints
-- `mobile/.env.example` - Mobile app configuration
-
-**Never commit actual secrets or credentials.**
-
-### Required Environment Variables
-
-```env
-# Backend - Required
-NODE_ENV=development
-PORT=3000
-HOST=0.0.0.0
-
-# Database
-DATABASE_URL=mongodb://localhost:27017/ai-platform
-REDIS_URL=redis://localhost:6379
-
-# Authentication
-JWT_SECRET=your-secret-key-here
-BCRYPT_ROUNDS=12
-
-# Agnes AI Provider (Required for content generation)
-AGNES_ENABLED=true
-AGNES_API_KEY=your_agnes_api_key_here
-AGNES_API_URL=https://api.agnesai.co/v1
-AGNES_TIMEOUT=300000
-
-# CORS
-CORS_ORIGIN=http://localhost:5173,http://localhost:8081
-
-# Storage
-STORAGE_TYPE=local
-STORAGE_PATH=/tmp/ai-platform-storage
-```
-
-## 🆘 Support
-
-For issues, questions, or contributions:
-
-1. Check [Troubleshooting](./docs/DEVELOPMENT.md#troubleshooting)
-2. Review existing [GitHub Issues](https://github.com/sina656/AI/issues)
-3. Create new issue with details
-
-## 📄 License
-
-Not specified
-
-## 📊 Current Status (as of 2026-10-20)
-
-This status reflects the repository's current implementation roadmap. A checked item means the capability is reported as implemented; it does **not** by itself prove end-to-end testing against live external services.
-
-- ✅ Core Express.js API, authentication framework, database models/connection code, Agnes provider integration, content-generation endpoints, security middleware, error handling, and logging
-- ✅ Web UI built with React + Vite; API integration is implemented. Full live-service/end-to-end coverage must be verified separately.
-- 🚧 Mobile app: screens and API client are implemented and type-checked; native Android/iOS builds still require platform tooling.
-- ✅ Job orchestration code: Bull/Redis queue, retries, statistics, cancellation, and interrupted-job recovery
-- ✅ Experimental playable Phaser 2D MVP: versioned/validated game definition, in-app movement/collisions/scoring/win-loss flow, and safe scene-viewer fallback; full 3D remains out of scope
-- ✅ Provider-agnostic provider registry and routing
-- ✅ GitHub Actions CI has passed on the main branch after the frontend dependency fix (PR #18, commit `725abc5764f9e55f9826b18fe23ae38fa2982679`). This does not establish that every integration or production service has been tested.
-- 🚧 Performance profiling and optimization
-- 🚧 Security audit and remediation
-- 🚧 Production deployment validation and release
-
-## 🗓️ Roadmap to Release
-
-1. ✅ Core API foundation with content generation
-2. ✅ Web frontend UI development (React + Vite, API integration implemented; end-to-end verification remains separate)
-3. 🚧 Mobile app development (screens and API client implemented and type-checked; a native Android/iOS build needs platform tooling)
-4. ✅ Job queue & orchestration system (Bull/Redis, retries, stats, cancellation, interrupted-job recovery)
-5. ✅ Experimental 2D game workflow (spec validation, per-scene asset generation, versioned Phaser definition and browser play route; full 3D/game-engine export remains out of scope)
-6. ✅ Advanced provider selection & routing (provider-agnostic registry + router)
-7. 🚧 Testing & quality assurance (main-branch CI is green; complete integration/live-service coverage still needs verification)
-8. 🚧 Performance optimization
-9. 🚧 Security audit
-10. 🚧 Production deployment & release
-
-## 🎮 Game creation
-
-Game jobs use the existing authenticated job queue and image-provider routing.
-The current playable scope is an **experimental 2D MVP**—not a general-purpose
-AI game engine, full 3D generation, or generated-code runner.
-
-Submit the existing structured game spec through the Jobs API:
-
-```bash
-POST /api/v1/jobs
-Authorization: Bearer <token>
-
-{
-  "type": "game_build",
-  "projectId": "507f1f77bcf86cd799439011",
-  "input": {
-    "title": "Dungeon of Echoes",
-    "description": "A short dungeon-crawling adventure.",
-    "genre": "dungeon crawler",
-    "artStyle": "pixel art",
-    "scenes": [
-      { "name": "Entrance", "description": "A mossy stone doorway." }
-    ]
-  }
-}
-```
-
-`projectId` is optional and must identify a project owned by the authenticated
-user. Rules: 1–12 scenes, each with a name and description; title and description
-are required. Existing user-scoped job and project endpoints remain in use.
-
-### Generated definition and runtime
-
-`game_creation` produces scene art and a manifest. The job result includes a
-versioned, data-only `result.metadata.playableGame` blueprint. `game_build` can
-accept a game spec (generates its scene assets first) or an earlier manifest
-(reuses those assets), then returns both the same playable definition and the
-legacy HTML scene-viewer artifact.
-
-The playable definition has `schemaVersion: 1`, targets Phaser `4.2.1`, and
-contains a validated 20 × 15 tile map plus allow-listed movement and objective
-rules. In the browser, Phaser runs a deterministic crystal-collection game:
-move with arrow keys or WASD, collide with walls, collect crystals for points,
-avoid hazards, and reach the exit before time expires. Three hazard hits or the
-time limit ends the run. The win condition is collecting all crystals and then
-reaching the exit. The backend and frontend both validate the definition; unknown
-fields/versions are rejected, and model-provided JavaScript is never evaluated.
-
-Completed `game_build` jobs have a **Play 2D game** action on Jobs. The Studio can
-attach a job to a project; Projects lists linked builds and can launch playable
-ones. A completed `game_creation` manifest can also be built from Jobs without
-regenerating its scene images.
-
-### Safe scene-viewer fallback
-
-`result.contentUrl` remains a `data:text/html;base64,…` downloadable `.html`
-scene viewer with scene navigation and no external JavaScript or CSS. Its
-`result.metadata.artifact.gameplayMechanics` remains `false`: that file itself is
-not the Phaser game. The in-app Play route runs the validated JSON definition;
-the React scene preview never injects or executes the HTML artifact. Provider
-images still load from their remote URLs, so images require network access.
-
-Both game job types continue through the existing provider, queue, progress,
-cancellation and recovery code paths. A configured image-generation provider is
-still required by the current job-creation/router architecture.
-
-### Known limitations
-
-- The main-branch GitHub Actions CI workflow is now running and passed after PR #18
-  (commit `725abc5764f9e55f9826b18fe23ae38fa2982679`). Treat that result as CI evidence only;
-  live Agnes/provider calls, production database/Redis behavior, native mobile builds, and
-  full deployed end-to-end flows must be verified separately.
-- Native mobile builds require the Android SDK / Xcode, which are not available here.
-  `npm run type-check` and `npm run lint` pass for the mobile app.
-
-
----
-
-**Version**: 1.0.0  
-**Last Updated**: 2026-10-20  
-**Status**: Core Features Implemented - Production Development Phase
+### Responsibilities
+
+- **API:** authentication, authorization, validation, and REST endpoints.
+- **Orchestrator / task planner:** classify a request, break multi-step work into tasks, route tasks to the relevant capability, and coordinate results. Preserve the existing implementation; do not replace it with an autonomous-agent framework without evidence and an approved migration.
+- **Provider routing:** select providers by capability, configuration, constraints, and availability. Keep Agnes and the provider-agnostic abstraction.
+- **Redis + Bull:** queue and track asynchronous jobs, retries, cancellation, and recovery using the existing queue implementation.
+- **Specialized workers:** separate media work from website/game work where the existing architecture supports it. An assembly/FFmpeg worker is an optional extension, not an assumed completed service.
+- **Sandbox:** generated or user-supplied executable content must not run unsafely in the API process. Use an isolated execution boundary and explicit validation.
+- **MongoDB Atlas / Mongoose:** persist users, projects, job state, metadata, and results through the existing database layer.
+- **Git integration:** where implemented and authorized, version generated website/game project files through branches and commits. Do not claim automatic commits or pushes unless verified.
+- **Progress delivery:** use the project's implemented progress/status mechanism; WebSocket or Redis Pub/Sub is a design option only if confirmed in code.
+
+## Architecture options and decisions
+
+The architecture notes considered both a hierarchical Orchestrator and an event-driven queue/worker model. These do not need to be treated as mutually exclusive:
+
+1. Keep the **existing Orchestrator** for request planning and coordination.
+2. Use **Redis + Bull and specialized workers** for reliable asynchronous execution.
+3. Keep task inputs/outputs structured and validated. A useful internal contract is `{ task_id, prompt, user_id, parameters }`; adapt it to the existing types rather than creating a competing contract.
+4. Apply provider-specific rate limits and concurrency limits separately. Concurrency alone does not enforce requests-per-minute limits.
+5. Retry transient failures with bounded retries, clear job states, and provider fallback only when a compatible provider is configured.
+6. Do not introduce CrewAI, AutoGen, NestJS, BullMQ, or a replacement queue merely because they appeared in architecture proposals. The repository currently documents **Express + TypeScript and Redis + Bull**; preserve those until a code-backed decision justifies a migration.
+
+### Ollama and n8n
+
+- **Ollama** is a potential local-model runtime for lightweight classification, planning, or development-time assistance where the selected model can perform the task. It is not itself a media-generation provider for every modality, and local inference still consumes machine resources.
+- **n8n** is a potential workflow/integration layer for explicitly defined external workflows. It should not duplicate the platform's existing job system or become a mandatory dependency without a demonstrated need.
+- Treat both as **optional integrations until code, configuration, and a working test prove they are integrated**. Do not place API keys or credentials in source control or documentation.
+
+### Example: multi-output game workflow
+
+For a request such as “make a space game and play a celebration video when the player wins”:
+
+1. The API authenticates the user and creates a tracked job.
+2. The Orchestrator identifies the game, asset, and integration tasks.
+3. Bull queues the work for the appropriate existing workers.
+4. The configured providers generate assets; the game workflow produces a validated, data-only definition.
+5. The application assembles the outputs and validates the result without executing arbitrary model-generated JavaScript.
+6. Job status, errors, and result references are persisted and exposed to the client.
+
+This is a target workflow description, not a claim that every multi-agent, video-on-win, or deployment step is already implemented.
+
+## Current implementation notes
+
+The repository's documented game workflow is an **experimental 2D Phaser MVP**, not a general-purpose game engine or full 3D game generator. It uses validated, versioned, data-only game definitions and an in-app playable route. Keep that limitation explicit.
+
+The repository has previously documented:
+- React + Vite web client and React Native mobile app
+- Express/TypeScript API and authentication framework
+- Agnes provider integration and provider-agnostic routing
+- Redis/Bull job processing
+- MongoDB/Mongoose data layer
+- An experimental playable 2D game workflow
+
+These are repository-level implementation notes; live-provider behavior and production readiness still require environment-specific evidence.
+
+## What's still unverified / where work can be blocked
+
+Do not mark the platform “production-ready” based only on a successful unit test or CI run. Verify these items against current code, CI, credentials, and deployment evidence:
+
+- **Live provider paths:** real Agnes/media API calls, provider limits, errors, fallback behavior, and returned asset accessibility.
+- **End-to-end workflows:** authentication → job creation → queue/worker → result persistence → UI display, for each advertised capability.
+- **Deployment:** deployed frontend and API routing, environment variables, health endpoints, database/Redis connectivity, logs, and restart/recovery behavior.
+- **Mobile release:** native Android/iOS builds need the corresponding platform toolchains; type-checking alone is not a native build.
+- **Security:** authorization boundaries, generated-content isolation, secret handling, rate limits, and production configuration.
+- **Performance:** benchmark realistic queue depth, provider latency, worker concurrency, storage, and memory before making capacity claims.
+- **Scope clarity:** distinguish implemented 2D gameplay from full 3D generation, arbitrary generated-code execution, or game-engine export.
+
+Update this list only when a specific item has been verified or resolved; avoid repeating green tests without new evidence.
+
+## Runtime and deployment
+
+Use the existing deployment files and environment templates in this repository. Check `docker-compose.yml`, `docker-compose.prod.yml`, Dockerfiles, and the relevant `docs/` guides before changing deployment behavior.
+
+Core environment settings documented by the project include:
+
+- `NODE_ENV`
+- `PORT` / `HOST`
+- `MONGODB_URI` (with `DATABASE_URL` fallback where supported by the code)
+- `REDIS_URL`
+- `JWT_SECRET`
+- Agnes/provider credentials and configuration
+- CORS and storage settings
+
+Use the actual `.env.example` files and configuration schema as the final authority for variable names. Never commit real secrets.
+
+## Technology stack
+
+| Area | Existing documented stack |
+|---|---|
+| Web | React, TypeScript, Vite |
+| Mobile | React Native, TypeScript |
+| API | Node.js, Express, TypeScript |
+| Database | MongoDB / Mongoose |
+| Queue and cache | Redis + Bull |
+| AI integration | Agnes plus provider-agnostic adapters |
+| Validation | Zod (where used by the current code) |
+| Testing | Jest and the test tools configured by each package |
+| Deployment | Docker / Docker Compose; GitHub Actions CI |
+
+Do not infer that an optional service, tool, provider, or framework is installed merely because it appears in this README.
+
+## Development
+
+1. Read the repository's current package scripts and environment examples.
+2. Install dependencies using the lockfiles and the Node version supported by the repository/CI.
+3. Configure local environment variables without committing secrets.
+4. Start services using the current development instructions in `docs/DEVELOPMENT.md`.
+5. Run the targeted tests for changed code, then relevant package tests and CI.
+6. Report the exact branch/commit, files changed, commands run, test results, and unresolved blockers.
+
+## Documentation
+
+- [Architecture](./docs/ARCHITECTURE.md)
+- [API](./docs/API.md)
+- [Providers](./docs/PROVIDERS.md)
+- [Sandbox](./docs/SANDBOX.md)
+- [Game creation](./docs/GAME_CREATION.md)
+- [Deployment](./docs/DEPLOYMENT.md)
+- [Development](./docs/DEVELOPMENT.md)
+- [Security](./docs/SECURITY.md)
+
+## Contribution rules
+
+- Preserve existing working features and the current architecture.
+- Inspect implementation before adding a competing abstraction or service.
+- Do not label planned integrations as complete.
+- Prefer small, verifiable changes over repeated broad audits.
+- Never commit credentials or real environment files.
+- Document blockers with evidence and a concrete next action.
+
+## Project status
+
+**Status: active development; production readiness not established by this README.**
+
+This document intentionally separates existing architecture, optional proposals, and unverified release work. Update it as implementation changes are merged and verified.
