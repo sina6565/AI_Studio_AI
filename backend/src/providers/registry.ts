@@ -1,17 +1,25 @@
 import logger from '../utils/logger';
 import { AgnesProvider } from './agnes/AgnesProvider';
+import { LocalFallbackProvider } from './local/LocalFallbackProvider';
 import { IProvider } from './interfaces/IProvider';
 
 class ProviderRegistry {
   private providers = new Map<string, IProvider>();
 
   /**
-   * Initialize all configured providers
+   * Initialize all configured providers.
+   *
+   * If no real provider is configured, register a local fallback so the app can
+   * still boot and return explicit provider-unavailable errors instead of
+   * failing startup or unrelated modules.
    */
   async initializeAll(): Promise<void> {
     try {
-      const provider = new AgnesProvider();
-      if (process.env.AGNES_ENABLED === 'true') {
+      const agnesEnabled = process.env.AGNES_ENABLED === 'true';
+      const hasAgnesKey = Boolean(process.env.AGNES_API_KEY);
+
+      if (agnesEnabled && hasAgnesKey) {
+        const provider = new AgnesProvider();
         await provider.initialize({
           name: 'agnes',
           apiKey: process.env.AGNES_API_KEY,
@@ -19,7 +27,6 @@ class ProviderRegistry {
           timeout: Number(process.env.AGNES_TIMEOUT || 300000),
         });
 
-        // Validate credentials before registering
         const credentialsValid = await provider.validateCredentials();
         if (credentialsValid) {
           this.providers.set('agnes', provider);
@@ -30,7 +37,10 @@ class ProviderRegistry {
       }
 
       if (this.providers.size === 0) {
-        logger.warn('[ProviderRegistry] No providers were successfully initialized');
+        const fallback = new LocalFallbackProvider();
+        await fallback.initialize({ name: 'local-fallback', timeout: 5000 });
+        this.providers.set('local-fallback', fallback);
+        logger.warn('[ProviderRegistry] No external provider configured; local fallback provider registered');
       }
     } catch (error) {
       logger.error('[ProviderRegistry] Error during provider initialization', error);
@@ -38,53 +48,35 @@ class ProviderRegistry {
     }
   }
 
-  /**
-   * Get all available providers
-   */
   getAvailableProviders(): IProvider[] {
     return Array.from(this.providers.values());
   }
 
-  /**
-   * Get a specific provider by name
-   */
   getProvider(name: string): IProvider | undefined {
     return this.providers.get(name.toLowerCase());
   }
 
-  /**
-   * Check if a provider exists
-   */
   hasProvider(name: string): boolean {
     return this.providers.has(name.toLowerCase());
   }
 
-  /**
-   * Register a provider manually
-   */
   register(provider: IProvider): void {
     const key = provider.name.toLowerCase();
     this.providers.set(key, provider);
     logger.info(`[ProviderRegistry] Registered provider: ${provider.name}`);
   }
 
-  /**
-   * Get provider status for health checks
-   */
   getStatus(): Record<string, { initialized: boolean; healthy?: boolean }> {
     const status: Record<string, { initialized: boolean; healthy?: boolean }> = {};
 
     for (const [name, provider] of this.providers) {
       try {
-        // Note: We don't await here for synchronous status check
-        // Actual health check is done asynchronously in Router
         provider.healthCheck().then((healthy) => {
           status[name] = { initialized: true, healthy };
         }).catch(() => {
           status[name] = { initialized: true, healthy: false };
         });
 
-        // Set initialized flag immediately
         if (!status[name]) {
           status[name] = { initialized: true };
         }
