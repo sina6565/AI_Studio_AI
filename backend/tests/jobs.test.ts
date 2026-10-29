@@ -26,6 +26,7 @@ import { createApp } from '../src/app';
 import { Job } from '../src/database/models';
 import { generateToken } from '../src/api/middleware/auth';
 import { recoverStuckJobs } from '../src/jobs/recovery';
+import orchestrator from '../src/orchestrator/Orchestrator';
 
 const mockJob = Job as unknown as {
   updateMany: jest.Mock;
@@ -69,13 +70,57 @@ describe('GET /api/v1/jobs/stats', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data).toEqual({ total: 2, queued: 2, processing: 2, completed: 2, failed: 2 });
-    // counts must be scoped to the caller
     expect(mockJob.countDocuments).toHaveBeenCalledWith({ userId: 'user-1' });
   });
 
   it('rejects unauthenticated access', async () => {
     const res = await request(app).get('/api/v1/jobs/stats');
     expect(res.status).toBe(401);
+  });
+});
+
+describe('POST /api/v1/generate/:kind', () => {
+  const app = createApp();
+  const token = generateToken('user-1', 'user@example.com', 'user');
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('queues a real image generation job when a valid prompt is provided', async () => {
+    const createJobSpy = jest.spyOn(orchestrator, 'createJob').mockResolvedValue({
+      jobId: 'job-123',
+      status: 'queued' as any,
+      createdAt: new Date(),
+    });
+
+    const res = await request(app)
+      .post('/api/v1/generate/image')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ prompt: 'A mountain sunrise' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(createJobSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-1',
+        jobType: 'image_generation',
+        input: expect.objectContaining({ prompt: 'A mountain sunrise' }),
+      }),
+    );
+  });
+
+  it('rejects generation requests without a prompt or text payload', async () => {
+    const createJobSpy = jest.spyOn(orchestrator, 'createJob');
+
+    const res = await request(app)
+      .post('/api/v1/generate/image')
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(createJobSpy).not.toHaveBeenCalled();
   });
 });
 
