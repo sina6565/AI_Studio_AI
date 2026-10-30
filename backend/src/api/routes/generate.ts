@@ -1,70 +1,80 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import orchestrator from '../../orchestrator/Orchestrator';
-import { AppError } from '../../types/errors';
-import { JobPriority } from '../../types';
+import { validateWithSchema } from '../../utils/validation';
+import { JobPriority, JobType } from '../../types';
 
 const router = Router();
 router.use(authenticateToken);
 
-const map: Record<string, string> = {
-  image: 'image_generation',
-  video: 'video_generation',
-  audio: 'audio_generation',
-  speech: 'text_to_speech',
-};
+const generationSchemas = {
+  image: z.object({
+    prompt: z.string().min(1).max(4000),
+    size: z.string().max(64).optional(),
+    quality: z.string().max(32).optional(),
+    style: z.string().max(64).optional(),
+    model: z.string().max(64).optional(),
+    negativePrompt: z.string().max(2000).optional(),
+  }),
+  video: z.object({
+    prompt: z.string().min(1).max(4000),
+    duration: z.number().min(1).max(180).optional(),
+    fps: z.number().min(1).max(60).optional(),
+    resolution: z.string().max(64).optional(),
+    model: z.string().max(64).optional(),
+  }),
+  audio: z.object({
+    prompt: z.string().min(1).max(4000),
+    duration: z.number().min(1).max(300).optional(),
+    format: z.string().max(16).optional(),
+    model: z.string().max(64).optional(),
+  }),
+  speech: z.object({
+    text: z.string().min(1).max(20000),
+    language: z.string().max(12).optional(),
+    voice: z.string().max(64).optional(),
+    speed: z.number().min(0.25).max(2).optional(),
+    model: z.string().max(64).optional(),
+  }),
+} as const;
 
-const normalizeText = (value: unknown): string | undefined => {
-  if (typeof value !== 'string') return undefined;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-};
+const generationKinds = {
+  image: { type: JobType.IMAGE_GENERATION },
+  video: { type: JobType.VIDEO_GENERATION },
+  audio: { type: JobType.AUDIO_GENERATION },
+  speech: { type: JobType.TEXT_TO_SPEECH },
+} as const;
 
 router.post('/:kind', async (req: AuthenticatedRequest, res, next) => {
   try {
-    const kind = map[req.params.kind];
-    if (!kind) {
+    const kind = req.params.kind?.toLowerCase();
+    const kindConfig = generationKinds[kind as keyof typeof generationKinds];
+
+    if (!kindConfig) {
       return res.status(404).json({
         success: false,
-        error: { code: 'NOT_FOUND', message: 'Unsupported generation type' },
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Unsupported generation kind',
+        },
       });
     }
 
-    const body = req.body || {};
-    const prompt = normalizeText(body.prompt);
-    const text = normalizeText(body.text);
-
-    if (kind === 'text_to_speech' && !text) {
-      throw new AppError('INVALID_INPUT', 'Text is required for speech generation', 400);
-    }
-
-    if (kind !== 'text_to_speech' && !prompt) {
-      throw new AppError('INVALID_INPUT', 'Prompt is required for generation', 400);
-    }
-
-    const input: Record<string, any> = { ...body };
-    if (kind !== 'text_to_speech') {
-      input.prompt = prompt;
-    } else {
-      input.text = text;
-    }
-
-    if (typeof body.size !== 'undefined') input.size = body.size;
-    if (typeof body.duration !== 'undefined') input.duration = body.duration;
-    if (typeof body.fps !== 'undefined') input.fps = body.fps;
-    if (typeof body.language !== 'undefined') input.language = body.language;
-    if (typeof body.quality !== 'undefined') input.quality = body.quality;
+    const schema = generationSchemas[kind as keyof typeof generationSchemas];
+    const payload = validateWithSchema(req.body, schema, 'Invalid generation payload');
 
     const job = await orchestrator.createJob({
       userId: req.user!.userId,
-      jobType: kind as any,
-      input,
-      priority: (body.priority as JobPriority) || JobPriority.NORMAL,
-      projectId: body.projectId,
-      webhookUrl: body.webhookUrl,
+      jobType: kindConfig.type,
+      input: payload,
+      priority: (req.body.priority as JobPriority | undefined) || JobPriority.NORMAL,
+      projectId: req.body.projectId,
+      webhookUrl: req.body.webhookUrl,
+      userPreferences: req.body.userPreferences,
     });
 
-    return res.status(201).json({ success: true, data: job });
+    return res.status(202).json({ success: true, data: job });
   } catch (error) {
     return next(error);
   }
