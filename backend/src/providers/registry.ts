@@ -1,4 +1,5 @@
 import logger from '../utils/logger';
+import config from '../config';
 import { AgnesProvider } from './agnes/AgnesProvider';
 import { IProvider } from './interfaces/IProvider';
 
@@ -6,27 +7,37 @@ class ProviderRegistry {
   private providers = new Map<string, IProvider>();
 
   /**
-   * Initialize all configured providers
+   * Initialize all configured providers.
+   *
+   * Providers are optional and must never crash startup. Missing credentials
+   * or an external service outage should only log a warning and disable that
+   * adapter instead of failing the entire platform.
    */
   async initializeAll(): Promise<void> {
     try {
-      const provider = new AgnesProvider();
-      if (process.env.AGNES_ENABLED === 'true') {
+      const agnesEnabled =
+        process.env.AGNES_ENABLED === 'true' ||
+        (Boolean(process.env.AGNES_API_KEY || process.env.AGNES_API_URL) &&
+          config.providers.agnes?.enabled !== false);
+
+      if (agnesEnabled) {
+        const provider = new AgnesProvider();
         await provider.initialize({
           name: 'agnes',
-          apiKey: process.env.AGNES_API_KEY,
-          apiUrl: process.env.AGNES_API_URL,
-          timeout: Number(process.env.AGNES_TIMEOUT || 300000),
+          apiKey: process.env.AGNES_API_KEY || config.providers.agnes?.apiKey || '',
+          apiUrl: process.env.AGNES_API_URL || config.providers.agnes?.apiUrl || '',
+          timeout: Number(process.env.AGNES_TIMEOUT || config.providers.agnes?.timeout || 300000),
         });
 
-        // Validate credentials before registering
         const credentialsValid = await provider.validateCredentials();
         if (credentialsValid) {
           this.providers.set('agnes', provider);
           logger.info('[ProviderRegistry] Agnes provider initialized successfully');
         } else {
-          logger.warn('[ProviderRegistry] Agnes provider credentials validation failed');
+          logger.warn('[ProviderRegistry] Agnes provider credentials validation failed; adapter remains disabled');
         }
+      } else {
+        logger.info('[ProviderRegistry] Agnes adapter disabled by configuration');
       }
 
       if (this.providers.size === 0) {
@@ -76,15 +87,12 @@ class ProviderRegistry {
 
     for (const [name, provider] of this.providers) {
       try {
-        // Note: We don't await here for synchronous status check
-        // Actual health check is done asynchronously in Router
         provider.healthCheck().then((healthy) => {
           status[name] = { initialized: true, healthy };
         }).catch(() => {
           status[name] = { initialized: true, healthy: false };
         });
 
-        // Set initialized flag immediately
         if (!status[name]) {
           status[name] = { initialized: true };
         }
