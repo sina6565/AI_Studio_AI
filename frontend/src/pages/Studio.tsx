@@ -42,7 +42,6 @@ const Studio: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
 
-  // Game creation state
   const [gameTitle, setGameTitle] = useState('');
   const [gameDescription, setGameDescription] = useState('');
   const [genre, setGenre] = useState('');
@@ -53,7 +52,6 @@ const Studio: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [queuedJobId, setQueuedJobId] = useState<string | null>(null);
 
-  // Deep-link from the cinematic landing page: /studio?prompt=...&type=...
   const [searchParams] = useSearchParams();
   useEffect(() => {
     const typeParam = searchParams.get('type');
@@ -91,9 +89,7 @@ const Studio: React.FC = () => {
   };
 
   const addScene = () => {
-    if (scenes.length >= MAX_SCENES) {
-      return;
-    }
+    if (scenes.length >= MAX_SCENES) return;
     setScenes((current) => [...current, { name: '', description: '' }]);
   };
 
@@ -164,6 +160,8 @@ const Studio: React.FC = () => {
   const handleGenerate = async () => {
     setError(null);
     setSuccess(null);
+    setQueuedJobId(null);
+    setResult(null);
 
     if (contentType === 'game') {
       await handleGenerateGame();
@@ -189,9 +187,19 @@ const Studio: React.FC = () => {
       }
 
       if (res?.success && res.data) {
+        const jobId = res.data.jobId || res.data.id || res.data._id;
+        if (jobId) {
+          setQueuedJobId(jobId);
+          setSuccess('Generation queued successfully. Track its status in Jobs.');
+          setPrompt('');
+          return;
+        }
+
         setResult(res.data);
         setSuccess('Content generated successfully!');
         setPrompt('');
+      } else {
+        setError(`Failed to queue ${contentType} generation`);
       }
     } catch (err: any) {
       setError(
@@ -333,9 +341,7 @@ const Studio: React.FC = () => {
                       <TextField
                         label={`${t('creation.sceneDescription')} ${index + 1}`}
                         value={scene.description}
-                        onChange={(e) =>
-                          updateScene(index, { description: e.target.value })
-                        }
+                        onChange={(e) => updateScene(index, { description: e.target.value })}
                         multiline
                         rows={2}
                         fullWidth

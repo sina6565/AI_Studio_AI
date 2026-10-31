@@ -54,7 +54,7 @@ const Jobs: React.FC = () => {
   const handleCancel = async (jobId: string) => {
     try {
       await apiClient.cancelJob(jobId);
-      setJobs(jobs.map((j) => (j.id === jobId ? { ...j, status: 'cancelled' } : j)));
+      setJobs((current) => current.map((j) => (j.id === jobId ? { ...j, status: 'cancelled' } : j)));
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to cancel job');
     }
