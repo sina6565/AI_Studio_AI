@@ -1,39 +1,34 @@
-# ---------- Build Stage: backend ----------
-FROM node:20-alpine AS backend-builder
+# ---------- Combined Build Stage: backend + frontend ----------
+# Keep both builds in one stage to satisfy SnapDeploy Small's 2-stage limit.
+FROM node:20-alpine AS app-builder
 
-WORKDIR /app
-
+# Build backend first, then remove its development dependencies to reduce
+# the builder's disk footprint before installing frontend dependencies.
+WORKDIR /app/backend
 COPY backend/package*.json ./
 RUN npm ci --no-audit --no-fund
+COPY backend/ ./
+RUN npm run build && rm -rf node_modules
 
-COPY backend/ .
-RUN npm run build
-
-# ---------- Build Stage: frontend ----------
-FROM node:20-alpine AS frontend-builder
-
-WORKDIR /app
-
+# Build the frontend with same-origin API routing.
+WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci --no-audit --no-fund
-
-COPY frontend/ .
-# Same-origin API: the backend serves this build and the API under /api/v1.
+COPY frontend/ ./
 ENV VITE_API_URL=/api
-RUN npm run build
+RUN npm run build && rm -rf node_modules
 
 # ---------- Production Stage ----------
-FROM node:20-alpine
+FROM node:20-alpine AS production
 
 WORKDIR /app
 
 COPY backend/package*.json ./
 RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
-COPY --from=backend-builder /app/dist ./dist
-# Built web frontend; Express serves it (see resolveFrontendDist in
-# backend/src/app.ts) while /health and /api/v1 keep their exact behavior.
-COPY --from=frontend-builder /app/dist ./public
+COPY --from=app-builder /app/backend/dist ./dist
+# Express serves the frontend build while /health and /api/v1 keep their behavior.
+COPY --from=app-builder /app/frontend/dist ./public
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
