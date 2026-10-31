@@ -164,10 +164,22 @@ async function main() {
       record('Provider-backed job creation', 'SKIP', 'project creation failed');
     } else {
       for (const type of providerJobTypes) {
-        await check(`POST /api/v1/jobs (${type})`, async () => {
-          const { response, body } = await request('/api/v1/jobs', {
-            method: 'POST',
-            body: JSON.stringify({
+        await check(`Create + inspect job (${type})`, async () => {
+          let path;
+          let payload;
+          let acceptedStatuses;
+          if (type === 'image_generation') {
+            path = '/api/v1/generate/image';
+            payload = {
+              prompt: 'A simple abstract test image for SINA AI STUDIO smoke testing.',
+              projectId,
+              size: '512x512',
+              quality: 'standard',
+            };
+            acceptedStatuses = [202];
+          } else {
+            path = '/api/v1/jobs';
+            payload = {
               type,
               projectId,
               input: {
@@ -176,19 +188,43 @@ async function main() {
                 genre: 'puzzle',
                 artStyle: 'simple geometric',
                 scenes: [{ name: 'Test Scene', description: 'A small empty test arena.' }],
-                prompt: 'A simple abstract test image for SINA AI STUDIO smoke testing.',
               },
-            }),
+            };
+            acceptedStatuses = [201, 202];
+          }
+
+          const created = await request(path, {
+            method: 'POST',
+            body: JSON.stringify(payload),
           });
-          assert([201, 202].includes(response.status) && body.success, `HTTP ${response.status}; ${JSON.stringify(body)}`);
-          const jobId = body.data?.jobId || body.data?.id || body.data?._id;
+          assert(acceptedStatuses.includes(created.response.status) && created.body.success,
+            `HTTP ${created.response.status}; ${JSON.stringify(created.body)}`);
+          const jobId = created.body.data?.jobId || created.body.data?.id || created.body.data?._id;
           assert(typeof jobId === 'string', 'job ID missing');
-          return `accepted job ${jobId}`;
+
+          const inspected = await request(`/api/v1/jobs/${encodeURIComponent(jobId)}`);
+          assert(inspected.response.status === 200 && inspected.body.success,
+            `job lookup HTTP ${inspected.response.status}`);
+          const status = inspected.body.data?.status;
+          assert(['queued', 'processing', 'completed', 'failed', 'cancelled'].includes(status),
+            `unexpected job status: ${status}`);
+
+          let cancellation = 'not attempted (job already started or completed)';
+          if (status === 'queued') {
+            const cancelled = await request(`/api/v1/jobs/${encodeURIComponent(jobId)}/cancel`, {
+              method: 'POST',
+            });
+            assert(cancelled.response.ok && cancelled.body.success,
+              `cancel HTTP ${cancelled.response.status}; ${JSON.stringify(cancelled.body)}`);
+            cancellation = 'cancel endpoint accepted queued job';
+          }
+          return `job=${jobId}; status=${status}; ${cancellation}`;
         });
       }
     }
   } else {
-    record('Provider-backed generation + game jobs', 'SKIP', 'set SMOKE_RUN_PROVIDER_JOBS=true only when the configured provider is approved and known to be no-cost');
+    record('Provider-backed generation + game jobs + lifecycle/cancel', 'SKIP',
+      'set SMOKE_RUN_PROVIDER_JOBS=true only after confirming the configured provider is approved and no-cost');
   }
 
   if (process.env.FRONTEND_URL) {
