@@ -36,9 +36,7 @@ const Jobs: React.FC = () => {
       setLoading(true);
       try {
         const res = await apiClient.listJobs();
-        if (res.success && res.data) {
-          setJobs(res.data);
-        }
+        if (res.success && res.data) setJobs(res.data);
       } catch (err: any) {
         setError(err.response?.data?.error?.message || 'Failed to load jobs');
       } finally {
@@ -136,144 +134,144 @@ const Jobs: React.FC = () => {
                   : null;
                 const artifact = job.result?.metadata?.artifact;
                 return (
-                <React.Fragment key={job.id}>
-                <TableRow key={job.id}>
-                  <TableCell>
-                    <Chip
-                      label={job.status}
-                      color={getStatusColor(job.status) as any}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>{job.type}</TableCell>
-                  <TableCell>
-                    {job.progress && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LinearProgress
-                          variant="determinate"
-                          value={job.progress.percentage}
-                          sx={{ flex: 1 }}
+                  <React.Fragment key={job.id}>
+                    <TableRow>
+                      <TableCell>
+                        <Chip
+                          label={job.status}
+                          color={getStatusColor(job.status) as any}
+                          size="small"
                         />
-                        <Typography variant="body2">{job.progress.percentage}%</Typography>
-                      </Box>
-                    )}
-                  </TableCell>
-                  <TableCell>{new Date(job.createdAt).toLocaleString()}</TableCell>
-                  <TableCell>
-                    {['processing', 'pending', 'queued'].includes(job.status) && (
-                      <Button size="small" color="error" onClick={() => handleCancel(job.id)}>
-                        {t('common.cancel')}
-                      </Button>
-                    )}
-                    {job.status === 'completed' && job.result?.contentUrl && (
-                      <Button size="small" href={job.result.contentUrl} target="_blank">
-                        {t('job.download')}
-                      </Button>
-                    )}
-                    {job.status === 'completed' && playableGame && (
-                      <Button
-                        size="small"
-                        component={Link}
-                        to={`/play/${encodeURIComponent(job.id)}`}
-                      >
-                        {t('jobs.playGame')}
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-                {(job.error?.message || manifest) && (
-                  <TableRow>
-                    <TableCell colSpan={5} sx={{ bgcolor: '#fafafa' }}>
-                      {job.error?.message && (
-                        <Alert severity="error" sx={{ mb: manifest ? 1 : 0 }}>
-                          {job.error.code}: {job.error.message}
-                        </Alert>
-                      )}
-                      {manifest && (
-                        <Box>
-                          <Typography variant="subtitle2">
-                            {t('game.manifest')}: {manifest.title} — {manifest.assetCount}{' '}
-                            {t('game.assets')}, {manifest.scenes?.length || 0}{' '}
-                            {t('game.scenes')}
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
-                            {manifest.scenes.map((scene) => {
-                              const imageUrl = safePreviewImageUrl(scene.imageUrl);
-                              return imageUrl ? (
-                                <Card key={scene.id || scene.name} sx={{ width: 120 }}>
-                                  <CardMedia
-                                    component="img"
-                                    height="80"
-                                    image={imageUrl}
-                                    alt={scene.name}
-                                  />
-                                  <Box sx={{ p: 0.5 }}>
-                                    <Typography variant="caption">{scene.name}</Typography>
-                                  </Box>
-                                </Card>
-                              ) : null;
-                            })}
+                      </TableCell>
+                      <TableCell>{job.type}</TableCell>
+                      <TableCell>
+                        {job.progress && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LinearProgress
+                              variant="determinate"
+                              value={job.progress.percentage}
+                              sx={{ flex: 1 }}
+                            />
+                            <Typography variant="body2">{job.progress.percentage}%</Typography>
                           </Box>
-                          {job.type === 'game_creation' && job.status === 'completed' && (
-                            <Button
-                              size="small"
-                              variant="contained"
-                              sx={{ mt: 1 }}
-                              disabled={buildingJobId === job.id}
-                              onClick={() => handleBuildPlayableGame(job, manifest)}
-                            >
-                              {buildingJobId === job.id
-                                ? t('common.loading')
-                                : t('jobs.buildPlayableGame')}
-                            </Button>
-                          )}
-                        </Box>
-                      )}
-                      {artifact && (
-                        <Box sx={{ mt: manifest ? 2 : 0 }}>
-                          <Typography variant="subtitle2">{t('jobs.artifact')}</Typography>
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            {artifact.filename} &middot; {artifact.format} &middot;{' '}
-                            {artifact.sceneCount} {t('game.scenes')}
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              component="a"
-                              href={job.result?.contentUrl}
-                              download={artifact.filename}
-                            >
-                              {t('jobs.downloadArtifact')}
-                            </Button>
-                            {previewableManifest && (
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                aria-label={t('jobs.previewSceneViewer')}
-                                onClick={() => setPreviewManifest(previewableManifest)}
-                              >
-                                {t('jobs.previewSceneViewer')}
-                              </Button>
-                            )}
-                          </Box>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            display="block"
-                            sx={{ mt: 1 }}
+                        )}
+                      </TableCell>
+                      <TableCell>{new Date(job.createdAt).toLocaleString()}</TableCell>
+                      <TableCell>
+                        {['processing', 'pending', 'queued'].includes(job.status) && (
+                          <Button size="small" color="error" onClick={() => handleCancel(job.id)}>
+                            {t('common.cancel')}
+                          </Button>
+                        )}
+                        {job.status === 'completed' && job.result?.contentUrl && (
+                          <Button size="small" href={job.result.contentUrl} target="_blank">
+                            {t('job.download')}
+                          </Button>
+                        )}
+                        {job.status === 'completed' && playableGame && (
+                          <Button
+                            size="small"
+                            component={Link}
+                            to={`/play/${encodeURIComponent(job.id)}`}
                           >
-                            {t('jobs.artifactHint')}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            {t('jobs.gameplayNote')}
-                          </Typography>
-                        </Box>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )}
-                </React.Fragment>
+                            {t('jobs.playGame')}
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    {(job.error?.message || manifest) && (
+                      <TableRow>
+                        <TableCell colSpan={5} sx={{ bgcolor: '#fafafa' }}>
+                          {job.error?.message && (
+                            <Alert severity="error" sx={{ mb: manifest ? 1 : 0 }}>
+                              {job.error.code}: {job.error.message}
+                            </Alert>
+                          )}
+                          {manifest && (
+                            <Box>
+                              <Typography variant="subtitle2">
+                                {t('game.manifest')}: {manifest.title} — {manifest.assetCount}{' '}
+                                {t('game.assets')}, {manifest.scenes?.length || 0}{' '}
+                                {t('game.scenes')}
+                              </Typography>
+                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                                {manifest.scenes.map((scene) => {
+                                  const imageUrl = safePreviewImageUrl(scene.imageUrl);
+                                  return imageUrl ? (
+                                    <Card key={scene.id || scene.name} sx={{ width: 120 }}>
+                                      <CardMedia
+                                        component="img"
+                                        height="80"
+                                        image={imageUrl}
+                                        alt={scene.name}
+                                      />
+                                      <Box sx={{ p: 0.5 }}>
+                                        <Typography variant="caption">{scene.name}</Typography>
+                                      </Box>
+                                    </Card>
+                                  ) : null;
+                                })}
+                              </Box>
+                              {job.type === 'game_creation' && job.status === 'completed' && (
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  sx={{ mt: 1 }}
+                                  disabled={buildingJobId === job.id}
+                                  onClick={() => handleBuildPlayableGame(job, manifest)}
+                                >
+                                  {buildingJobId === job.id
+                                    ? t('common.loading')
+                                    : t('jobs.buildPlayableGame')}
+                                </Button>
+                              )}
+                            </Box>
+                          )}
+                          {artifact && (
+                            <Box sx={{ mt: manifest ? 2 : 0 }}>
+                              <Typography variant="subtitle2">{t('jobs.artifact')}</Typography>
+                              <Typography variant="caption" color="text.secondary" display="block">
+                                {artifact.filename} &middot; {artifact.format} &middot;{' '}
+                                {artifact.sceneCount} {t('game.scenes')}
+                              </Typography>
+                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  component="a"
+                                  href={job.result?.contentUrl}
+                                  download={artifact.filename}
+                                >
+                                  {t('jobs.downloadArtifact')}
+                                </Button>
+                                {previewableManifest && (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    aria-label={t('jobs.previewSceneViewer')}
+                                    onClick={() => setPreviewManifest(previewableManifest)}
+                                  >
+                                    {t('jobs.previewSceneViewer')}
+                                  </Button>
+                                )}
+                              </Box>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                display="block"
+                                sx={{ mt: 1 }}
+                              >
+                                {t('jobs.artifactHint')}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" display="block">
+                                {t('jobs.gameplayNote')}
+                              </Typography>
+                            </Box>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </TableBody>

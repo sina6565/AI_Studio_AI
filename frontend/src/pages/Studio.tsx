@@ -190,7 +190,7 @@ const Studio: React.FC = () => {
         const jobId = res.data.jobId || res.data.id || res.data._id;
         if (jobId) {
           setQueuedJobId(jobId);
-          setSuccess('Generation queued successfully. Track its status in Jobs.');
+          setSuccess('Generation queued successfully. Track status under Jobs.');
           setPrompt('');
           return;
         }
