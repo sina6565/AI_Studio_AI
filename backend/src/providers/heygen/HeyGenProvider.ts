@@ -122,7 +122,7 @@ export class HeyGenProvider implements IProvider {
         metadata: {
           provider: 'heygen',
           model: params.model || this.model,
-          voice: params.voice,
+          voice: params.voice || process.env.HEYGEN_TTS_DEFAULT_VOICE || 'nadine',
           contentType,
           generationId: generationId || undefined,
           storage: 'data-url',
