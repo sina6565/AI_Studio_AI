@@ -37,7 +37,7 @@ describe('HeyGenProvider', () => {
     expect(result.errors).toContain('A HeyGen voice ID is required');
   });
 
-  it('accepts valid text and a voice ID', async () => {
+  it('accepts valid text with the default voice', async () => {
     const provider = new HeyGenProvider();
     const result = await provider.validateInput('text_to_speech', {
       text: 'Hello',
