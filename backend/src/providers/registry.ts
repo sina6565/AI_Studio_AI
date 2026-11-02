@@ -1,5 +1,6 @@
 import logger from '../utils/logger';
 import { AgnesProvider } from './agnes/AgnesProvider';
+import { HeyGenProvider } from './heygen/HeyGenProvider';
 import { IProvider } from './interfaces/IProvider';
 
 class ProviderRegistry {
@@ -27,6 +28,28 @@ class ProviderRegistry {
         } else {
           logger.warn('[ProviderRegistry] Agnes provider credentials validation failed');
         }
+      }
+
+      // HeyGen is an optional TTS-only provider. It is never allowed to
+      // replace Agnes and is enabled only with an explicit flag and API key.
+      if (
+        process.env.HEYGEN_TTS_ENABLED === 'true' &&
+        process.env.OPENROUTER_API_KEY
+      ) {
+        const heygen = new HeyGenProvider();
+        await heygen.initialize({
+          name: 'heygen',
+          apiKey: process.env.OPENROUTER_API_KEY,
+          apiUrl: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
+          timeout: Number(process.env.HEYGEN_TTS_TIMEOUT || 120000),
+          models: {
+            tts: process.env.HEYGEN_TTS_MODEL || 'heygen/heygen-voice-1-turbo:free',
+          },
+        });
+        this.providers.set('heygen', heygen);
+        logger.info('[ProviderRegistry] HeyGen Voice Turbo provider initialized');
+      } else if (process.env.HEYGEN_TTS_ENABLED === 'true') {
+        logger.warn('[ProviderRegistry] HeyGen enabled but OPENROUTER_API_KEY is missing');
       }
 
       if (this.providers.size === 0) {
