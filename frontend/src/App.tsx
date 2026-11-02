@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Studio from './pages/Studio';
+import WebsiteBuilder from './pages/WebsiteBuilder';
 import Jobs from './pages/Jobs';
 import Projects from './pages/Projects';
 import PlayableGamePage from './pages/PlayableGamePage';
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route path="/login" element={<Auth />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
+        <Route path="/website-builder" element={<ProtectedRoute><WebsiteBuilder /></ProtectedRoute>} />
         <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
         <Route path="/play/:jobId" element={<ProtectedRoute><PlayableGamePage /></ProtectedRoute>} />
