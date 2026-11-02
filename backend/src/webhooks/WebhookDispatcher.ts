@@ -12,7 +12,7 @@ interface WebhookJob {
   status?: string;
   result?: { contentUrl?: string };
   error?: { code?: string; message?: string };
-  progress?: Record<string, unknown>;
+  progress?: { percentage?: number; stage?: string; estimatedTimeRemaining?: number; details?: unknown };
   webhookUrl?: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
