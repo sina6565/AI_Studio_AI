@@ -8,10 +8,7 @@ describe('HeyGenProvider', () => {
 
   it('rejects empty text', async () => {
     const provider = new HeyGenProvider();
-    const result = await provider.validateInput('text_to_speech', {
-      text: '   ',
-      voice: 'nadine',
-    });
+    const result = await provider.validateInput('text_to_speech', { text: '   ' });
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('Text is required for speech synthesis');
   });
@@ -20,7 +17,6 @@ describe('HeyGenProvider', () => {
     const provider = new HeyGenProvider();
     const result = await provider.validateInput('text_to_speech', {
       text: 'a'.repeat(5001),
-      voice: 'nadine',
     });
     expect(result.valid).toBe(false);
     expect(result.errors).toContain(
@@ -28,21 +24,9 @@ describe('HeyGenProvider', () => {
     );
   });
 
-  it('requires a voice ID', async () => {
+  it('accepts valid text and allows the default voice', async () => {
     const provider = new HeyGenProvider();
-    const result = await provider.validateInput('text_to_speech', {
-      text: 'Hello',
-    });
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('A HeyGen voice ID is required');
-  });
-
-  it('accepts valid text with the default voice', async () => {
-    const provider = new HeyGenProvider();
-    const result = await provider.validateInput('text_to_speech', {
-      text: 'Hello',
-      voice: 'nadine',
-    });
+    const result = await provider.validateInput('text_to_speech', { text: 'Hello' });
     expect(result.valid).toBe(true);
   });
 });
