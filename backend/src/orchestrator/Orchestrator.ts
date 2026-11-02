@@ -4,6 +4,7 @@ import { IProvider } from '../providers/interfaces/IProvider';
 import { Router } from '../routing/Router';
 import { Job as JobModel } from '../database/models';
 import jobQueueProcessor from '../jobs/JobQueueProcessor';
+import { dispatchJobWebhook } from '../webhooks/WebhookDispatcher';
 import logger from '../utils/logger';
 import { AppError, ValidationError } from '../types/errors';
 import { GameService } from '../game/GameService';
@@ -164,13 +165,12 @@ export class Orchestrator {
       return;
     }
 
-    const providerName = String(job.metadata?.provider || '').toLowerCase();
-    const provider = this.providers.get(providerName);
-    if (!provider) {
-      throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
-    }
-
     try {
+      const providerName = String(job.metadata?.provider || '').toLowerCase();
+      const provider = this.providers.get(providerName);
+      if (!provider) {
+        throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
+      }
       // Update job status to processing
       job.status = JobStatus.PROCESSING;
       job.progress = { percentage: 10, stage: 'started' };
@@ -303,6 +303,7 @@ export class Orchestrator {
       logger.info(
         `[Orchestrator] Job completed: ${jobId} (execution time: ${job.metadata.executionTime}ms)`,
       );
+      await dispatchJobWebhook(job, 'job.completed');
     } catch (error) {
       // A cancellation is not a failure: never retry it, and never overwrite
       // the cancelled status with a failure or a re-queue.
@@ -314,6 +315,7 @@ export class Orchestrator {
           current.metadata.cancelledAt = new Date();
           await current.save();
         }
+        await dispatchJobWebhook(current || job, 'job.cancelled');
         return;
       }
 
@@ -351,6 +353,7 @@ export class Orchestrator {
         // Max retries exceeded
         job.status = JobStatus.FAILED;
         await job.save();
+        await dispatchJobWebhook(job, 'job.failed');
         logger.error(
           `[Orchestrator] Job execution failed after ${job.metadata.retryCount} retries: ${jobId}`,
           error,
@@ -396,6 +399,7 @@ export class Orchestrator {
     job.status = JobStatus.CANCELLED;
     job.metadata.completedAt = new Date();
     await job.save();
+    await dispatchJobWebhook(job, 'job.cancelled');
 
     logger.info(`[Orchestrator] Job cancelled: ${jobId}`);
   }
