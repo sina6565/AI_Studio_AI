@@ -76,7 +76,7 @@ export class HeyGenProvider implements IProvider {
         {
           model: params.model || this.model,
           input: params.text,
-          voice: params.voice,
+          voice: params.voice || process.env.HEYGEN_TTS_DEFAULT_VOICE || 'nadine',
           response_format: responseFormat,
         },
         {
