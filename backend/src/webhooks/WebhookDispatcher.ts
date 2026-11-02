@@ -10,7 +10,7 @@ interface WebhookJob {
   _id?: string;
   type?: string;
   status?: string;
-  result?: Record<string, unknown>;
+  result?: { contentUrl?: string };
   error?: { code?: string; message?: string };
   progress?: Record<string, unknown>;
   webhookUrl?: string;
