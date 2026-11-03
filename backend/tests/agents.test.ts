@@ -10,7 +10,7 @@ const makeAgent = (overrides: Partial<SINAAgent> = {}): SINAAgent => ({
   description: 'Agent used in unit tests',
   capabilities: ['test'],
   enabled: true,
-  execute: jest.fn(async (input) => ({ content: input })),
+  execute: jest.fn(async (input: Record<string, unknown>) => ({ content: input })),
   ...overrides,
 });
 
@@ -40,7 +40,7 @@ describe('Native agent foundation', () => {
     if (result.ok) expect(result.output.content).toEqual({ prompt: 'hello' });
   });
 
-  it('rejects disabled agents and unsupported capabilities without executing', async () => {
+  it('rejects disabled agents without executing them', async () => {
     const execute = jest.fn(async () => ({ content: 'should not run' }));
     const registry = new AgentRegistry();
     registry.register(makeAgent({ enabled: false, execute }));
