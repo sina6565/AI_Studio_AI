@@ -36,6 +36,8 @@ export interface MemoryPort {
 
 export interface Provider {
   id: string;
+  /** True only when this provider performs inference without a remote service. */
+  isLocal?: boolean;
   complete(
     prompt: string,
     opts?: { system?: string; maxTokens?: number },
