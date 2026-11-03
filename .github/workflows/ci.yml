@@ -31,6 +31,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Type-check and build
         run: npm run build
+      - name: Run vertical-slice E2E (FakeProvider, no network)
+        run: npm run vertical-slice
       - name: Run tests
         run: npm test -- --runInBand
 
