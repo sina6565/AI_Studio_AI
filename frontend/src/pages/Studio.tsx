@@ -52,6 +52,7 @@ const Studio: React.FC = () => {
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [queuedJobId, setQueuedJobId] = useState<string | null>(null);
+  const [generationStatus, setGenerationStatus] = useState<string | null>(null);
 
   // Deep-link from the cinematic landing page: /studio?prompt=...&type=...
   const [searchParams] = useSearchParams();
@@ -175,27 +176,88 @@ const Studio: React.FC = () => {
       return;
     }
 
+    const jobTypes: Record<Exclude<ContentType, 'game'>, string> = {
+      image: 'image_generation',
+      video: 'video_generation',
+      audio: 'audio_generation',
+      speech: 'text_to_speech',
+    };
+    const input = contentType === 'speech'
+      ? { text: prompt.trim(), language: 'en' }
+      : contentType === 'image'
+        ? { prompt: prompt.trim(), size: '1024x1024', quality: 'standard' }
+        : contentType === 'video'
+          ? { prompt: prompt.trim(), duration: 10, fps: 24 }
+          : { prompt: prompt.trim(), duration: 30 };
+
     setLoading(true);
+    setResult(null);
+    setGenerationStatus('submitting');
+
     try {
-      let res: any = undefined;
-      if (contentType === 'image') {
-        res = await apiClient.generateImage(prompt, '1024x1024', 'standard');
-      } else if (contentType === 'video') {
-        res = await apiClient.generateVideo(prompt, 10, 24);
-      } else if (contentType === 'audio') {
-        res = await apiClient.generateAudio(prompt, 30);
-      } else if (contentType === 'speech') {
-        res = await apiClient.generateSpeech(prompt, 'en');
+      const created = await apiClient.createJob({
+        type: jobTypes[contentType as Exclude<ContentType, 'game'>],
+        input,
+      });
+      const createdJob = created.data as (typeof created.data & { jobId?: string }) | undefined;
+      const jobId = createdJob?.jobId || createdJob?.id;
+      if (!created.success || !jobId) {
+        throw new Error(created.error?.message || 'The generation job could not be created.');
       }
 
-      if (res?.success && res.data) {
-        setResult(res.data);
-        setSuccess('Content generated successfully!');
-        setPrompt('');
+      const deadline = Date.now() + 5 * 60 * 1000;
+      let completedJob: import('../types').Job | null = null;
+      setGenerationStatus('queued');
+
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => window.setTimeout(resolve, 2000));
+        const polled = await apiClient.getJobStatus(jobId);
+        if (!polled.success || !polled.data) {
+          throw new Error(polled.error?.message || 'Could not check generation status.');
+        }
+
+        const job = polled.data;
+        setGenerationStatus(job.status);
+        if (job.status === 'completed') {
+          completedJob = job;
+          break;
+        }
+        if (job.status === 'failed' || job.status === 'cancelled') {
+          throw new Error(job.error?.message || `Generation ${job.status}.`);
+        }
       }
+
+      if (!completedJob) {
+        throw new Error('Generation is taking longer than expected. Check the Jobs page for its status.');
+      }
+
+      const output = completedJob.output || {};
+      const metadata = completedJob.result?.metadata || output.metadata || {};
+      const mediaUrl = completedJob.result?.contentUrl
+        || output.url
+        || output.contentUrl
+        || metadata.image_url
+        || metadata.video_url
+        || metadata.audio_url;
+
+      if (!mediaUrl) {
+        throw new Error('The job completed, but the provider did not return a playable media URL.');
+      }
+
+      setResult({
+        ...metadata,
+        image_url: contentType === 'image' ? mediaUrl : undefined,
+        video_url: contentType === 'video' ? mediaUrl : undefined,
+        audio_url: contentType === 'audio' || contentType === 'speech' ? mediaUrl : undefined,
+        contentUrl: mediaUrl,
+        format: completedJob.result?.format || output.format,
+      });
+      setSuccess('Content generated successfully!');
+      setPrompt('');
     } catch (err: any) {
+      setGenerationStatus(null);
       setError(
-        err.response?.data?.error?.message || `Failed to generate ${contentType}`,
+        err.response?.data?.error?.message || err.message || `Failed to generate ${contentType}`,
       );
     } finally {
       setLoading(false);
@@ -235,6 +297,11 @@ const Studio: React.FC = () => {
 
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+            {generationStatus && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Job status: <strong>{generationStatus}</strong>
+              </Alert>
+            )}
             {queuedJobId && (
               <Alert severity="info" sx={{ mb: 2 }}>
                 {t('creation.jobId')}: <strong>{queuedJobId}</strong>.{' '}
