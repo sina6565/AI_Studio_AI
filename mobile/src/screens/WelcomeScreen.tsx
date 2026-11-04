@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing } from '../theme';
+import { colors } from '../theme';
 
 type WelcomeNavigation = {
   navigate: (screen: string) => void;
