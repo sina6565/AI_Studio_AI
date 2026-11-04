@@ -411,3 +411,28 @@
   }
   .reveal, .hero-titles > *, .hero-ui > * { opacity: 1 !important; transform: none !important; }
 }
+
+
+/* ---------- Beta mobile refinements ---------- */
+@media (max-width: 620px) {
+  .universe-hero {
+    min-height: auto;
+    min-height: 100svh;
+    padding-top: 88px;
+    padding-bottom: 76px;
+  }
+  .hero-stage { height: clamp(180px, 27svh, 250px); }
+  .hero-content { width: 100%; }
+  .hero-title { font-size: clamp(30px, 9vw, 43px); letter-spacing: -.045em; }
+  .hero-slogan1, .hero-slogan2 { max-width: 94%; font-size: clamp(13px, 3.7vw, 17px); line-height: 1.55; }
+  .hero-subtitle { max-width: 34rem; font-size: 13px; line-height: 1.8; }
+  .hero-tiles { width: 100%; }
+  .hero-stat { min-width: 0; }
+  .section-inner { padding-inline: 18px; }
+  .section-title { font-size: clamp(25px, 7vw, 34px); }
+  .featured-card, .world-card, .tier-card { min-width: 0; }
+  .ad-modal { width: calc(100vw - 24px); }
+  .ad-modal-body { padding: 16px; gap: 12px; }
+  .footer-inner { align-items: flex-start; }
+  .footer-links { flex-wrap: wrap; gap: 14px 20px; }
+}
