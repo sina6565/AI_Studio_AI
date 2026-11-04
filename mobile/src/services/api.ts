@@ -6,7 +6,10 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import type { Job, JobStats, Project, User } from '../types';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const configuredApiUrl = (process.env.REACT_APP_API_URL || '').trim();
+// Android emulator reaches the host machine through 10.0.2.2. Physical devices
+// must set REACT_APP_API_URL to the backend's LAN/reachable HTTPS address.
+const API_URL = (configuredApiUrl || 'http://10.0.2.2:3000/api').replace(/\/+$/, '');
 
 export interface ApiEnvelope<T> {
   success: boolean;
