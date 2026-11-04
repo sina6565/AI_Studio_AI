@@ -32,7 +32,7 @@ const INTRO_SEEN_KEY = 'sina-universe-intro';
 /* The six worlds, in the same birth order as the 3D orbs. */
 const WORLDS = [
   { key: 'games', icon: SportsEsportsIcon, studioType: 'game', examplePrompt: 'An epic adventure game world of floating islands, ancient ruins and a hero with a glowing blade' },
-  { key: 'websites', icon: WebIcon, studioType: 'image', examplePrompt: 'A sleek futuristic portfolio website with neon glass interface for a digital artist' },
+  { key: 'websites', icon: WebIcon, studioType: 'website', examplePrompt: 'A sleek futuristic portfolio website with neon glass interface for a digital artist' },
   { key: 'videos', icon: MovieCreationIcon, studioType: 'video', examplePrompt: 'A cinematic sci-fi trailer of a colossal mechanical citadel city at dusk' },
   { key: 'audio', icon: MusicNoteIcon, studioType: 'audio', examplePrompt: 'An epic orchestral-electronic soundtrack for a space adventure film trailer' },
   { key: 'characters', icon: PersonIcon, studioType: 'image', examplePrompt: 'A heroic cyborg explorer character with chrome armor and a glowing blue core, AAA game concept art' },
@@ -198,7 +198,9 @@ const UniverseLanding: React.FC = () => {
     if (promptText.trim()) params.set('prompt', promptText.trim());
     if (type) params.set('type', type);
     const qs = params.toString();
-    const dest = `/studio${qs ? `?${qs}` : ''}`;
+    const dest = type === 'website'
+      ? `/website-builder${qs ? `?${qs}` : ''}`
+      : `/studio${qs ? `?${qs}` : ''}`;
     navigate(apiClient.getToken() ? dest : `/login?redirect=${encodeURIComponent(dest)}`);
   };
 
