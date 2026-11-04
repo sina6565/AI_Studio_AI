@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Alert, Box, Button, Chip, Container, Grid, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
@@ -96,11 +97,12 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1100px,90%);margin:auto}.na
 }
 
 const WebsiteBuilder: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const language = (localStorage.getItem('language') || 'en').startsWith('fa') ? 'fa' : 'en';
   const t = copy[language];
   const [name, setName] = useState('');
   const [tagline, setTagline] = useState('');
-  const [brief, setBrief] = useState('');
+  const [brief, setBrief] = useState(() => searchParams.get('prompt') || '');
   const [kind, setKind] = useState<SiteKind>('business');
   const [palette, setPalette] = useState<Palette>('midnight');
   const [html, setHtml] = useState('');
