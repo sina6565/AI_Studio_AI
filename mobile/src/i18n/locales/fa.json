@@ -12,7 +12,18 @@
     "generate": "بساز",
     "queued": "در صف قرار گرفت",
     "gameModeCreate": "ایجاد تعریف بازی",
-    "gameModeBuild": "ساخت نمایشگر صحنه"
+    "gameModeBuild": "ساخت نمایشگر صحنه",
+    "studioEyebrow": "SINA AI STUDIO · فضای ساخت",
+    "studioTitle": "ایده‌ات را به یک پروژه تبدیل کن",
+    "studioSubtitle": "نوع خروجی را انتخاب کن، توضیحاتت را بنویس و ساخت را به صف پردازش بسپار.",
+    "type_image": "تصویر",
+    "type_video": "ویدئو",
+    "type_audio": "صدا و موسیقی",
+    "type_speech": "گفتار",
+    "type_game": "بازی",
+    "gameModeLabel": "حالت ساخت",
+    "promptLabel": "توضیحات پروژه",
+    "queueFootnote": "درخواست پس از ثبت در صف پردازش قرار می‌گیرد؛ نتیجه را از بخش کارها دنبال کن."
   },
   "auth": {
     "email": "ایمیل",
@@ -38,7 +49,8 @@
     "recent": "کارهای اخیر",
     "empty": "هنوز کاری وجود ندارد",
     "progress": "پیشرفت",
-    "cancel": "لغو"
+    "cancel": "لغو",
+    "queued": "در صف انتظار"
   },
   "projects": {
     "name": "نام پروژه",
