@@ -21,12 +21,12 @@ type WelcomeNavigation = {
 type Props = { navigation: WelcomeNavigation };
 
 const WORLDS = [
-  { en: 'Games', fa: 'بازی', color: '#22d3ee' },
-  { en: 'Websites', fa: 'وب‌سایت', color: '#818cf8' },
-  { en: 'Video', fa: 'ویدئو', color: '#e879f9' },
-  { en: 'Audio', fa: 'صدا', color: '#fbbf24' },
-  { en: 'Characters', fa: 'شخصیت', color: '#34d399' },
-  { en: '3D Worlds', fa: 'جهان سه‌بعدی', color: '#60a5fa' },
+  { en: 'Games', fa: 'بازی', color: '#22d3ee', mark: '01' },
+  { en: 'Websites', fa: 'وب‌سایت', color: '#818cf8', mark: '02' },
+  { en: 'Video', fa: 'ویدئو', color: '#e879f9', mark: '03' },
+  { en: 'Audio', fa: 'صدا', color: '#fbbf24', mark: '04' },
+  { en: 'Characters', fa: 'شخصیت', color: '#34d399', mark: '05' },
+  { en: '3D Worlds', fa: 'جهان سه‌بعدی', color: '#60a5fa', mark: '06' },
 ];
 
 export default function WelcomeScreen({ navigation }: Props) {
