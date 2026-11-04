@@ -7,13 +7,13 @@ engine project.
 
 ## Workflow
 
-1. In Studio, enter a title, description, genre/art style, and one or more scenes.
-2. Choose **Build playable 2D game** (or create a scene manifest and build it
-   later from Jobs). Optionally attach the job to an existing project.
-3. The existing image-generation provider creates scene art. The backend
+1. In Studio, enter a title and describe the game idea in natural language (world, player, goal, obstacles, and mood).
+2. Choose **Build playable 2D game**. For a quick start, the description is used as the first scene prompt; manual scene breakdown is optional under **Customize scenes**. Optionally attach the job to an existing project.
+3. For multi-scene concepts, open **Customize scenes**, add up to 12 named scenes, and provide a focused description for each.
+4. The existing image-generation provider creates scene art. The backend
    deterministically creates and validates a versioned data-only gameplay
    definition from the resulting manifest.
-4. Open the completed job from Jobs or its linked project and select **Play 2D
+5. Open the completed job from Jobs or its linked project and select **Play 2D
    game**. **Preview scene viewer** remains a safe, non-executable art preview.
 
 ## Gameplay definition
