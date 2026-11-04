@@ -12,7 +12,18 @@
     "generate": "Generate",
     "queued": "Queued as job",
     "gameModeCreate": "Create game definition",
-    "gameModeBuild": "Build scene viewer"
+    "gameModeBuild": "Build scene viewer",
+    "studioEyebrow": "SINA AI STUDIO · CREATION SPACE",
+    "studioTitle": "Turn your idea into a project",
+    "studioSubtitle": "Choose an output type, describe your idea, and send it to the processing queue.",
+    "type_image": "Image",
+    "type_video": "Video",
+    "type_audio": "Audio & music",
+    "type_speech": "Speech",
+    "type_game": "Game",
+    "gameModeLabel": "Build mode",
+    "promptLabel": "Project brief",
+    "queueFootnote": "Your request enters the processing queue after submission. Track its progress in Jobs."
   },
   "auth": {
     "email": "Email",
@@ -38,7 +49,8 @@
     "recent": "Recent jobs",
     "empty": "No jobs yet",
     "progress": "Progress",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "queued": "Queued"
   },
   "projects": {
     "name": "Project name",

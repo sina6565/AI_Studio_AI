@@ -66,8 +66,9 @@ export default function DashboardScreen() {
 
   const cards: Array<{ key: string; label: string; value: number; color: string }> = [
     { key: 'total', label: t('jobs.total'), value: stats.total, color: colors.primary },
-    { key: 'completed', label: t('jobs.completed'), value: stats.completed, color: colors.success },
+    { key: 'queued', label: t('jobs.queued'), value: stats.queued, color: colors.primary },
     { key: 'processing', label: t('jobs.processing'), value: stats.processing, color: colors.warning },
+    { key: 'completed', label: t('jobs.completed'), value: stats.completed, color: colors.success },
     { key: 'failed', label: t('jobs.failed'), value: stats.failed, color: colors.danger },
   ];
 
