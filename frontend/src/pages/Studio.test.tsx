@@ -6,15 +6,19 @@ import { MemoryRouter } from 'react-router-dom';
 import '../i18n/config';
 import Studio from './Studio';
 
-const { listProjectsMock, createGameJobMock } = vi.hoisted(() => ({
+const { listProjectsMock, createGameJobMock, createJobMock, getJobStatusMock } = vi.hoisted(() => ({
   listProjectsMock: vi.fn(),
   createGameJobMock: vi.fn(),
+  createJobMock: vi.fn(),
+  getJobStatusMock: vi.fn(),
 }));
 
 vi.mock('../services/api', () => ({
   default: {
     listProjects: listProjectsMock,
     createGameJob: createGameJobMock,
+    createJob: createJobMock,
+    getJobStatus: getJobStatusMock,
   },
 }));
 
@@ -35,6 +39,18 @@ beforeEach(() => {
   createGameJobMock.mockReset().mockResolvedValue({
     success: true,
     data: { jobId: 'job-1', status: 'queued', createdAt: '2026-10-25T00:00:00.000Z' },
+  });
+  createJobMock.mockReset().mockResolvedValue({
+    success: true,
+    data: { jobId: 'image-job-1', status: 'queued' },
+  });
+  getJobStatusMock.mockReset().mockResolvedValue({
+    success: true,
+    data: {
+      id: 'image-job-1',
+      status: 'completed',
+      result: { contentUrl: 'https://cdn.example.test/generated.png', format: 'png' },
+    },
   });
 });
 
@@ -71,5 +87,28 @@ describe('Studio playable game creation', () => {
       'project-1',
     ));
     expect(await screen.findByText(/job-1/)).toBeInTheDocument();
+  });
+});
+
+describe('Studio asynchronous media generation', () => {
+  it('polls the queued job and displays the media only after completion', async () => {
+    render(
+      <MemoryRouter>
+        <Studio />
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText('Describe what you want to create...'), {
+      target: { value: 'A luminous blue planet' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+
+    await waitFor(() => expect(createJobMock).toHaveBeenCalledWith({
+      type: 'image_generation',
+      input: { prompt: 'A luminous blue planet', size: '1024x1024', quality: 'standard' },
+    }));
+    const image = await screen.findByRole('img', { name: 'Generated' });
+    expect(image).toHaveAttribute('src', 'https://cdn.example.test/generated.png');
+    expect(getJobStatusMock).toHaveBeenCalledWith('image-job-1');
   });
 });
