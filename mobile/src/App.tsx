@@ -11,6 +11,7 @@ import './i18n/config';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import {
   AuthScreen,
+  WelcomeScreen,
   DashboardScreen,
   JobsScreen,
   ProjectsScreen,
@@ -67,7 +68,10 @@ function RootNavigator() {
       {authenticated ? (
         <Stack.Screen name="Main" component={MainTabs} />
       ) : (
-        <Stack.Screen name="Auth" component={AuthScreen} />
+        <>
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="Auth" component={AuthScreen} />
+        </>
       )}
     </Stack.Navigator>
   );

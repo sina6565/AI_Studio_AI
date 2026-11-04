@@ -83,13 +83,14 @@ interface HeroSceneProps {
 export default function HeroScene({ onSelectWorld }: HeroSceneProps) {
   const [frameloop, setFrameloop] = useState<'always' | 'never'>('always');
 
+  const coarseDevice = typeof window !== 'undefined' && (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760);
   const quality = useMemo(() => {
     const coarse =
       typeof window !== 'undefined' &&
       (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760);
     return coarse
-      ? { particles: 4200, dpr: [1, 1.5] as [number, number], samples: 0 }
-      : { particles: 9000, dpr: [1, 1.75] as [number, number], samples: 4 };
+      ? { particles: 1800, dpr: [1, 1.2] as [number, number], samples: 0 }
+      : { particles: 6500, dpr: [1, 1.5] as [number, number], samples: 2 };
   }, []);
 
   // Pause rendering while the tab is hidden — cinema etiquette & battery.
@@ -117,7 +118,7 @@ export default function HeroScene({ onSelectWorld }: HeroSceneProps) {
 
       <Suspense fallback={null}>
         <NebulaSky />
-        <Stars radius={85} depth={45} count={4200} factor={5} saturation={0.15} fade speed={0.6} />
+        <Stars radius={85} depth={45} count={coarseDevice ? 1600 : 3200} factor={coarseDevice ? 3 : 4} saturation={0.15} fade speed={0.6} />
         <UniverseGroup>
           <ParticleField count={quality.particles} />
           <Planet />
