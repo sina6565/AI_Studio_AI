@@ -10,7 +10,8 @@
     "jobs": "Tasks",
     "settings": "Settings",
     "logout": "Logout",
-    "universe": "Universe"
+    "universe": "Universe",
+    "websiteBuilder": "Website Builder"
   },
   "pages": {
     "dashboard": "Dashboard",
