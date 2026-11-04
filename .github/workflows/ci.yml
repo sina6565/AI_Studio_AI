@@ -51,3 +51,21 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Type-check and build
         run: npm run build
+
+  mobile:
+    name: Mobile (type-check)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install dependencies (locked)
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Type-check
+        run: npm run type-check
