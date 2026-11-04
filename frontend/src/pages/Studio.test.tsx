@@ -36,6 +36,35 @@ beforeEach(() => {
     success: true,
     data: { jobId: 'job-1', status: 'queued', createdAt: '2026-10-25T00:00:00.000Z' },
   });
+
+  it('creates a quick-start playable game from one description without manual scene setup', async () => {
+    render(
+      <MemoryRouter>
+        <Studio />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Game' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Build playable 2D game' }));
+    fireEvent.change(screen.getByLabelText('Game title'), { target: { value: 'Star Runner' } });
+    fireEvent.change(screen.getByLabelText('Game description'), { target: { value: 'Pilot a small ship through an asteroid field and reach the portal.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+
+    await waitFor(() => expect(createGameJobMock).toHaveBeenCalledWith(
+      {
+        title: 'Star Runner',
+        description: 'Pilot a small ship through an asteroid field and reach the portal.',
+        genre: undefined,
+        artStyle: undefined,
+        scenes: [{
+          name: 'Star Runner',
+          description: 'Pilot a small ship through an asteroid field and reach the portal.',
+        }],
+      },
+      'build',
+      undefined,
+    ));
+  });
 });
 
 describe('Studio playable game creation', () => {
@@ -53,6 +82,7 @@ describe('Studio playable game creation', () => {
     fireEvent.click(within(listbox).getByRole('option', { name: 'My Adventure' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Build playable 2D game' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Customize scenes (optional)' }));
     fireEvent.change(screen.getByLabelText('Game title'), { target: { value: 'Crystal Run' } });
     fireEvent.change(screen.getByLabelText('Game description'), { target: { value: 'Collect every crystal.' } });
     fireEvent.change(screen.getByLabelText('Scene name 1'), { target: { value: 'Ruins' } });
