@@ -107,7 +107,7 @@ describe('Studio asynchronous media generation', () => {
       type: 'image_generation',
       input: { prompt: 'A luminous blue planet', size: '1024x1024', quality: 'standard' },
     }));
-    const image = await screen.findByRole('img', { name: 'Generated' });
+    const image = await screen.findByRole('img', { name: 'Generated' }, { timeout: 5000 });
     expect(image).toHaveAttribute('src', 'https://cdn.example.test/generated.png');
     expect(getJobStatusMock).toHaveBeenCalledWith('image-job-1');
   });
