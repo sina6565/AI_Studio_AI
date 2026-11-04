@@ -49,6 +49,7 @@ const Studio: React.FC = () => {
   const [artStyle, setArtStyle] = useState('');
   const [scenes, setScenes] = useState<SceneDraft[]>([{ name: '', description: '' }]);
   const [gameMode, setGameMode] = useState<'create' | 'build'>('create');
+  const [showAdvancedScenes, setShowAdvancedScenes] = useState(false);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [queuedJobId, setQueuedJobId] = useState<string | null>(null);
@@ -104,10 +105,12 @@ const Studio: React.FC = () => {
   const validateGame = (): string | null => {
     if (!gameTitle.trim()) return t('creation.gameTitleRequired');
     if (!gameDescription.trim()) return t('creation.gameDescriptionRequired');
-    if (scenes.length === 0) return t('creation.sceneRequired');
-    for (let i = 0; i < scenes.length; i += 1) {
-      if (!scenes[i].name.trim()) return `${t('creation.sceneName')} ${i + 1}: ${t('creation.sceneNameRequired')}`;
-      if (!scenes[i].description.trim()) {
+    const configuredScenes = scenes.filter(
+      (scene) => scene.name.trim() || scene.description.trim(),
+    );
+    for (let i = 0; i < configuredScenes.length; i += 1) {
+      if (!configuredScenes[i].name.trim()) return `${t('creation.sceneName')} ${i + 1}: ${t('creation.sceneNameRequired')}`;
+      if (!configuredScenes[i].description.trim()) {
         return `${t('creation.sceneDescription')} ${i + 1}: ${t('creation.sceneDescriptionRequired')}`;
       }
     }
@@ -133,10 +136,17 @@ const Studio: React.FC = () => {
           description: gameDescription.trim(),
           genre: genre.trim() || undefined,
           artStyle: artStyle.trim() || undefined,
-          scenes: scenes.map((scene) => ({
-            name: scene.name.trim(),
-            description: scene.description.trim(),
-          })),
+          scenes: (() => {
+            const configuredScenes = scenes.filter(
+              (scene) => scene.name.trim() && scene.description.trim(),
+            );
+            return configuredScenes.length > 0
+              ? configuredScenes.map((scene) => ({
+                  name: scene.name.trim(),
+                  description: scene.description.trim(),
+                }))
+              : [{ name: gameTitle.trim(), description: gameDescription.trim() }];
+          })(),
         },
         gameMode,
         selectedProjectId || undefined,
@@ -269,6 +279,9 @@ const Studio: React.FC = () => {
                   disabled={loading}
                   inputProps={{ maxLength: 120 }}
                 />
+                <Typography variant="caption" color="text.secondary">
+                  {t('creation.gamePromptHint')}
+                </Typography>
                 <TextField
                   label={t('creation.gameDescription')}
                   value={gameDescription}
@@ -315,11 +328,24 @@ const Studio: React.FC = () => {
                   </Select>
                 </FormControl>
 
-                <Typography variant="h6">
-                  {t('creation.scenes')} ({scenes.length}/{MAX_SCENES})
-                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => setShowAdvancedScenes((current) => !current)}
+                  disabled={loading}
+                >
+                  {t(showAdvancedScenes ? 'creation.hideAdvancedScenes' : 'creation.advancedScenes')}
+                </Button>
+                {!showAdvancedScenes && (
+                  <Typography variant="caption" color="text.secondary">
+                    {t('creation.quickSceneNote')}
+                  </Typography>
+                )}
+                {showAdvancedScenes && <>
+                  <Typography variant="h6">
+                    {t('creation.scenes')} ({scenes.length}/{MAX_SCENES})
+                  </Typography>
 
-                {scenes.map((scene, index) => (
+                  {scenes.map((scene, index) => (
                   <Paper key={index} variant="outlined" sx={{ p: 2 }}>
                     <Stack spacing={2}>
                       <TextField
@@ -358,11 +384,12 @@ const Studio: React.FC = () => {
                   </Paper>
                 ))}
 
-                <Box>
-                  <Button onClick={addScene} disabled={loading || scenes.length >= MAX_SCENES}>
-                    {t('creation.addScene')}
-                  </Button>
-                </Box>
+                  <Box>
+                    <Button onClick={addScene} disabled={loading || scenes.length >= MAX_SCENES}>
+                      {t('creation.addScene')}
+                    </Button>
+                  </Box>
+                </>}
               </Stack>
             ) : (
               <TextField
