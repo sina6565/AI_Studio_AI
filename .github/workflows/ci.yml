@@ -51,6 +51,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Type-check and build
         run: npm run build
+      - name: Run frontend tests
+        run: npm test -- --run
 
   mobile:
     name: Mobile (type-check)
