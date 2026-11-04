@@ -37,7 +37,15 @@ export class QAAgent implements Agent {
         true,
         ts.ScriptKind.TS,
       );
-      if (source.parseDiagnostics.length > 0) {
+      const syntaxDiagnostics =
+        ts.transpileModule(artifact.content, {
+          fileName: 'add.ts',
+          reportDiagnostics: true,
+          compilerOptions: { target: ts.ScriptTarget.Latest },
+        }).diagnostics ?? [];
+      if (syntaxDiagnostics.some(
+        (diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error,
+      )) {
         throw new Error('QA: generated source contains TypeScript syntax errors');
       }
 
