@@ -24,6 +24,8 @@ router.post('/', async (req: AuthenticatedRequest, res, next) => {
     if (isGameJobType(input.type)) {
       // Fail fast with a field-level message instead of a provider error later.
       validateWithSchema(input.input, schemas.gameSpec);
+    } else if (input.type === 'website_build') {
+      validateWithSchema(input.input, schemas.websiteSpec);
     }
     const userId = req.user!.userId;
     if (input.projectId) {
