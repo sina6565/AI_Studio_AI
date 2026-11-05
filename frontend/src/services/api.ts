@@ -124,6 +124,22 @@ class APIClient {
     return response.data;
   }
 
+  async createWebsiteJob(spec: {
+    name: string;
+    tagline: string;
+    description: string;
+    kind: 'portfolio' | 'business' | 'product';
+    palette: 'midnight' | 'light' | 'ocean';
+    language: 'en' | 'fa';
+    contactEmail?: string;
+  }): Promise<APIResponse<{ jobId: string; status: string; createdAt: string }>> {
+    const response = await this.client.post('/v1/jobs', {
+      type: 'website_build',
+      input: spec,
+    });
+    return response.data;
+  }
+
   async listJobs(): Promise<APIResponse<Job[]>> {
     const response = await this.client.get('/v1/jobs');
     return response.data;
