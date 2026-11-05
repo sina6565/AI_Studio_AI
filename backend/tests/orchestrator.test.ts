@@ -187,7 +187,7 @@ describe('Orchestrator', () => {
       expect(job.status).toBe(JobStatus.COMPLETED);
       expect(job.save).toHaveBeenCalled();
       expect((job as any).result.format).toBe('text/html');
-      expect((job as any).result.metadata).not.toHaveProperty('playableGame');
+      expect(Object.keys((job as any).result.metadata).sort()).toEqual(['artifact', 'manifest']);
       expect((job as any).result.metadata.artifact.runtime).toBe('html5');
     });
 
