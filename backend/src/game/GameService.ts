@@ -2,8 +2,7 @@
  * Game creation service.
  *
  * Turns a validated game spec into a scene manifest through the existing
- * provider-agnostic image router. Builds also create a versioned, data-only
- * Phaser gameplay definition and retain the standalone scene-viewer fallback.
+ * provider-agnostic image router and renders a standalone scene-viewer artifact.
  * It never fabricates scene images: provider failures propagate to the job.
  */
 
@@ -20,10 +19,6 @@ import type {
   GameSpec,
 } from './types';
 import { renderSceneViewer, sceneViewerFilename } from './SceneViewerRenderer';
-import {
-  createPlayableGameDefinition,
-  PlayableGameDefinition,
-} from './PlayableGameDefinition';
 
 export type GameProgressReporter = (
   percentage: number,
@@ -38,10 +33,9 @@ export interface GameBuildOptions {
   jobType?: JobType;
 }
 
-/** Playable 2D definition plus the backward-compatible scene-viewer artifact. */
+/** Scene manifest plus a standalone, non-interactive scene-viewer artifact. */
 export interface GameBuildResult {
   manifest: GameManifest;
-  playableGame: PlayableGameDefinition;
   html: string;
   filename: string;
   /** data: URL so the artifact needs no storage backend to be delivered. */
@@ -226,8 +220,7 @@ export class GameService {
   }
 
   /**
-   * Build a validated Phaser 2D definition and safe scene-viewer fallback from
-   * either a game spec or an existing manifest (whose assets are reused).
+   * Build a safe, non-interactive scene viewer from a game spec or existing manifest.
    */
   async buildGame(
     input: GameSpec | GameManifest,
@@ -247,7 +240,6 @@ export class GameService {
 
     if (report) await report(95, 'rendering_scene_viewer');
 
-    const playableGame = createPlayableGameDefinition(manifest);
     const html = renderSceneViewer(manifest);
     const filename = sceneViewerFilename(manifest.title);
     const size = Buffer.byteLength(html, 'utf8');
@@ -259,6 +251,6 @@ export class GameService {
       `[GameService] Built scene viewer ${filename} (${size} bytes, ${manifest.scenes.length} scenes)`,
     );
 
-    return { manifest, playableGame, html, filename, dataUrl, size };
+    return { manifest, html, filename, dataUrl, size };
   }
 }
