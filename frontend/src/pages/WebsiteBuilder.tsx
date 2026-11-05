@@ -152,8 +152,10 @@ const WebsiteBuilder: React.FC = () => {
       setStatus(t.queued);
 
       const deadline = Date.now() + 120000;
+      let firstPoll = true;
       while (Date.now() < deadline) {
-        await new Promise((resolve) => window.setTimeout(resolve, 1200));
+        if (!firstPoll) await new Promise((resolve) => window.setTimeout(resolve, 1200));
+        firstPoll = false;
         const polled = await apiClient.getJobStatus(nextJobId);
         const job = polled.data;
         if (!polled.success || !job) {
