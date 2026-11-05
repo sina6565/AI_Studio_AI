@@ -1,75 +1,58 @@
-# Experimental 2D Game Creation
+# Game Scene Creation
 
-The current game workflow builds an experimental, data-driven 2D browser game on
-the existing React/Vite, Express/TypeScript, MongoDB, Redis/Bull, and provider
-stack. It does not generate arbitrary JavaScript, a full 3D game, or a native
-engine project.
+SINA AI STUDIO currently supports creation of game concepts as scene manifests
+and generated visual assets. It also supports a standalone HTML scene viewer.
+This workflow is an asset and scene-preview pipeline, not a playable game
+runtime.
 
 ## Workflow
 
-1. In Studio, enter a title, description, genre/art style, and one or more scenes.
-2. Choose **Build playable 2D game** (or create a scene manifest and build it
-   later from Jobs). Optionally attach the job to an existing project.
-3. The existing image-generation provider creates scene art. The backend
-   deterministically creates and validates a versioned data-only gameplay
-   definition from the resulting manifest.
-4. Open the completed job from Jobs or its linked project and select **Play 2D
-   game**. **Preview scene viewer** remains a safe, non-executable art preview.
-
-## Gameplay definition
-
-`result.metadata.playableGame` has schema version `1`, engine target Phaser
-`4.2.1`, and a fixed 20 × 15 grid of 32-pixel tiles. Tiles are limited to walls,
-floor, one player start, crystals, hazards, and one exit. The server validates
-map dimensions, tile characters, route reachability, supported rules, and
-engine/schema versions before persisting the job result. The browser validates
-again before starting the game.
-
-The runtime provides arrow-key/WASD movement, wall collision, crystal collection
-and scoring, hazard/lives collision, a time limit, restart, a win state (collect
-every crystal then touch the exit), and loss states (zero lives or timeout).
-No model-generated code is interpreted.
+1. In Studio, enter an original game title, description, genre, art style, and
+   one or more scene descriptions.
+2. Submit the game creation job and optionally attach it to a project.
+3. The configured image-generation provider creates the scene artwork.
+4. Open the completed job to inspect the scene manifest, preview individual
+   scenes, or download the standalone HTML scene viewer.
 
 ## API shape
 
-The existing authenticated `POST /api/v1/jobs` endpoint accepts a game spec:
+The authenticated `POST /api/v1/jobs` endpoint accepts a game-creation spec:
 
 ```json
 {
-  "type": "game_build",
+  "type": "game_creation",
   "projectId": "507f1f77bcf86cd799439011",
   "input": {
-    "title": "Crystal Run",
-    "description": "Collect crystals and find the exit.",
+    "title": "Original Project",
+    "description": "A short description of the original game concept.",
     "genre": "adventure",
-    "artStyle": "pixel art",
+    "artStyle": "stylised",
     "scenes": [
-      { "name": "Ruins", "description": "A broken stone courtyard." }
+      { "name": "Opening Scene", "description": "Describe the original setting." }
     ]
   }
 }
 ```
 
-`projectId` is optional and is checked against the authenticated user's project.
-The existing project `jobs` list and job metadata retain the association. The
-`game_build` result includes both:
+The optional `projectId` is checked against the authenticated user's project.
+The job result stores the scene manifest and links to its generated assets.
 
-- `result.metadata.playableGame`: validated Phaser-oriented game data for the
-  in-app runtime.
-- `result.metadata.artifact`: metadata for the backward-compatible downloadable
-  HTML scene viewer. That HTML remains a viewer, not a playable build.
+A `game_build` job can reuse a previously generated scene manifest without
+calling an image provider again. It produces only the neutral HTML scene viewer.
+It does not add gameplay rules, scoring, collectibles, hazards, win/loss logic,
+or a playable Phaser runtime.
 
-A `game_build` request may also use an earlier generated manifest as `input`; it
-reuses manifest image URLs rather than generating them again. This manifest-only
-build path does not need an AI image provider, so a completed scene manifest can
-be converted into the playable Phaser MVP even when Agnes or another image
-provider is unavailable. Submitting a raw game spec still uses provider routing
-to generate the scene images.
+## Product boundary
 
-## Deliberate limits
+The commercial SINA AI STUDIO codebase must contain only original game concepts,
+mechanics, names, art direction, and implementation. The previously included
+crystal-collection sample gameplay and its related runtime, wording, tests, and
+UI have been removed from this branch. Do not reintroduce that sample or
+third-party/Arena-authored material into commercial builds without documented
+rights and explicit approval.
 
-This MVP uses a fixed collection-game ruleset and a generated tile layout. It
-supports no arbitrary scripts, user-authored rule graphs, multiplayer, physics
-beyond the tile-map collision model, full 3D runtime, or packaged standalone
-Phaser export. The scene-viewer download and safe React scene preview remain
-available as fallbacks.
+## Current limits
+
+The scene viewer is a visual preview and is not a playable game. Generic
+playable-game authoring, user-defined mechanics, a full 3D runtime, multiplayer,
+and packaged native engine exports are not implemented by this workflow.
