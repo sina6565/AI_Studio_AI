@@ -3,7 +3,6 @@ import { Container, Grid, Paper, Button, Box, Typography, Dialog, TextField, Ale
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import apiClient from '../services/api';
-import { parsePlayableGameDefinition } from '../games/playableGame';
 import { Job, Project } from '../types';
 
 const Projects: React.FC = () => {
@@ -107,10 +106,7 @@ const Projects: React.FC = () => {
                       </Typography>
                     ) : (
                       gameJobs.map((job) => {
-                        const playableGame = parsePlayableGameDefinition(
-                          job.result?.metadata?.playableGame,
-                        );
-                        const canPlay = job.status === 'completed' && !!playableGame;
+
                         return (
                           <Box
                             key={job.id}
@@ -118,21 +114,12 @@ const Projects: React.FC = () => {
                           >
                             <Box sx={{ minWidth: 0 }}>
                               <Typography variant="body2" noWrap>
-                                {playableGame?.title || String(job.input.title || job.id)}
+                                {String(job.input.title || job.id)}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 {job.status}
                               </Typography>
                             </Box>
-                            {canPlay && (
-                              <Button
-                                size="small"
-                                component={Link}
-                                to={`/play/${encodeURIComponent(job.id)}`}
-                              >
-                                {t('projects.playGame')}
-                              </Button>
-                            )}
                           </Box>
                         );
                       })
