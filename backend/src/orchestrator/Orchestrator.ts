@@ -10,6 +10,7 @@ import { AppError, ValidationError } from '../types/errors';
 import { GameService } from '../game/GameService';
 import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
 import { createPlayableGameDefinition } from '../game/PlayableGameDefinition';
+import { buildWebsite } from '../website/WebsiteBuilderService';
 
 export interface OrchestratorRequest {
   userId: string;
@@ -70,7 +71,8 @@ export class Orchestrator {
     }
 
     const providers = this.getAvailableProviders();
-    if (!providers.length) {
+    const isLocalWebsiteBuild = request.jobType === JobType.WEBSITE_BUILD;
+    if (!providers.length && !isLocalWebsiteBuild) {
       throw new AppError(
         'NO_PROVIDERS',
         'No AI providers are currently available',
@@ -78,14 +80,16 @@ export class Orchestrator {
       );
     }
 
-    // Game jobs are composite: route on the capability the pipeline needs
-    // rather than asking a single provider to "create a game".
+    // Website builds use the deterministic local template engine. They do not
+    // consume provider credits or require a configured AI provider.
     const routingCapability = gameJobCapability(request.jobType);
-    const decision = await this.router.route(routingCapability, providers, {
-      jobType: request.jobType,
-      capabilities: [routingCapability as any],
-      userPreferences: request.userPreferences,
-    });
+    const providerName = isLocalWebsiteBuild
+      ? 'local-website-builder'
+      : (await this.router.route(routingCapability, providers, {
+          jobType: request.jobType,
+          capabilities: [routingCapability as any],
+          userPreferences: request.userPreferences,
+        })).providerName;
 
     const job = await JobModel.create({
       _id: uuidv4(),
@@ -98,14 +102,14 @@ export class Orchestrator {
         requestedAt: new Date(),
         retryCount: 0,
         maxRetries: 3,
-        provider: decision.providerName,
+        provider: providerName,
         projectId: request.projectId,
       },
       webhookUrl: request.webhookUrl,
     });
 
     logger.info(
-      `[Orchestrator] Job created: ${job.id} (type: ${request.jobType}, provider: ${decision.providerName})`,
+      `[Orchestrator] Job created: ${job.id} (type: ${request.jobType}, provider: ${providerName})`,
     );
 
     // Enqueue job to Bull queue for async processing
@@ -166,9 +170,10 @@ export class Orchestrator {
     }
 
     try {
+      const isLocalWebsiteBuild = job.type === JobType.WEBSITE_BUILD;
       const providerName = String(job.metadata?.provider || '').toLowerCase();
       const provider = this.providers.get(providerName);
-      if (!provider) {
+      if (!provider && !isLocalWebsiteBuild) {
         throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
       }
       // Update job status to processing
@@ -178,13 +183,16 @@ export class Orchestrator {
       await job.save();
       logger.info(`[Orchestrator] Processing job: ${jobId}`);
 
-      // Validate input with provider
-      const validation = await provider.validateInput(job.type, job.input);
-      if (!validation.valid) {
-        throw new ValidationError(
-          `Invalid input for ${job.type}`,
-          { errors: validation.errors },
-        );
+      // Provider-backed jobs retain provider validation. Local website builds
+      // validate against their own strict schema inside buildWebsite().
+      if (provider) {
+        const validation = await provider.validateInput(job.type, job.input);
+        if (!validation.valid) {
+          throw new ValidationError(
+            `Invalid input for ${job.type}`,
+            { errors: validation.errors },
+          );
+        }
       }
 
       job.progress = { percentage: 20, stage: 'validated' };
@@ -192,7 +200,11 @@ export class Orchestrator {
 
       // Execute task based on job type
       let output: any;
-      if (isGameJobType(job.type)) {
+      if (isLocalWebsiteBuild) {
+        job.progress = { percentage: 35, stage: 'building_website' };
+        await job.save();
+        output = buildWebsite(job.input);
+      } else if (isGameJobType(job.type)) {
         job.progress = { percentage: 10, stage: 'validating_game_spec' };
         await job.save();
 
@@ -253,6 +265,7 @@ export class Orchestrator {
           };
         }
       } else {
+        if (!provider) throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
         switch (job.type) {
         case JobType.IMAGE_GENERATION:
           job.progress = { percentage: 30, stage: 'generating_image' };
