@@ -57,7 +57,9 @@ describe('WebsiteBuilder', () => {
       palette: 'midnight',
       language: 'en',
     }));
-    expect(await screen.findByText('Website generated successfully.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getAllByRole('alert').some((alert) => alert.textContent?.includes('Website generated successfully.'))).toBe(true);
+    });
     expect(screen.getByTitle('Website live preview')).toHaveAttribute('srcdoc', expect.stringContaining('SINA test site'));
   });
 
