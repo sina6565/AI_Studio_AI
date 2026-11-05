@@ -145,7 +145,7 @@ const Jobs: React.FC = () => {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{job.type}</TableCell>
+                  <TableCell>{job.type === 'website_build' ? t('jobs.websiteBuild') : job.type}</TableCell>
                   <TableCell>
                     {job.progress && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -166,7 +166,14 @@ const Jobs: React.FC = () => {
                       </Button>
                     )}
                     {job.status === 'completed' && job.result?.contentUrl && (
-                      <Button size="small" href={job.result.contentUrl} target="_blank">
+                      <Button
+                        size="small"
+                        href={job.result.contentUrl}
+                        target={job.type === 'website_build' ? undefined : '_blank'}
+                        download={job.type === 'website_build' && typeof job.result.metadata?.filename === 'string'
+                          ? job.result.metadata.filename
+                          : undefined}
+                      >
                         {t('job.download')}
                       </Button>
                     )}
@@ -181,12 +188,17 @@ const Jobs: React.FC = () => {
                     )}
                   </TableCell>
                 </TableRow>
-                {(job.error?.message || manifest) && (
+                {(job.error?.message || manifest || job.type === 'website_build' && job.status === 'completed') && (
                   <TableRow>
                     <TableCell colSpan={5} sx={{ bgcolor: '#fafafa' }}>
                       {job.error?.message && (
                         <Alert severity="error" sx={{ mb: manifest ? 1 : 0 }}>
                           {job.error.code}: {job.error.message}
+                        </Alert>
+                      )}
+                      {job.type === 'website_build' && job.status === 'completed' && (
+                        <Alert severity="success" sx={{ mb: 1 }}>
+                          {t('jobs.websiteReady')}: {String(job.result?.metadata?.filename || 'website.html')}
                         </Alert>
                       )}
                       {manifest && (
