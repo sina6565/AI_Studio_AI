@@ -7,9 +7,9 @@ import { introTime, useUniverseStore } from './universeStore';
 import { getGlowTexture } from './glowTexture';
 
 /**
- * The SINA STUDIO AI emblem igniting over the newborn planet after the
- * explosion. The artwork lives on pure black, so additive blending drops
- * the background and leaves only the glowing chrome "S".
+ * The SINA STUDIO AI emblem ignites over the newborn planet after the
+ * explosion. It is scaled as the hero focal point so the brand remains legible
+ * above the planetary system on desktop and compact mobile viewports.
  */
 export default function LogoReveal() {
   const groupRef = useRef<THREE.Group>(null);
@@ -31,16 +31,15 @@ export default function LogoReveal() {
       groupRef.current.lookAt(state.camera.position);
     }
     if (logoRef.current) {
-      // Slight overshoot as the emblem slams in, then a calm heroic float.
-      const pop = 0.55 + 0.45 * easeOutCubic(reveal) + Math.sin(reveal * Math.PI) * 0.10;
+      const pop = 0.7 + 0.42 * easeOutCubic(reveal) + Math.sin(reveal * Math.PI) * 0.12;
       logoRef.current.scale.setScalar(Math.max(0.0001, pop));
       const m = logoRef.current.material as THREE.MeshBasicMaterial;
       m.opacity = reveal * scrollFade;
     }
     if (glowRef.current) {
       const m = glowRef.current.material as THREE.SpriteMaterial;
-      m.opacity = (0.35 * reveal + s.flash * 0.4) * scrollFade;
-      const gs = 4.6 * (0.6 + 0.4 * reveal) + s.flash * 2.5;
+      m.opacity = (0.42 * reveal + s.flash * 0.48) * scrollFade;
+      const gs = 5.4 * (0.6 + 0.4 * reveal) + s.flash * 3.0;
       glowRef.current.scale.set(gs, gs, 1);
     }
   });
@@ -50,7 +49,7 @@ export default function LogoReveal() {
       <sprite ref={glowRef} position={[0, 0, -0.4]}>
         <spriteMaterial
           map={glowTexture}
-          color="#3b82f6"
+          color="#f6a82a"
           transparent
           opacity={0}
           depthWrite={false}
@@ -58,7 +57,7 @@ export default function LogoReveal() {
         />
       </sprite>
       <mesh ref={logoRef}>
-        <planeGeometry args={[2.5, 2.56]} />
+        <planeGeometry args={[3.1, 3.18]} />
         <meshBasicMaterial
           map={texture}
           transparent

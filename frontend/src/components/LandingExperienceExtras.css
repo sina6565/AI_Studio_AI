@@ -1,0 +1,78 @@
+/* Desktop companion preview and complete brand/legal footer. */
+.mobile-world-preview {
+  position: fixed;
+  z-index: 20;
+  top: 52%;
+  inset-inline-end: clamp(18px, 2.2vw, 38px);
+  width: 184px;
+  min-height: 348px;
+  padding: 17px 15px 13px;
+  overflow: hidden;
+  border: 1px solid rgba(123, 194, 255, .46);
+  border-radius: 27px;
+  color: #f5f8ff;
+  background: linear-gradient(155deg, rgba(7, 17, 39, .87), rgba(4, 7, 19, .94));
+  box-shadow: 0 0 34px rgba(0, 153, 255, .17), inset 0 0 25px rgba(54, 153, 255, .08);
+  backdrop-filter: blur(14px);
+  opacity: 0;
+  transform: translateY(-42%) translateX(18px) scale(.96);
+  pointer-events: none;
+  transition: opacity .55s ease, transform .65s cubic-bezier(.2,.7,.2,1);
+}
+.mobile-world-preview.is-visible { opacity: 1; transform: translateY(-42%) translateX(0) scale(1); pointer-events: auto; }
+.mobile-preview-topline { display: flex; align-items: center; gap: 7px; color: #c5d7f3; font-size: 8px; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
+.mobile-preview-topline > span:first-child { width: 7px; height: 7px; border-radius: 50%; background: #f4b83f; box-shadow: 0 0 12px #f4b83f; }
+.mobile-preview-menu { margin-inline-start: auto; color: #98afd2; font-size: 20px; line-height: 10px; }
+.mobile-preview-cosmos { height: 151px; position: relative; display: grid; place-items: center; margin: 11px -4px 8px; overflow: hidden; background: radial-gradient(ellipse at 50% 50%, rgba(255,172,49,.24), transparent 58%); }
+.mobile-preview-orbit { position: absolute; width: 140px; height: 51px; border: 1px solid rgba(255,190,75,.82); border-radius: 50%; box-shadow: 0 0 12px rgba(255,157,39,.32); }
+.mobile-preview-orbit.orbit-a { transform: rotate(-28deg); }
+.mobile-preview-orbit.orbit-b { width: 126px; height: 65px; transform: rotate(43deg); border-color: rgba(91,176,255,.7); }
+.mobile-preview-planet { position: relative; display: grid; place-items: center; width: 66px; height: 66px; border-radius: 50%; background: radial-gradient(circle at 30% 25%, #f9d890, #b45b14 35%, #130b16 76%); box-shadow: inset -12px -8px 18px #090914, 0 0 23px rgba(244,160,40,.52); }
+.mobile-preview-planet img { width: 34px; height: 34px; object-fit: contain; filter: drop-shadow(0 0 7px #ffd36b); }
+.mobile-world-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #42d4ff; box-shadow: 0 0 11px #42d4ff; }
+.mobile-world-dot.dot-a { top: 19px; left: 21px; }.mobile-world-dot.dot-b { bottom: 24px; right: 18px; background: #cc75ff; box-shadow: 0 0 11px #cc75ff; }.mobile-world-dot.dot-c { top: 25px; right: 24px; background: #ffb643; box-shadow: 0 0 11px #ffb643; }
+.mobile-world-preview > strong { display: block; font-size: 12px; line-height: 1.4; text-align: center; }
+.mobile-world-preview > p { margin: 5px 0 11px; color: #9db0d0; font-size: 9px; line-height: 1.5; text-align: center; }
+.mobile-preview-worlds { display: flex; justify-content: center; gap: 8px; margin: 10px 0 13px; }
+.mobile-preview-worlds i { width: 13px; height: 13px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #48cfff 28%, #15264b 75%); box-shadow: 0 0 8px rgba(72,207,255,.55); }
+.mobile-preview-worlds i:nth-child(2) { filter: hue-rotate(70deg); }.mobile-preview-worlds i:nth-child(3) { filter: hue-rotate(145deg); }.mobile-preview-worlds i:nth-child(4) { filter: hue-rotate(210deg); }.mobile-preview-worlds i:nth-child(5) { filter: hue-rotate(270deg); }.mobile-preview-worlds i:nth-child(6) { filter: hue-rotate(320deg); }
+.mobile-preview-link { display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; border: 1px solid rgba(255,188,63,.7); border-radius: 999px; color: #ffe3a2 !important; background: rgba(189,102,12,.18); font-size: 8px; font-weight: 800; letter-spacing: .08em; }
+.mobile-preview-caption { display: block; margin-top: 11px; color: #7185a8; font-size: 7px; letter-spacing: .2em; text-align: center; }
+
+.brand-legal-footer { position: relative; z-index: 2; padding: 36px clamp(20px, 5vw, 72px) 20px; border-top: 1px solid rgba(148,184,255,.2); background: rgba(2,5,15,.94); backdrop-filter: blur(18px); color: #eaf0ff; }
+.brand-legal-inner { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: minmax(210px,1fr) auto minmax(400px,1.4fr); align-items: center; gap: 30px; }
+.brand-footer-identity { display: flex; align-items: center; gap: 12px; }
+.brand-footer-identity img { width: 48px; height: 48px; object-fit: contain; filter: drop-shadow(0 0 13px rgba(255,184,62,.42)); }
+.brand-footer-identity strong, .brand-footer-identity span { display: block; }
+.brand-footer-identity strong { font-size: 13px; letter-spacing: .13em; }
+.brand-footer-identity span { margin-top: 5px; color: #8799ba; font-size: 8px; letter-spacing: .08em; }
+.brand-footer-founder { min-width: 150px; padding-inline: 23px; border-inline-start: 1px solid rgba(148,184,255,.2); border-inline-end: 1px solid rgba(148,184,255,.2); }
+.brand-footer-founder span, .brand-footer-founder strong { display: block; }
+.brand-footer-founder span { margin-bottom: 5px; color: #f2bf59; font-size: 8px; font-weight: 800; letter-spacing: .2em; }
+.brand-footer-founder strong { font-size: 15px; letter-spacing: .04em; }
+.brand-footer-links { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 11px 20px; }
+.brand-footer-links a { color: #b7c5df; font-size: 10px; transition: color .2s ease; }
+.brand-footer-links a:hover { color: #ffc252; }
+.brand-footer-legal { max-width: 1440px; margin: 23px auto 0; padding-top: 15px; border-top: 1px solid rgba(148,184,255,.12); display: grid; grid-template-columns: 1fr 1fr auto; align-items: start; gap: 12px 24px; color: #8190ac; font-size: 9px; }
+.brand-footer-legal details { max-width: 520px; }
+.brand-footer-legal summary { color: #b9c9e6; cursor: pointer; font-size: 10px; }
+.brand-footer-legal details p { margin: 8px 0 0; line-height: 1.8; }
+.brand-footer-legal > span { justify-self: end; align-self: center; white-space: nowrap; }
+.universe-landing + .brand-legal-footer { font-family: 'Space Grotesk', 'Vazirmatn', system-ui, sans-serif; }
+
+@media (max-width: 1180px) {
+  .mobile-world-preview { display: none; }
+  .brand-legal-inner { grid-template-columns: 1fr auto; }
+  .brand-footer-links { grid-column: 1 / -1; justify-content: flex-start; }
+}
+@media (max-width: 620px) {
+  .brand-legal-footer { padding: 29px 20px 17px; }
+  .brand-legal-inner { grid-template-columns: 1fr; gap: 20px; }
+  .brand-footer-founder { border-inline-start: 0; border-inline-end: 0; border-top: 1px solid rgba(148,184,255,.18); padding: 14px 0 0; }
+  .brand-footer-links { grid-column: auto; justify-content: flex-start; gap: 12px 18px; }
+  .brand-footer-legal { grid-template-columns: 1fr; }
+  .brand-footer-legal > span { justify-self: start; white-space: normal; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-world-preview { transition: none; }
+}

@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
+import LandingExperienceExtras from './components/LandingExperienceExtras';
 import Dashboard from './pages/Dashboard';
 import Studio from './pages/Studio';
 import WebsiteBuilder from './pages/WebsiteBuilder';
@@ -40,7 +41,7 @@ function AppRoutes() {
     <>
       {!isPublicSurface && <Navbar />}
       <Routes>
-        <Route path="/" element={<UniverseLanding />} />
+        <Route path="/" element={<><UniverseLanding /><LandingExperienceExtras /></>} />
         <Route path="/preorder" element={<PreOrder />} />
         <Route path="/login" element={<Auth />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
