@@ -45,11 +45,9 @@ or a playable Phaser runtime.
 ## Product boundary
 
 The commercial SINA AI STUDIO codebase must contain only original game concepts,
-mechanics, names, art direction, and implementation. The previously included
-crystal-collection sample gameplay and its related runtime, wording, tests, and
-UI have been removed from this branch. Do not reintroduce that sample or
-third-party/Arena-authored material into commercial builds without documented
-rights and explicit approval.
+mechanics, names, art direction, and implementation. Do not add third-party
+gameplay, assets, names, or documentation unless their commercial-use rights
+have been verified and approved.
 
 ## Current limits
 
