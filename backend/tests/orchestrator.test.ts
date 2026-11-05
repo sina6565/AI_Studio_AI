@@ -4,6 +4,7 @@
 
 import { Orchestrator } from '../src/orchestrator/Orchestrator';
 import { JobType, JobPriority, JobStatus } from '../src/types';
+import { Job } from '../src/database/models';
 
 // Mock external I/O boundaries so the suite runs without MongoDB or Redis.
 jest.mock('../src/database/models', () => ({
@@ -129,6 +130,50 @@ describe('Orchestrator', () => {
       });
 
       expect(response.status).toBe(JobStatus.QUEUED);
+    });
+  });
+
+  describe('manifest-based game builds', () => {
+    it('queues an existing game manifest without requiring an AI provider', async () => {
+      const localOrchestrator = new Orchestrator();
+      const createJob = Job.create as jest.Mock;
+      createJob.mockClear();
+      const manifest = {
+        version: '1.0',
+        title: 'Crystal Run',
+        description: 'Collect the crystals and escape.',
+        genre: 'adventure',
+        artStyle: 'pixel art',
+        scenes: [{
+          id: 'scene-1',
+          name: 'Ruins',
+          description: 'An ancient courtyard.',
+          imageUrl: 'https://cdn.test/ruins.png',
+        }],
+        assets: [{
+          sceneId: 'scene-1',
+          url: 'https://cdn.test/ruins.png',
+          format: 'png',
+          provider: 'previous-provider',
+        }],
+        assetCount: 1,
+        playable: false,
+        engine: { type: 'scene-viewer', runtime: 'html5' },
+        generatedAt: '2026-11-05T00:00:00.000Z',
+        notes: 'Existing scene manifest',
+      };
+
+      const response = await localOrchestrator.createJob({
+        userId: 'test-user-1',
+        jobType: JobType.GAME_BUILD,
+        input: manifest,
+      });
+
+      expect(response.status).toBe(JobStatus.QUEUED);
+      expect(createJob).toHaveBeenCalledWith(expect.objectContaining({
+        type: JobType.GAME_BUILD,
+        metadata: expect.objectContaining({ provider: 'manifest-game-builder' }),
+      }));
     });
   });
 
