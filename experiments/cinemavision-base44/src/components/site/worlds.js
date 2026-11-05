@@ -1,0 +1,88 @@
+const MEDIA = "https://media.base44.com/images/public/6aebd77c8e924856e7ed3337";
+
+export const KEY_ART = `${MEDIA}/8c77fddf9_generated_image.png`;
+export const POSTERS = {
+  game: `${MEDIA}/cf788104b_generated_image.png`,
+  web: `${MEDIA}/2ed48c3da_generated_image.png`,
+  video: `${MEDIA}/e94a75b4d_generated_image.png`,
+  audio: `${MEDIA}/52bd92dd7_generated_image.png`,
+  character: `${MEDIA}/9d7329747_generated_image.png`,
+  three: `${MEDIA}/428819acb_generated_image.png`,
+};
+
+export const TAGLINE = "FROM A SINGLE IDEA TO AN ENTIRE UNIVERSE";
+
+export const worlds = [
+  {
+    id: "world-game",
+    key: "game",
+    index: "۰۱",
+    en: "GAME",
+    title: "بازی",
+    tagline: "سیارهٔ دنیای تعاملی",
+    body: "یک جهان تعاملی از صفر ساخته می‌شود: محیط، مکانیک، سطح‌بندی و حلقهٔ بازی. همان ایده وارد این سیاره می‌شود و به تجربه‌ای قابل بازی بیرون می‌آید.",
+    tags: ["دنیای تعاملی", "محیط بازی", "مکانیک", "سطح‌بندی", "پروتوتایپ"],
+    poster: POSTERS.game,
+    accent: "#34f0bc",
+  },
+  {
+    id: "world-web",
+    key: "web",
+    index: "۰۲",
+    en: "WEB",
+    title: "وب",
+    tagline: "سیارهٔ محصول دیجیتال",
+    body: "وب‌سایت، لندینگ و محصول دیجیتال؛ از معماری اطلاعات تا صفحهٔ زنده. این سیاره خروجی را قابل دیدن و قابل استفاده می‌کند.",
+    tags: ["وب‌سایت", "لندینگ", "محصول دیجیتال", "فرم", "انتشار"],
+    poster: POSTERS.web,
+    accent: "#4fc4ff",
+  },
+  {
+    id: "world-video",
+    key: "video",
+    index: "۰۳",
+    en: "VIDEO",
+    title: "ویدئو",
+    tagline: "سیارهٔ فیلم و تصویر متحرک",
+    body: "از کی‌فریم تا سکانس: نور، حرکت دوربین، تدوین و ریتم. ویدئو در این سیاره نه کلیپ، که یک روایت کامل است.",
+    tags: ["کی‌فریم", "سکانس", "حرکت دوربین", "تدوین", "ریتم"],
+    poster: POSTERS.video,
+    accent: "#ffb56b",
+  },
+  {
+    id: "world-audio",
+    key: "audio",
+    index: "۰۴",
+    en: "AUDIO",
+    title: "صدا",
+    tagline: "سیارهٔ صدا و موسیقی",
+    body: "موسیقی، صداگذاری، گویندگی و میکس. این سیاره به تصویر جان می‌دهد و اتمسفر هر جهان را می‌سازد.",
+    tags: ["موسیقی", "صداگذاری", "گویندگی", "میکس", "اتمسفر"],
+    poster: POSTERS.audio,
+    accent: "#ff6cc4",
+  },
+  {
+    id: "world-character",
+    key: "character",
+    index: "۰۵",
+    en: "CHARACTER",
+    title: "کاراکتر",
+    tagline: "سیارهٔ شخصیت‌های هوشمند",
+    body: "شخصیت‌هایی با چهره، لحن، حافظه و انگیزه. کاراکترها در این سیاره ساخته می‌شوند تا در بقیهٔ جهان‌ها زندگی کنند.",
+    tags: ["شخصیت", "لحن", "حافظه", "انگیزه", "دیالوگ"],
+    poster: POSTERS.character,
+    accent: "#ffa38c",
+  },
+  {
+    id: "world-three",
+    key: "three",
+    index: "۰۶",
+    en: "3D",
+    title: "سه‌بعدی",
+    tagline: "سیارهٔ مدل‌سازی و جهان سه‌بعدی",
+    body: "مدل، متریال، نور و محیط؛ ساخت جهانی که می‌توان در آن راه رفت. آخرین سیارهٔ این منظومه، عمیق‌ترین بعد را می‌سازد.",
+    tags: ["مدل‌سازی", "متریال", "نورپردازی", "محیط", "ریگ"],
+    poster: POSTERS.three,
+    accent: "#8f9dff",
+  },
+];
