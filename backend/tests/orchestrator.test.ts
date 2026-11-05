@@ -134,6 +134,63 @@ describe('Orchestrator', () => {
   });
 
   describe('manifest-based game builds', () => {
+
+    it('executes a manifest-based game build when no AI provider is registered', async () => {
+      const localOrchestrator = new Orchestrator();
+      const save = jest.fn(async () => undefined);
+      const manifest = {
+        version: '1.0',
+        title: 'Crystal Run',
+        description: 'Collect the crystals and escape.',
+        genre: 'adventure',
+        artStyle: 'pixel art',
+        scenes: [{
+          id: 'scene-1',
+          name: 'Ruins',
+          description: 'An ancient courtyard.',
+          imageUrl: 'https://cdn.test/ruins.png',
+        }],
+        assets: [{
+          sceneId: 'scene-1',
+          url: 'https://cdn.test/ruins.png',
+          format: 'png',
+          provider: 'previous-provider',
+        }],
+        assetCount: 1,
+        playable: false,
+        engine: { type: 'scene-viewer', runtime: 'html5' },
+        generatedAt: '2026-11-05T00:00:00.000Z',
+        notes: 'Existing scene manifest',
+      };
+      const job = {
+        id: 'game-job-1',
+        _id: 'game-job-1',
+        userId: 'test-user-1',
+        type: JobType.GAME_BUILD,
+        status: JobStatus.QUEUED,
+        priority: JobPriority.NORMAL,
+        input: manifest,
+        metadata: {
+          requestedAt: new Date(),
+          retryCount: 0,
+          maxRetries: 3,
+          provider: 'manifest-game-builder',
+        },
+        createdAt: new Date(),
+        save,
+      };
+      const findById = Job.findById as jest.Mock;
+      findById.mockResolvedValue(job);
+
+      await localOrchestrator.executeJob('game-job-1');
+
+      expect(job.status).toBe(JobStatus.COMPLETED);
+      expect(job.save).toHaveBeenCalled();
+      expect((job as any).result.format).toBe('text/html');
+      expect((job as any).result.metadata.playableGame.schemaVersion).toBe(1);
+      expect((job as any).result.metadata.artifact.gameplayMechanics).toBe(false);
+    });
+
     it('queues an existing game manifest without requiring an AI provider', async () => {
       const localOrchestrator = new Orchestrator();
       const createJob = Job.create as jest.Mock;
