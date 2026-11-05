@@ -108,22 +108,6 @@ class APIClient {
     return response.data;
   }
 
-  /**
-   * Build a Phaser 2D game definition plus the compatible scene-viewer fallback.
-   * Accepts a game spec or an earlier manifest whose image assets are reused.
-   */
-  async buildGameJob(
-    input: object,
-    projectId?: string,
-  ): Promise<APIResponse<{ jobId: string; status: string; createdAt: string }>> {
-    const response = await this.client.post('/v1/jobs', {
-      type: 'game_build',
-      input,
-      ...(projectId ? { projectId } : {}),
-    });
-    return response.data;
-  }
-
   async createWebsiteJob(spec: {
     name: string;
     tagline: string;
