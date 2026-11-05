@@ -150,7 +150,6 @@ const SceneViewerPreviewDialog: React.FC<SceneViewerPreviewDialogProps> = ({
           {currentScene.description}
         </Typography>
         <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 2 }}>
-          {t('jobs.gameplayNote')}
         </Typography>
       </DialogContent>
 
