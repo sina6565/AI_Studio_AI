@@ -7,7 +7,7 @@ import jobQueueProcessor from '../jobs/JobQueueProcessor';
 import { dispatchJobWebhook } from '../webhooks/WebhookDispatcher';
 import logger from '../utils/logger';
 import { AppError, ValidationError } from '../types/errors';
-import { GameService } from '../game/GameService';
+import { GameService, isGameManifest } from '../game/GameService';
 import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
 import { createPlayableGameDefinition } from '../game/PlayableGameDefinition';
 import { buildWebsite } from '../website/WebsiteBuilderService';
@@ -72,7 +72,9 @@ export class Orchestrator {
 
     const providers = this.getAvailableProviders();
     const isLocalWebsiteBuild = request.jobType === JobType.WEBSITE_BUILD;
-    if (!providers.length && !isLocalWebsiteBuild) {
+    const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && isGameManifest(request.input);
+    const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
+    if (!providers.length && !isLocalBuild) {
       throw new AppError(
         'NO_PROVIDERS',
         'No AI providers are currently available',
@@ -85,6 +87,8 @@ export class Orchestrator {
     const routingCapability = gameJobCapability(request.jobType);
     const providerName = isLocalWebsiteBuild
       ? 'local-website-builder'
+      : isReusableGameBuild
+        ? 'manifest-game-builder'
       : (await this.router.route(routingCapability, providers, {
           jobType: request.jobType,
           capabilities: [routingCapability as any],
@@ -171,9 +175,11 @@ export class Orchestrator {
 
     try {
       const isLocalWebsiteBuild = job.type === JobType.WEBSITE_BUILD;
+      const isReusableGameBuild = job.type === JobType.GAME_BUILD && isGameManifest(job.input);
+      const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
       const providerName = String(job.metadata?.provider || '').toLowerCase();
       const provider = this.providers.get(providerName);
-      if (!provider && !isLocalWebsiteBuild) {
+      if (!provider && !isLocalBuild) {
         throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
       }
       // Update job status to processing
@@ -184,7 +190,7 @@ export class Orchestrator {
       logger.info(`[Orchestrator] Processing job: ${jobId}`);
 
       // Provider-backed jobs retain provider validation. Local website builds
-      // validate against their own strict schema inside buildWebsite().
+      // and manifest-only game builds validate through their own domain paths.
       if (provider) {
         const validation = await provider.validateInput(job.type, job.input);
         if (!validation.valid) {
