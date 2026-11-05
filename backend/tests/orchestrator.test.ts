@@ -112,6 +112,26 @@ describe('Orchestrator', () => {
     });
   });
 
+  describe('local website jobs', () => {
+    it('queues website builds without registering an AI provider', async () => {
+      const localOrchestrator = new Orchestrator();
+      const response = await localOrchestrator.createJob({
+        userId: 'test-user-1',
+        jobType: JobType.WEBSITE_BUILD,
+        input: {
+          name: 'SINA Studio',
+          tagline: 'Build a universe',
+          description: 'A creative studio.',
+          kind: 'business',
+          palette: 'midnight',
+          language: 'en',
+        },
+      });
+
+      expect(response.status).toBe(JobStatus.QUEUED);
+    });
+  });
+
   describe('registerProvider', () => {
     it('should register a provider', () => {
       const mockProvider = {
