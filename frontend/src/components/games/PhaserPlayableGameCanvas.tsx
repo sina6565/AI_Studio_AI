@@ -33,6 +33,7 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
           private wasdKeys!: Record<'left' | 'right' | 'up' | 'down', PhaserTypes.Input.Keyboard.Key>;
           private crystalViews: PhaserTypes.GameObjects.Arc[] = [];
           private lastSnapshotKey = '';
+          private touchKeys = { left: false, right: false, up: false, down: false };
 
           constructor() {
             super({ key: 'collection-game' });
@@ -104,6 +105,10 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
                 down: 'S',
               }) as Record<'left' | 'right' | 'up' | 'down', PhaserTypes.Input.Keyboard.Key>;
             }
+            const touchDevice = Boolean(
+              (this.sys.game.device.input as unknown as { touch?: boolean }).touch,
+            );
+            if (touchDevice) this.addTouchControls(width, height);
 
             this.add.text(8, 8, 'CRYSTALS', {
               fontFamily: 'monospace',
@@ -118,10 +123,10 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
           update(_time: number, delta: number) {
             const isDown = (key?: PhaserTypes.Input.Keyboard.Key) => Boolean(key?.isDown);
             const input = {
-              left: isDown(this.cursorKeys?.left) || isDown(this.wasdKeys?.left),
-              right: isDown(this.cursorKeys?.right) || isDown(this.wasdKeys?.right),
-              up: isDown(this.cursorKeys?.up) || isDown(this.wasdKeys?.up),
-              down: isDown(this.cursorKeys?.down) || isDown(this.wasdKeys?.down),
+              left: isDown(this.cursorKeys?.left) || isDown(this.wasdKeys?.left) || this.touchKeys.left,
+              right: isDown(this.cursorKeys?.right) || isDown(this.wasdKeys?.right) || this.touchKeys.right,
+              up: isDown(this.cursorKeys?.up) || isDown(this.wasdKeys?.up) || this.touchKeys.up,
+              down: isDown(this.cursorKeys?.down) || isDown(this.wasdKeys?.down) || this.touchKeys.down,
             };
             const snapshot = session.update(input, delta);
             this.player.setPosition(snapshot.x, snapshot.y);
@@ -131,6 +136,53 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
               if (session.isCrystalCollected(index)) crystal.setVisible(false);
             });
             this.publishSnapshot(snapshot);
+          }
+
+          private addTouchControls(width: number, height: number) {
+            const centerX = width - 78;
+            const centerY = height - 78;
+            const controls: Array<{
+              key: 'left' | 'right' | 'up' | 'down';
+              x: number;
+              y: number;
+              label: string;
+            }> = [
+              { key: 'up', x: centerX, y: centerY - 40, label: '▲' },
+              { key: 'left', x: centerX - 40, y: centerY, label: '◀' },
+              { key: 'right', x: centerX + 40, y: centerY, label: '▶' },
+              { key: 'down', x: centerX, y: centerY + 40, label: '▼' },
+            ];
+
+            controls.forEach((control) => {
+              const button = this.add.circle(control.x, control.y, 20, 0x0f172a, 0.82)
+                .setStrokeStyle(2, 0x67e8f9, 0.9)
+                .setDepth(8)
+                .setInteractive({ useHandCursor: true });
+              const label = this.add.text(control.x, control.y, control.label, {
+                fontFamily: 'sans-serif',
+                fontSize: '17px',
+                color: '#e0f2fe',
+                fontStyle: 'bold',
+              }).setOrigin(0.5).setDepth(9);
+
+              const release = () => {
+                this.touchKeys[control.key] = false;
+              };
+              button.on('pointerdown', () => {
+                this.touchKeys[control.key] = true;
+              });
+              button.on('pointerup', release);
+              button.on('pointerout', release);
+              button.on('pointerupoutside', release);
+              this.input.on('pointerup', release);
+              label.setInteractive({ useHandCursor: true });
+              label.on('pointerdown', () => {
+                this.touchKeys[control.key] = true;
+              });
+              label.on('pointerup', release);
+              label.on('pointerout', release);
+              label.on('pointerupoutside', release);
+            });
           }
 
           private publishSnapshot(snapshot = session.snapshot()) {
