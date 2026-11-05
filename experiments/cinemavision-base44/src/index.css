@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@200..800&family=Vazirmatn:wght@200..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 232 38% 4%;
+    --foreground: 220 22% 96%;
+    --card: 232 30% 6%;
+    --card-foreground: 220 22% 96%;
+    --popover: 232 30% 6%;
+    --popover-foreground: 220 22% 96%;
+    --primary: 186 100% 62%;
+    --primary-foreground: 232 45% 5%;
+    --secondary: 232 20% 12%;
+    --secondary-foreground: 220 22% 96%;
+    --muted: 232 18% 11%;
+    --muted-foreground: 220 12% 66%;
+    --accent: 264 82% 66%;
+    --accent-foreground: 232 45% 6%;
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 228 18% 17%;
+    --input: 228 18% 17%;
+    --ring: 186 100% 62%;
+    --aurora: 186 100% 62%;
+    --ember: 264 92% 71%;
+    --radius: 1rem;
+    --font-heading: 'Vazirmatn', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Vazirmatn', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Sora', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sidebar-background: 232 30% 6%;
+    --sidebar-foreground: 220 22% 96%;
+    --sidebar-primary: 186 100% 62%;
+    --sidebar-primary-foreground: 232 45% 5%;
+    --sidebar-accent: 232 20% 12%;
+    --sidebar-accent-foreground: 220 22% 96%;
+    --sidebar-border: 228 18% 17%;
+    --sidebar-ring: 186 100% 62%;
+  }
+
+  .dark {
+    --background: 232 38% 4%;
+    --foreground: 220 22% 96%;
+    --card: 232 30% 6%;
+    --card-foreground: 220 22% 96%;
+    --popover: 232 30% 6%;
+    --popover-foreground: 220 22% 96%;
+    --primary: 186 100% 62%;
+    --primary-foreground: 232 45% 5%;
+    --secondary: 232 20% 12%;
+    --secondary-foreground: 220 22% 96%;
+    --muted: 232 18% 11%;
+    --muted-foreground: 220 12% 66%;
+    --accent: 264 82% 66%;
+    --accent-foreground: 232 45% 6%;
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 228 18% 17%;
+    --input: 228 18% 17%;
+    --ring: 186 100% 62%;
+    --aurora: 186 100% 62%;
+    --ember: 264 92% 71%;
+    --sidebar-background: 232 30% 6%;
+    --sidebar-foreground: 220 22% 96%;
+    --sidebar-primary: 186 100% 62%;
+    --sidebar-primary-foreground: 232 45% 5%;
+    --sidebar-accent: 232 20% 12%;
+    --sidebar-accent-foreground: 220 22% 96%;
+    --sidebar-border: 228 18% 17%;
+    --sidebar-ring: 186 100% 62%;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  ::selection {
+    background: rgba(53, 224, 255, 0.24);
+    color: hsl(var(--foreground));
+  }
+
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 900ms cubic-bezier(0.22, 0.7, 0.2, 1), transform 900ms cubic-bezier(0.22, 0.7, 0.2, 1);
+    will-change: opacity, transform;
+  }
+
+  [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.28); }
+  50% { transform: scaleY(1); }
+}
+
+@keyframes sheen {
+  0% { transform: translateX(-120%); }
+  60%, 100% { transform: translateX(120%); }
+}
+
+@keyframes fill-bar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes cube-spin {
+  from { transform: rotateX(-18deg) rotateY(0deg); }
+  to { transform: rotateX(-18deg) rotateY(360deg); }
+}
+
+@keyframes scan {
+  from { transform: translateY(-120%); }
+  to { transform: translateY(320%); }
+}
+
+@layer utilities {
+  .anim-float { animation: floaty 8s ease-in-out infinite; }
+  .anim-spin-slow { animation: spin-slow 30s linear infinite; }
+  .anim-glow { animation: glow 5.5s ease-in-out infinite; }
+  .anim-wave { animation: wave 1.8s ease-in-out infinite; transform-origin: center; }
+  .anim-sheen { animation: sheen 4.8s ease-in-out infinite; }
+  .anim-fill { animation: fill-bar 4600ms linear forwards; }
+  .anim-cube { animation: cube-spin 18s linear infinite; }
+  .anim-scan { animation: scan 6s linear infinite; }
+}
