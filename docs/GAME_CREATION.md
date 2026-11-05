@@ -60,8 +60,11 @@ The existing project `jobs` list and job metadata retain the association. The
   HTML scene viewer. That HTML remains a viewer, not a playable build.
 
 A `game_build` request may also use an earlier generated manifest as `input`; it
-reuses manifest image URLs rather than generating them again. Job creation still
-uses the existing provider-routing requirements.
+reuses manifest image URLs rather than generating them again. This manifest-only
+build path does not need an AI image provider, so a completed scene manifest can
+be converted into the playable Phaser MVP even when Agnes or another image
+provider is unavailable. Submitting a raw game spec still uses provider routing
+to generate the scene images.
 
 ## Deliberate limits
 
