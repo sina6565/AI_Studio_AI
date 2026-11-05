@@ -188,7 +188,7 @@ describe('Orchestrator', () => {
       expect(job.save).toHaveBeenCalled();
       expect((job as any).result.format).toBe('text/html');
       expect((job as any).result.metadata).not.toHaveProperty('playableGame');
-      expect((job as any).result.metadata.artifact.gameplayMechanics).toBe(false);
+      expect((job as any).result.metadata.artifact.runtime).toBe('html5');
     });
 
     it('queues an existing game manifest without requiring an AI provider', async () => {
@@ -197,8 +197,8 @@ describe('Orchestrator', () => {
       createJob.mockClear();
       const manifest = {
         version: '1.0',
-        title: 'Crystal Run',
-        description: 'Collect the crystals and escape.',
+        title: 'Scene Project',
+        description: 'Explore a collection of illustrated scenes.',
         genre: 'adventure',
         artStyle: 'pixel art',
         scenes: [{
