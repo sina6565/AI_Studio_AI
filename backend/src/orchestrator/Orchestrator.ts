@@ -7,9 +7,9 @@ import jobQueueProcessor from '../jobs/JobQueueProcessor';
 import { dispatchJobWebhook } from '../webhooks/WebhookDispatcher';
 import logger from '../utils/logger';
 import { AppError, ValidationError } from '../types/errors';
-import { GameService } from '../game/GameService';
+import { GameService, isGameManifest } from '../game/GameService';
 import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
-import { createPlayableGameDefinition } from '../game/PlayableGameDefinition';
+import { buildWebsite } from '../website/WebsiteBuilderService';
 
 export interface OrchestratorRequest {
   userId: string;
@@ -70,7 +70,10 @@ export class Orchestrator {
     }
 
     const providers = this.getAvailableProviders();
-    if (!providers.length) {
+    const isLocalWebsiteBuild = request.jobType === JobType.WEBSITE_BUILD;
+    const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && isGameManifest(request.input);
+    const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
+    if (!providers.length && !isLocalBuild) {
       throw new AppError(
         'NO_PROVIDERS',
         'No AI providers are currently available',
@@ -78,14 +81,18 @@ export class Orchestrator {
       );
     }
 
-    // Game jobs are composite: route on the capability the pipeline needs
-    // rather than asking a single provider to "create a game".
+    // Website builds use the deterministic local template engine. They do not
+    // consume provider credits or require a configured AI provider.
     const routingCapability = gameJobCapability(request.jobType);
-    const decision = await this.router.route(routingCapability, providers, {
-      jobType: request.jobType,
-      capabilities: [routingCapability as any],
-      userPreferences: request.userPreferences,
-    });
+    const providerName = isLocalWebsiteBuild
+      ? 'local-website-builder'
+      : isReusableGameBuild
+        ? 'manifest-game-builder'
+      : (await this.router.route(routingCapability, providers, {
+          jobType: request.jobType,
+          capabilities: [routingCapability as any],
+          userPreferences: request.userPreferences,
+        })).providerName;
 
     const job = await JobModel.create({
       _id: uuidv4(),
@@ -98,14 +105,14 @@ export class Orchestrator {
         requestedAt: new Date(),
         retryCount: 0,
         maxRetries: 3,
-        provider: decision.providerName,
+        provider: providerName,
         projectId: request.projectId,
       },
       webhookUrl: request.webhookUrl,
     });
 
     logger.info(
-      `[Orchestrator] Job created: ${job.id} (type: ${request.jobType}, provider: ${decision.providerName})`,
+      `[Orchestrator] Job created: ${job.id} (type: ${request.jobType}, provider: ${providerName})`,
     );
 
     // Enqueue job to Bull queue for async processing
@@ -166,9 +173,12 @@ export class Orchestrator {
     }
 
     try {
+      const isLocalWebsiteBuild = job.type === JobType.WEBSITE_BUILD;
+      const isReusableGameBuild = job.type === JobType.GAME_BUILD && isGameManifest(job.input);
+      const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
       const providerName = String(job.metadata?.provider || '').toLowerCase();
       const provider = this.providers.get(providerName);
-      if (!provider) {
+      if (!provider && !isLocalBuild) {
         throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
       }
       // Update job status to processing
@@ -178,13 +188,16 @@ export class Orchestrator {
       await job.save();
       logger.info(`[Orchestrator] Processing job: ${jobId}`);
 
-      // Validate input with provider
-      const validation = await provider.validateInput(job.type, job.input);
-      if (!validation.valid) {
-        throw new ValidationError(
-          `Invalid input for ${job.type}`,
-          { errors: validation.errors },
-        );
+      // Provider-backed jobs retain provider validation. Local website builds
+      // and manifest-only game builds validate through their own domain paths.
+      if (provider) {
+        const validation = await provider.validateInput(job.type, job.input);
+        if (!validation.valid) {
+          throw new ValidationError(
+            `Invalid input for ${job.type}`,
+            { errors: validation.errors },
+          );
+        }
       }
 
       job.progress = { percentage: 20, stage: 'validated' };
@@ -192,7 +205,11 @@ export class Orchestrator {
 
       // Execute task based on job type
       let output: any;
-      if (isGameJobType(job.type)) {
+      if (isLocalWebsiteBuild) {
+        job.progress = { percentage: 35, stage: 'building_website' };
+        await job.save();
+        output = buildWebsite(job.input);
+      } else if (isGameJobType(job.type)) {
         job.progress = { percentage: 10, stage: 'validating_game_spec' };
         await job.save();
 
@@ -209,8 +226,8 @@ export class Orchestrator {
         };
 
         if (job.type === JobType.GAME_BUILD) {
-          // Build the playable Phaser definition plus scene-viewer fallback
-          // from a spec or a manifest produced by an earlier game_creation job.
+          // Build only the neutral, non-interactive scene viewer from a spec
+          // or a manifest produced by an earlier game_creation job.
           const build = await this.gameService.buildGame(
             job.input as unknown as GameSpec,
             this.getAvailableProviders(),
@@ -224,15 +241,12 @@ export class Orchestrator {
             size: build.size,
             metadata: {
               manifest: build.manifest,
-              playableGame: build.playableGame,
               artifact: {
                 filename: build.filename,
                 format: 'text/html',
                 runtime: 'html5',
                 navigation: 'click-through',
                 sceneCount: build.manifest.scenes.length,
-                // A scene viewer over a game definition: no gameplay mechanics.
-                gameplayMechanics: false,
               },
             },
           };
@@ -242,17 +256,16 @@ export class Orchestrator {
             this.getAvailableProviders(),
             report,
           );
-          const playableGame = createPlayableGameDefinition(manifest);
-
           output = {
             id: jobId,
             url: manifest.assets[0]?.url || '',
             format: 'application/json',
             size: 0,
-            metadata: { manifest, playableGame },
+            metadata: { manifest },
           };
         }
       } else {
+        if (!provider) throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
         switch (job.type) {
         case JobType.IMAGE_GENERATION:
           job.progress = { percentage: 30, stage: 'generating_image' };

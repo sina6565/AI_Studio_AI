@@ -48,7 +48,6 @@ const Studio: React.FC = () => {
   const [genre, setGenre] = useState('');
   const [artStyle, setArtStyle] = useState('');
   const [scenes, setScenes] = useState<SceneDraft[]>([{ name: '', description: '' }]);
-  const [gameMode, setGameMode] = useState<'create' | 'build'>('create');
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [queuedJobId, setQueuedJobId] = useState<string | null>(null);
@@ -139,14 +138,13 @@ const Studio: React.FC = () => {
             description: scene.description.trim(),
           })),
         },
-        gameMode,
         selectedProjectId || undefined,
       );
 
       if (res?.success && res.data) {
         setQueuedJobId(res.data.jobId);
         setSuccess(
-          t(gameMode === 'build' ? 'creation.gameBuildQueued' : 'creation.gameQueued'),
+          t('creation.gameQueued'),
         );
       } else {
         setError(t('creation.gameQueuedFailed'));
@@ -311,22 +309,8 @@ const Studio: React.FC = () => {
 
             {isGame ? (
               <Stack spacing={2}>
-                <ToggleButtonGroup
-                  value={gameMode}
-                  exclusive
-                  onChange={(_e, value) => value && setGameMode(value)}
-                  size="small"
-                  disabled={loading}
-                >
-                  <ToggleButton value="create">{t('creation.gameModeCreate')}</ToggleButton>
-                  <ToggleButton value="build">{t('creation.gameModeBuild')}</ToggleButton>
-                </ToggleButtonGroup>
                 <Typography variant="caption" color="text.secondary">
-                  {t(
-                    gameMode === 'build'
-                      ? 'creation.gameModeBuildHint'
-                      : 'creation.gameModeCreateHint',
-                  )}
+                  {t('creation.gameModeCreateHint')}
                 </Typography>
                 <TextField
                   label={t('creation.gameTitle')}

@@ -54,6 +54,7 @@ export const schemas = {
       'asset_3d_generation',
       'game_creation',
       'game_build',
+      'website_build',
       'animation_generation',
     ]),
     input: z.record(z.any()),
@@ -80,6 +81,17 @@ export const schemas = {
       .min(1)
       .max(12),
   }),
+
+  // Local static website builder schema
+  websiteSpec: z.object({
+    name: z.string().trim().min(1).max(70),
+    tagline: z.string().trim().min(1).max(160),
+    description: z.string().trim().min(1).max(2000),
+    kind: z.enum(['portfolio', 'business', 'product']),
+    palette: z.enum(['midnight', 'light', 'ocean']),
+    language: z.enum(['en', 'fa']),
+    contactEmail: z.string().trim().email().max(254).optional().or(z.literal('')),
+  }).strict(),
 
   // User registration schema
   userRegister: z.object({
