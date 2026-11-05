@@ -138,7 +138,6 @@ const Studio: React.FC = () => {
             description: scene.description.trim(),
           })),
         },
-        'create',
         selectedProjectId || undefined,
       );
 
