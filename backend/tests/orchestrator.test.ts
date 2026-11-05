@@ -140,8 +140,8 @@ describe('Orchestrator', () => {
       const save = jest.fn(async () => undefined);
       const manifest = {
         version: '1.0',
-        title: 'Crystal Run',
-        description: 'Collect the crystals and escape.',
+        title: 'Scene Project',
+        description: 'Explore a collection of illustrated scenes.',
         genre: 'adventure',
         artStyle: 'pixel art',
         scenes: [{
@@ -187,7 +187,7 @@ describe('Orchestrator', () => {
       expect(job.status).toBe(JobStatus.COMPLETED);
       expect(job.save).toHaveBeenCalled();
       expect((job as any).result.format).toBe('text/html');
-      expect((job as any).result.metadata.playableGame.schemaVersion).toBe(1);
+      expect((job as any).result.metadata).not.toHaveProperty('playableGame');
       expect((job as any).result.metadata.artifact.gameplayMechanics).toBe(false);
     });
 
