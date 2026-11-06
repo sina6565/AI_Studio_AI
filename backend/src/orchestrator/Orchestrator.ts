@@ -10,6 +10,7 @@ import { AppError, ValidationError } from '../types/errors';
 import { GameService, isGameManifest } from '../game/GameService';
 import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
 import { buildWebsite } from '../website/WebsiteBuilderService';
+import { UnrealEngine5Adapter } from '../game3d/UnrealEngine5Adapter';
 
 export interface OrchestratorRequest {
   userId: string;
@@ -31,6 +32,7 @@ export class Orchestrator {
   private router = new Router();
   private providers = new Map<string, IProvider>();
   private gameService = new GameService(this.router);
+  private ue5Adapter = new UnrealEngine5Adapter();
 
   /**
    * Register an AI provider with the orchestrator
@@ -70,10 +72,18 @@ export class Orchestrator {
     }
 
     const providers = this.getAvailableProviders();
+    const isUE5Build = request.jobType === JobType.GAME_3D_BUILD;
     const isLocalWebsiteBuild = request.jobType === JobType.WEBSITE_BUILD;
     const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && isGameManifest(request.input);
     const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
-    if (!providers.length && !isLocalBuild) {
+    if (isUE5Build && !this.ue5Adapter.isConfigured()) {
+      throw new AppError(
+        'UE5_WORKER_NOT_CONFIGURED',
+        'The self-hosted Unreal Engine 5 worker must be configured before creating a 3D build job.',
+        503,
+      );
+    }
+    if (!providers.length && !isLocalBuild && !isUE5Build) {
       throw new AppError(
         'NO_PROVIDERS',
         'No AI providers are currently available',
@@ -84,15 +94,17 @@ export class Orchestrator {
     // Website builds use the deterministic local template engine. They do not
     // consume provider credits or require a configured AI provider.
     const routingCapability = gameJobCapability(request.jobType);
-    const providerName = isLocalWebsiteBuild
-      ? 'local-website-builder'
-      : isReusableGameBuild
-        ? 'manifest-game-builder'
-      : (await this.router.route(routingCapability, providers, {
-          jobType: request.jobType,
-          capabilities: [routingCapability as any],
-          userPreferences: request.userPreferences,
-        })).providerName;
+    const providerName = isUE5Build
+      ? 'unreal-engine-5-worker'
+      : isLocalWebsiteBuild
+        ? 'local-website-builder'
+        : isReusableGameBuild
+          ? 'manifest-game-builder'
+          : (await this.router.route(routingCapability, providers, {
+              jobType: request.jobType,
+              capabilities: [routingCapability as any],
+              userPreferences: request.userPreferences,
+            })).providerName;
 
     const job = await JobModel.create({
       _id: uuidv4(),
@@ -173,12 +185,13 @@ export class Orchestrator {
     }
 
     try {
+      const isUE5Build = job.type === JobType.GAME_3D_BUILD;
       const isLocalWebsiteBuild = job.type === JobType.WEBSITE_BUILD;
       const isReusableGameBuild = job.type === JobType.GAME_BUILD && isGameManifest(job.input);
       const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
       const providerName = String(job.metadata?.provider || '').toLowerCase();
       const provider = this.providers.get(providerName);
-      if (!provider && !isLocalBuild) {
+      if (!provider && !isLocalBuild && !isUE5Build) {
         throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
       }
       // Update job status to processing
@@ -190,7 +203,7 @@ export class Orchestrator {
 
       // Provider-backed jobs retain provider validation. Local website builds
       // and manifest-only game builds validate through their own domain paths.
-      if (provider) {
+      if (provider && !isUE5Build) {
         const validation = await provider.validateInput(job.type, job.input);
         if (!validation.valid) {
           throw new ValidationError(
@@ -209,6 +222,23 @@ export class Orchestrator {
         job.progress = { percentage: 35, stage: 'building_website' };
         await job.save();
         output = buildWebsite(job.input);
+      } else if (isUE5Build) {
+        job.progress = { percentage: 30, stage: 'building_unreal_engine_5_project' };
+        await job.save();
+        const build = await this.ue5Adapter.build(job.input as any);
+        output = {
+          id: build.buildId,
+          url: build.artifactUrl || '',
+          format: build.format || 'application/zip',
+          size: build.size || 0,
+          metadata: {
+            engine: 'unreal_engine_5',
+            engineMajorVersion: 5,
+            buildId: build.buildId,
+            workerStatus: build.status,
+            ...(build.metadata || {}),
+          },
+        };
       } else if (isGameJobType(job.type)) {
         job.progress = { percentage: 10, stage: 'validating_game_spec' };
         await job.save();
