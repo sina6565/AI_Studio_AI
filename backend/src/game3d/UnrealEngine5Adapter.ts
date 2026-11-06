@@ -202,10 +202,14 @@ export class UnrealEngine5Adapter {
       );
     }
 
+    if (typeof latest.artifactUrl !== 'string' || !latest.artifactUrl) {
+      throw new AppError('UE5_WORKER_INVALID_RESPONSE', 'Completed UE5 build is missing its project artifact URL.', 502);
+    }
+
     return {
       buildId,
       status: 'completed',
-      artifactUrl: typeof latest.artifactUrl === 'string' ? latest.artifactUrl : undefined,
+      artifactUrl: latest.artifactUrl,
       format: typeof latest.format === 'string' ? latest.format : undefined,
       size: typeof latest.size === 'number' ? latest.size : undefined,
       metadata: latest.metadata && typeof latest.metadata === 'object'
