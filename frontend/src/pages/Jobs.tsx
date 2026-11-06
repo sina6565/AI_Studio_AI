@@ -102,7 +102,7 @@ const Jobs: React.FC = () => {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{job.type === 'website_build' ? t('jobs.websiteBuild') : job.type}</TableCell>
+                  <TableCell>{job.type === 'website_build' ? t('jobs.websiteBuild') : job.type === 'game_3d_preview' ? t('jobs.ue5Preview') : job.type === 'game_3d_build' ? t('jobs.ue5Build') : job.type}</TableCell>
                   <TableCell>
                     {job.progress && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -126,9 +126,9 @@ const Jobs: React.FC = () => {
                       <Button
                         size="small"
                         href={job.result.contentUrl}
-                        target={job.type === 'website_build' ? undefined : '_blank'}
-                        download={job.type === 'website_build' && typeof job.result.metadata?.filename === 'string'
-                          ? job.result.metadata.filename
+                        target={['website_build', 'game_3d_build'].includes(job.type) ? undefined : '_blank'}
+                        download={['website_build', 'game_3d_build'].includes(job.type)
+                          ? (typeof job.result.metadata?.filename === 'string' ? job.result.metadata.filename : job.type === 'game_3d_build' ? 'sina-unreal-project.zip' : 'website.html')
                           : undefined}
                       >
                         {t('job.download')}
@@ -136,7 +136,7 @@ const Jobs: React.FC = () => {
                     )}
                   </TableCell>
                 </TableRow>
-                {(job.error?.message || manifest || job.type === 'website_build' && job.status === 'completed') && (
+                {(job.error?.message || manifest || job.type === 'website_build' && job.status === 'completed' || ['game_3d_preview', 'game_3d_build'].includes(job.type) && job.status === 'completed') && (
                   <TableRow>
                     <TableCell colSpan={5} sx={{ bgcolor: '#fafafa' }}>
                       {job.error?.message && (
@@ -147,6 +147,16 @@ const Jobs: React.FC = () => {
                       {job.type === 'website_build' && job.status === 'completed' && (
                         <Alert severity="success" sx={{ mb: 1 }}>
                           {t('jobs.websiteReady')}: {String(job.result?.metadata?.filename || 'website.html')}
+                        </Alert>
+                      )}
+                      {job.type === 'game_3d_preview' && job.status === 'completed' && (
+                        <Alert severity="success" sx={{ mb: 1 }}>
+                          {t('jobs.ue5PreviewReady')} — {String(job.result?.format || 'image/png')}
+                        </Alert>
+                      )}
+                      {job.type === 'game_3d_build' && job.status === 'completed' && (
+                        <Alert severity="success" sx={{ mb: 1 }}>
+                          {t('jobs.ue5BuildReady')} — {String(job.result?.metadata?.engine || 'Unreal Engine 5')}
                         </Alert>
                       )}
                       {manifest && (
