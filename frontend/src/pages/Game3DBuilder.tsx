@@ -183,7 +183,7 @@ const Game3DBuilder: React.FC = () => {
       setPreviewUrl(url);
       const metadata = (completed.result?.metadata || completed.output?.metadata || {}) as Record<string, any>;
       const views = Array.isArray(metadata.reviewViews)
-        ? metadata.reviewViews.filter((item: unknown): item is string => typeof item === 'string' && item.startsWith('https://'))
+        ? metadata.reviewViews.filter((item: unknown): item is string => typeof item === 'string' && (item.startsWith('https://') || item.startsWith('http://localhost:') || item.startsWith('http://127.0.0.1:')))
         : [];
       setReviewViews(views);
       setAuditReport(metadata.audit && typeof metadata.audit === 'object' ? metadata.audit : null);
