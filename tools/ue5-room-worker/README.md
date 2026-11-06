@@ -7,7 +7,7 @@ The backend adapter is `backend/src/game3d/UnrealEngine5Adapter.ts`. The worker 
 ## Two-stage workflow
 
 1. **Function approval → Blender preview.** The UI submits `game_3d_preview`. The worker validates the room manifest, creates sealed procedural surfaces, applies Boolean door/window cuts, places approved props, renders review images, exports GLB and saves the .blend source. The main render is returned for owner review.
-2. **Form approval → UE5 project.** After the owner reviews the Blender render and approves Form, the UI submits `game_3d_build`. The worker regenerates the room, imports the combined GLB into an owner-supplied UE5 Third Person project template, creates a generated level with a PlayerStart and NavMeshBoundsVolume, and returns a source-project ZIP.
+2. **Form approval → UE5 project.** After the owner reviews the Blender render and approves Form, the UI submits `game_3d_build`. The worker regenerates the room, imports the combined GLB into an owner-supplied UE5 Third Person project template, creates a generated startup level with per-polygon static collision, a PlayerStart and NavMeshBoundsVolume, and returns a source-project ZIP only when the UE5 import-report checks are present.
 
 Runtime/package approval remains separate. The current worker does **not** produce a packaged executable, prove device compatibility, or implement arbitrary game objectives/interactions from natural language. The result is a UE5 source project containing a generated room/environment, ready for opening and runtime review in Unreal Editor.
 
