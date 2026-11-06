@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -98,15 +97,15 @@ const SceneViewerPreviewDialog: React.FC<SceneViewerPreviewDialogProps> = ({
       aria-describedby="scene-viewer-preview-description"
     >
       <DialogTitle component="div" sx={{ pr: 6, position: 'relative' }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
-          <Box>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+          <div>
             <Typography id="scene-viewer-preview-title" variant="h6" component="h2">
               {manifest.title}
             </Typography>
             <Typography id="scene-viewer-preview-description" variant="body2" color="text.secondary">
               {manifest.description}
             </Typography>
-          </Box>
+          </div>
           <IconButton
             aria-label={t('common.close')}
             onClick={onClose}
@@ -115,33 +114,32 @@ const SceneViewerPreviewDialog: React.FC<SceneViewerPreviewDialogProps> = ({
           >
             <CloseIcon />
           </IconButton>
-        </Box>
+        </div>
       </DialogTitle>
 
       <DialogContent dividers>
-        <Box
-          sx={{
-            minHeight: { xs: 220, sm: 360 },
+        <div
+          style={{
+            minHeight: 220,
             maxHeight: '60vh',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             overflow: 'hidden',
-            bgcolor: 'background.default',
-            borderRadius: 1,
+            backgroundColor: '#07101e',
+            borderRadius: 8,
           }}
         >
           {imageUrl ? (
-            <Box
-              component="img"
+            <img
               src={imageUrl}
               alt={currentScene.name}
-              sx={{ display: 'block', maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }}
+              style={{ display: 'block', maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }}
             />
           ) : (
             <Typography color="text.secondary">{currentScene.name}</Typography>
           )}
-        </Box>
+        </div>
 
         <Typography variant="h6" sx={{ mt: 2 }}>
           {currentScene.name}
