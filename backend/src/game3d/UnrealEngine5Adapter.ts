@@ -83,6 +83,7 @@ export class UnrealEngine5Adapter {
     if (typeof payload.buildId !== 'string' || !payload.buildId) {
       throw new AppError('UE5_WORKER_INVALID_RESPONSE', 'UE5 worker response is missing buildId.', 502);
     }
+    const buildId = payload.buildId;
     let latest = payload;
     let status = latest.status;
     const startedAt = Date.now();
@@ -92,7 +93,7 @@ export class UnrealEngine5Adapter {
       }
       await new Promise(resolve => setTimeout(resolve, 2000));
       const statusResponse = await fetch(
-        this.baseUrl + '/api/v1/ue5/builds/' + encodeURIComponent(payload.buildId),
+        this.baseUrl + '/api/v1/ue5/builds/' + encodeURIComponent(buildId),
         {
           headers: this.token ? { authorization: 'Bearer ' + this.token } : {},
           signal: AbortSignal.timeout(30_000),
@@ -116,7 +117,7 @@ export class UnrealEngine5Adapter {
     }
 
     return {
-      buildId: payload.buildId,
+      buildId,
       status: 'completed',
       artifactUrl: typeof latest.artifactUrl === 'string' ? latest.artifactUrl : undefined,
       format: typeof latest.format === 'string' ? latest.format : undefined,
