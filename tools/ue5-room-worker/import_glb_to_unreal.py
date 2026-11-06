@@ -26,6 +26,25 @@ def safe_slug(value: str) -> str:
     return slug[:60] or "GeneratedRoom"
 
 
+def set_ini_value(path: Path, section: str, key: str, value: str) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    section_header = "[" + section + "]"
+    start = next((i for i, line in enumerate(lines) if line.strip() == section_header), None)
+    if start is None:
+        if lines and lines[-1].strip():
+            lines.append("")
+        lines.extend([section_header, key + "=" + value])
+    else:
+        end = next((i for i in range(start + 1, len(lines)) if lines[i].lstrip().startswith("[")), len(lines))
+        found = next((i for i in range(start + 1, end) if lines[i].split("=", 1)[0].strip() == key), None)
+        if found is None:
+            lines.insert(end, key + "=" + value)
+        else:
+            lines[found] = key + "=" + value
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\\n".join(lines) + "\\n", encoding="utf-8")
+
+
 glb_path = Path(require_env("SINA_ROOM_GLB")).resolve()
 manifest_path = Path(require_env("SINA_ROOM_MANIFEST")).resolve()
 build_dir = Path(require_env("SINA_ROOM_BUILD_DIR")).resolve()
@@ -69,6 +88,19 @@ if not static_meshes:
 
 # The Blender pipeline exports one transform-applied combined room mesh.
 room_mesh_path, room_mesh = static_meshes[0]
+# The combined room is stationary environment geometry. Use per-polygon collision
+# so the player can walk on the floor and be blocked by walls without one giant
+# simple box enclosing the room interior.
+body_setup = room_mesh.get_editor_property("body_setup")
+if not body_setup:
+    raise RuntimeError("UE5 imported the room mesh without a BodySetup for collision.")
+body_setup.set_editor_property(
+    "collision_trace_flag",
+    unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE,
+)
+room_mesh.post_edit_change()
+unreal.EditorAssetLibrary.save_loaded_asset(room_mesh)
+
 room_actor = unreal.EditorLevelLibrary.spawn_actor_from_object(room_mesh, unreal.Vector(0, 0, 0))
 if not room_actor:
     raise RuntimeError("UE5 could not spawn the imported room mesh.")
@@ -77,6 +109,8 @@ room_actor.set_folder_path("SINA/Generated")
 root_component = room_actor.get_root_component()
 if root_component:
     root_component.set_mobility(unreal.ComponentMobility.STATIC)
+    root_component.set_collision_profile_name("BlockAll")
+    root_component.set_collision_enabled(unreal.CollisionEnabled.QUERY_AND_PHYSICS)
 
 # Keep player start and nav bounds derived from the same metre-based manifest.
 spawn = room.get("playerSpawn", [0, 0, 0])
@@ -104,7 +138,14 @@ unreal.EditorAssetLibrary.save_loaded_asset(room_mesh)
 unreal.EditorLevelLibrary.save_current_level()
 unreal.EditorLoadingAndSavingUtils.save_dirty_packages(True, True)
 
+# Launch the generated room by default when this project is opened or played.
+maps_settings = project_file = Path(unreal.Paths.project_dir()) / "Config" / "DefaultGame.ini"
+section = "/Script/EngineSettings.GameMapsSettings"
+set_ini_value(maps_settings, section, "EditorStartupMap", level_path)
+set_ini_value(maps_settings, section, "GameDefaultMap", level_path)
+
 print("SINA_UE5_LEVEL=" + level_path)
 print("SINA_UE5_ROOM_MESH=" + room_mesh_path)
 print("SINA_UE5_PLAYER_START=" + str(bool(player_start)))
 print("SINA_UE5_NAV_BOUNDS=" + str(bool(nav)))
+print("SINA_UE5_COMPLEX_COLLISION=enabled")
