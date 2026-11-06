@@ -98,7 +98,6 @@ body_setup.set_editor_property(
     "collision_trace_flag",
     unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE,
 )
-room_mesh.post_edit_change()
 unreal.EditorAssetLibrary.save_loaded_asset(room_mesh)
 
 room_actor = unreal.EditorLevelLibrary.spawn_actor_from_object(room_mesh, unreal.Vector(0, 0, 0))
