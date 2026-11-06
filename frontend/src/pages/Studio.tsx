@@ -405,17 +405,17 @@ const Studio: React.FC = () => {
                           >
                             {t('creation.removeScene')}
                           </Button>
-                        </Box>
+                        </div>
                       )}
                     </Stack>
                   </Paper>
                 ))}
 
-                <Box>
+                <div>
                   <Button onClick={addScene} disabled={loading || scenes.length >= MAX_SCENES}>
                     {t('creation.addScene')}
                   </Button>
-                </Box>
+                </div>
               </Stack>
             ) : (
               <TextField
