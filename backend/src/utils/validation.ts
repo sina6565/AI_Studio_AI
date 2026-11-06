@@ -54,6 +54,7 @@ export const schemas = {
       'asset_3d_generation',
       'game_creation',
       'game_build',
+      'game_3d_preview',
       'game_3d_build',
       'website_build',
       'animation_generation',
