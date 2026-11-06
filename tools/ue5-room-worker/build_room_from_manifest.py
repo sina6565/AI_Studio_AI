@@ -250,9 +250,24 @@ def render_review_views(manifest, main_camera, render_path, review_dir):
     ]
     for name, location, target in views:
         main_camera.location = location
+        main_camera.data.type = "PERSP"
         point_at(main_camera, target)
         scene.render.filepath = str((review_dir / (name + ".png")).resolve())
         bpy.ops.render.render(write_still=True)
+
+    # Orthographic lower-room plan and a straight-up ceiling view are required review evidence.
+    main_camera.location = (0, 0, h * 2.2)
+    main_camera.data.type = "ORTHO"
+    main_camera.data.ortho_scale = max(w, d) * 1.2
+    point_at(main_camera, (0, 0, 0))
+    scene.render.filepath = str((review_dir / "floor_plan.png").resolve())
+    bpy.ops.render.render(write_still=True)
+
+    main_camera.data.type = "PERSP"
+    main_camera.location = (0, 0, h * 0.65)
+    point_at(main_camera, (0, 0, h + 10))
+    scene.render.filepath = str((review_dir / "ceiling_center_up.png").resolve())
+    bpy.ops.render.render(write_still=True)
 
     # Primary production view is rendered last and is the review image shown in Studio.
     camera_spec = manifest["room"]["productionCamera"]
@@ -260,7 +275,7 @@ def render_review_views(manifest, main_camera, render_path, review_dir):
     point_at(main_camera, camera_spec["target"])
     scene.render.filepath = str(render_path.resolve())
     bpy.ops.render.render(write_still=True)
-    return [str((review_dir / (name + ".png")).name) for name, _, _ in views] + [render_path.name]
+    return [str((review_dir / (name + ".png")).name) for name, _, _ in views] + ["floor_plan.png", "ceiling_center_up.png", render_path.name]
 
 
 def main():
