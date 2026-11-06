@@ -361,6 +361,9 @@
     "required": "Enter a game title and room description.",
     "approveFunction": "Approve the Function brief before generating a preview.",
     "approveForm": "Review the Blender image and approve the Form gate before starting the UE5 build.",
-    "reviseBrief": "Revise room brief"
+    "reviseBrief": "Revise room brief",
+    "auditSummary": "Geometry audit",
+    "openingsCut": "wall openings cut",
+    "reviewView": "Review view"
   }
 }
