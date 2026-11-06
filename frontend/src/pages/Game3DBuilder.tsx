@@ -187,6 +187,8 @@ const Game3DBuilder: React.FC = () => {
     } finally { setBusy(false); }
   };
 
+  const reviseBrief = () => { setPreviewUrl(''); setBuildUrl(''); setFormApproved(false); setFunctionApproved(false); setJobId(''); setStatus(''); setError(''); };
+
   const runBuild = async () => {
     setError(''); setBuildUrl(''); setStatus('submitting_ue5_build');
     if (!previewUrl || !formApproved) { setError(t('game3d.approveForm')); return; }
@@ -228,17 +230,18 @@ const Game3DBuilder: React.FC = () => {
           <Paper sx={{ p: 3 }}>
             <Stack spacing={2}>
               <TextField label={t('game3d.projectName')} value={title} onChange={(e) => setTitle(e.target.value)} fullWidth inputProps={{ maxLength: 120 }} disabled={busy} />
-              <TextField label={t('game3d.description')} value={description} onChange={(e) => setDescription(e.target.value)} multiline minRows={4} fullWidth inputProps={{ maxLength: 4000 }} disabled={busy} />
-              <TextField label={t('game3d.genre')} value={genre} onChange={(e) => setGenre(e.target.value)} fullWidth disabled={busy} />
-              <TextField select label={t('game3d.platform')} value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} fullWidth disabled={busy}>
+              <TextField label={t('game3d.description')} value={description} onChange={(e) => setDescription(e.target.value)} multiline minRows={4} fullWidth inputProps={{ maxLength: 4000 }} disabled={busy || Boolean(previewUrl)} />
+              <TextField label={t('game3d.genre')} value={genre} onChange={(e) => setGenre(e.target.value)} fullWidth disabled={busy || Boolean(previewUrl)} />
+              <TextField select label={t('game3d.platform')} value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} fullWidth disabled={busy || Boolean(previewUrl)}>
                 <MenuItem value="windows">Windows</MenuItem>
                 <MenuItem value="linux">Linux</MenuItem>
                 <MenuItem value="mac">macOS</MenuItem>
                 <MenuItem value="android">Android</MenuItem>
                 <MenuItem value="ios">iOS</MenuItem>
               </TextField>
-              <FormControlLabel control={<Checkbox checked={functionApproved} onChange={(e) => setFunctionApproved(e.target.checked)} disabled={busy} />} label={t('game3d.functionApproval')} />
+              <FormControlLabel control={<Checkbox checked={functionApproved} onChange={(e) => setFunctionApproved(e.target.checked)} disabled={busy || Boolean(previewUrl)} />} label={t('game3d.functionApproval')} />
               <Button variant="contained" onClick={runPreview} disabled={busy || !functionApproved}>{t('game3d.generatePreview')}</Button>
+              {previewUrl && <Button variant="text" color="inherit" onClick={reviseBrief} disabled={busy}>{t('game3d.reviseBrief')}</Button>}
               <FormControlLabel control={<Checkbox checked={formApproved} onChange={(e) => setFormApproved(e.target.checked)} disabled={busy || !previewUrl} />} label={t('game3d.formApproval')} />
               <Button variant="contained" color="secondary" onClick={runBuild} disabled={busy || !previewUrl || !formApproved}>{t('game3d.buildUE5')}</Button>
               {jobId && <Typography variant="caption" color="text.secondary">{t('game3d.jobId')}: {jobId}</Typography>}
