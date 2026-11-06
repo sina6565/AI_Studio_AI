@@ -79,6 +79,14 @@ def validate_manifest(manifest):
     surfaces = room.get("surfaces", [])
     ids = {surface.get("id") for surface in surfaces}
     asset_ids = {asset.get("id") for asset in assets}
+    bounds = room.get("boundsMeters", [0, 0, 0])
+    try:
+        width, depth, height = [float(value) for value in bounds]
+        if not (12 <= width <= 80 and 12 <= depth <= 80 and 4 <= height <= 30):
+            errors.append("room dimensions must be within width/depth 12-80 m and height 4-30 m")
+    except (TypeError, ValueError):
+        width, depth, height = 0, 0, 0
+        errors.append("room boundsMeters must contain three numeric dimensions")
     if room.get("heroObjectId") not in asset_ids:
         errors.append("heroObjectId must reference a declared asset")
     arrival = next((item for item in openings if item.get("id") == room.get("primaryArrivalId")), None)
@@ -88,6 +96,10 @@ def validate_manifest(manifest):
         errors.append("primary arrival must be a traversable door")
     elif float(arrival.get("widthMeters", 0)) < 2.4:
         errors.append("primary arrival must be at least 2.4 meters wide")
+    elif width > 0 and float(arrival.get("widthMeters", 0)) > width - 2.0:
+        errors.append("primary arrival must leave at least 1 m of wall on each side")
+    if arrival and height > 0 and float(arrival.get("heightMeters", 0)) > height - 1.0:
+        errors.append("primary arrival must leave at least 1 m of wall above the opening")
     for opening in openings:
         if opening.get("wallId") not in ids:
             errors.append("opening references an unknown wall: " + str(opening.get("id")))
@@ -174,22 +186,40 @@ def build_assets(manifest, materials):
 
 
 def add_room_dressing(manifest, materials):
-    bounds = manifest["room"]["boundsMeters"]
-    width, depth, height = map(float, bounds)
-    if width >= 20 and depth >= 16 and height >= 7:
-        for x in (-8.5, -4.5, 4.5, 8.5):
-            for y in (-5.5, 5.5):
-                bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.42, depth=height, location=(x, y, height / 2))
-                column = bpy.context.object
-                column.name = "OpenColonnade_Column"
-                column.data.materials.append(materials["trim"])
-                box("Column_Base", (x, y, 0.22), (1.25, 1.25, 0.44), materials["shell"])
-                box("Column_Capital", (x, y, height - 0.22), (1.25, 1.25, 0.44), materials["shell"])
-        for y in (-6, -3, 0, 3, 6):
-            box("Traversal_Inlay", (0, y, 0.015), (0.12, 1.8, 0.03), materials["glow"], bevel=0.01)
-        for x in (-8.5, 8.5):
-            for y in (-3, 0, 3):
-                box("Side_Plinth", (x, y, 0.65), (1.8, 1.4, 1.3), materials["shell"], bevel=0.06)
+    width, depth, height = map(float, manifest["room"]["boundsMeters"])
+    if width >= 12 and depth >= 12 and height >= 5:
+        column_radius = max(0.24, min(0.42, height * 0.047))
+        column_xy = [
+            (width * x_factor, depth * y_factor)
+            for x_factor in (-0.34, -0.17, 0.17, 0.34)
+            for y_factor in (-0.30, 0.30)
+        ]
+        for x, y in column_xy:
+            bpy.ops.mesh.primitive_cylinder_add(
+                vertices=32,
+                radius=column_radius,
+                depth=height,
+                location=(x, y, height / 2),
+            )
+            column = bpy.context.object
+            column.name = "OpenColonnade_Column"
+            column.data.materials.append(materials["trim"])
+            cap_size = column_radius * 3.0
+            box("Column_Base", (x, y, 0.22), (cap_size, cap_size, 0.44), materials["shell"])
+            box("Column_Capital", (x, y, height - 0.22), (cap_size, cap_size, 0.44), materials["shell"])
+
+        inlay_length = max(1.0, min(1.8, depth * 0.1))
+        for y_factor in (-0.30, -0.15, 0, 0.15, 0.30):
+            y = depth * y_factor
+            box("Traversal_Inlay", (0, y, 0.015), (0.12, inlay_length, 0.03), materials["glow"], bevel=0.01)
+
+        plinth_x = min(width * 0.34, width / 2 - 1.1)
+        plinth_y_values = (-depth * 0.16, 0, depth * 0.16)
+        plinth_width = min(1.8, width * 0.1)
+        plinth_depth = min(1.4, depth * 0.1)
+        for x in (-plinth_x, plinth_x):
+            for y in plinth_y_values:
+                box("Side_Plinth", (x, y, 0.65), (plinth_width, plinth_depth, 1.3), materials["shell"], bevel=0.06)
 
 
 def configure_scene(manifest):
@@ -208,20 +238,21 @@ def configure_scene(manifest):
     scene["room_id"] = manifest["room"]["id"]
     scene["review_status"] = "blender_geometry_review_pending_owner_form_approval"
 
-    bpy.ops.object.light_add(type="AREA", location=(0, 0, 8.2))
+    width, depth, height = map(float, manifest["room"]["boundsMeters"])
+    bpy.ops.object.light_add(type="AREA", location=(0, 0, height * 0.92))
     key = bpy.context.object
     key.name = "SINA_KeyLight"
-    key.data.energy = 3000
+    key.data.energy = max(1200, width * depth * 7.0)
     key.data.shape = "DISK"
-    key.data.size = 9
+    key.data.size = max(4, min(width, depth) * 0.5)
     point_at(key, (0, 0, 0))
 
-    bpy.ops.object.light_add(type="AREA", location=(-9, -2, 6.5))
+    bpy.ops.object.light_add(type="AREA", location=(-width * 0.36, -depth * 0.12, height * 0.75))
     fill = bpy.context.object
     fill.name = "SINA_FillLight"
-    fill.data.energy = 1400
-    fill.data.size = 6
-    point_at(fill, (0, 0, 3))
+    fill.data.energy = max(700, width * depth * 3.0)
+    fill.data.size = max(3, min(width, depth) * 0.33)
+    point_at(fill, (0, 0, height * 0.38))
 
     camera_spec = manifest["room"]["productionCamera"]
     bpy.ops.object.camera_add(location=camera_spec["location"])
