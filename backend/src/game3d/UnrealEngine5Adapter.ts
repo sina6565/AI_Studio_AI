@@ -1,9 +1,10 @@
-import { AppError, ValidationError } from '../types';
+import { AppError } from '../types';
+import { ValidationError } from '../types/errors';
 import { game3DBuildInputSchema, type Game3DBuildInput } from './types';
 
 export interface UE5BuildResult {
   buildId: string;
-  status: 'queued' | 'processing' | 'completed';
+  status: 'queued' | 'processing' | 'completed' | 'failed';
   artifactUrl?: string;
   format?: string;
   size?: number;
@@ -83,19 +84,46 @@ export class UnrealEngine5Adapter {
     if (typeof payload.buildId !== 'string' || !payload.buildId) {
       throw new AppError('UE5_WORKER_INVALID_RESPONSE', 'UE5 worker response is missing buildId.', 502);
     }
-    const status = payload.status;
-    if (status !== 'queued' && status !== 'processing' && status !== 'completed') {
-      throw new AppError('UE5_WORKER_INVALID_RESPONSE', 'UE5 worker returned an unsupported build status.', 502);
+    let latest = payload;
+    let status = latest.status;
+    const startedAt = Date.now();
+    while (status === 'queued' || status === 'processing') {
+      if (Date.now() - startedAt > 30 * 60 * 1000) {
+        throw new AppError('UE5_WORKER_TIMEOUT', 'UE5 build did not finish within the 30-minute worker deadline.', 504);
+      }
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const statusResponse = await fetch(
+        this.baseUrl + '/api/v1/ue5/builds/' + encodeURIComponent(payload.buildId),
+        {
+          headers: this.token ? { authorization: 'Bearer ' + this.token } : {},
+          signal: AbortSignal.timeout(30_000),
+        },
+      );
+      if (!statusResponse.ok) {
+        throw new AppError('UE5_WORKER_STATUS_FAILED', 'Could not retrieve UE5 build status (HTTP ' + statusResponse.status + ').', 502);
+      }
+      latest = await statusResponse.json() as Record<string, unknown>;
+      status = latest.status;
+      if (status !== 'queued' && status !== 'processing' && status !== 'completed' && status !== 'failed') {
+        throw new AppError('UE5_WORKER_INVALID_RESPONSE', 'UE5 worker returned an unsupported build status.', 502);
+      }
+    }
+    if (status === 'failed') {
+      throw new AppError(
+        'UE5_BUILD_FAILED',
+        typeof latest.error === 'string' ? latest.error : 'Unreal Engine 5 build failed.',
+        502,
+      );
     }
 
     return {
       buildId: payload.buildId,
-      status,
-      artifactUrl: typeof payload.artifactUrl === 'string' ? payload.artifactUrl : undefined,
-      format: typeof payload.format === 'string' ? payload.format : undefined,
-      size: typeof payload.size === 'number' ? payload.size : undefined,
-      metadata: payload.metadata && typeof payload.metadata === 'object'
-        ? payload.metadata as Record<string, unknown>
+      status: 'completed',
+      artifactUrl: typeof latest.artifactUrl === 'string' ? latest.artifactUrl : undefined,
+      format: typeof latest.format === 'string' ? latest.format : undefined,
+      size: typeof latest.size === 'number' ? latest.size : undefined,
+      metadata: latest.metadata && typeof latest.metadata === 'object'
+        ? latest.metadata as Record<string, unknown>
         : undefined,
     };
   }
