@@ -359,6 +359,7 @@
     "status": "مرحله فعلی",
     "required": "عنوان بازی و شرح محیط را وارد کن.",
     "approveFunction": "پیش از ساخت پیش‌نمایش، طرح Function را تأیید کن.",
-    "approveForm": "تصویر Blender را بررسی و مرحله Form را قبل از ساخت UE5 تأیید کن."
+    "approveForm": "تصویر Blender را بررسی و مرحله Form را قبل از ساخت UE5 تأیید کن.",
+    "reviseBrief": "ویرایش دوباره طرح محیط"
   }
 }
