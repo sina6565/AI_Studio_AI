@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Studio from './pages/Studio';
 import WebsiteBuilder from './pages/WebsiteBuilder';
+import Game3DBuilder from './pages/Game3DBuilder';
 import Jobs from './pages/Jobs';
 import Projects from './pages/Projects';
 import Auth from './pages/Auth';
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
         <Route path="/website-builder" element={<ProtectedRoute><WebsiteBuilder /></ProtectedRoute>} />
+        <Route path="/studio/3d" element={<ProtectedRoute><Game3DBuilder /></ProtectedRoute>} />
         <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
