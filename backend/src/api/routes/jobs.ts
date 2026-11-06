@@ -7,6 +7,7 @@ import { AppError } from '../../types/errors';
 import logger from '../../utils/logger';
 import { JobPriority } from '../../types';
 import { isGameJobType } from '../../game/types';
+import { game3DBuildInputSchema } from '../../game3d/types';
 
 interface CreateJobInput {
   type: string;
@@ -21,8 +22,11 @@ router.use(authenticateToken);
 router.post('/', async (req: AuthenticatedRequest, res, next) => {
   try {
     const input = validateWithSchema<CreateJobInput>(req.body, schemas.createJob);
-    if (isGameJobType(input.type)) {
-      // Fail fast with a field-level message instead of a provider error later.
+    if (input.type === 'game_3d_build') {
+      // Validate the room manifest before a native UE5 worker is enqueued.
+      validateWithSchema(input.input, game3DBuildInputSchema, 'Invalid UE5 room build');
+    } else if (isGameJobType(input.type)) {
+      // Existing 2D game jobs retain their original input contract.
       validateWithSchema(input.input, schemas.gameSpec);
     }
     const userId = req.user!.userId;

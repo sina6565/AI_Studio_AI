@@ -10,6 +10,7 @@ import { AppError, ValidationError } from '../types/errors';
 import { GameService } from '../game/GameService';
 import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
 import { createPlayableGameDefinition } from '../game/PlayableGameDefinition';
+import { UnrealEngine5Adapter } from '../game3d/UnrealEngine5Adapter';
 
 export interface OrchestratorRequest {
   userId: string;
@@ -31,6 +32,7 @@ export class Orchestrator {
   private router = new Router();
   private providers = new Map<string, IProvider>();
   private gameService = new GameService(this.router);
+  private ue5Adapter = new UnrealEngine5Adapter();
 
   /**
    * Register an AI provider with the orchestrator
@@ -70,22 +72,33 @@ export class Orchestrator {
     }
 
     const providers = this.getAvailableProviders();
-    if (!providers.length) {
+    const isUE5Build = request.jobType === JobType.GAME_3D_BUILD;
+    let selectedProvider = 'unreal-engine-5-worker';
+
+    // UE5 builds are executed by the owner-operated native engine worker,
+    // not by an image-generation provider. All other jobs keep existing routing.
+    if (!isUE5Build) {
+      if (!providers.length) {
+        throw new AppError(
+          'NO_PROVIDERS',
+          'No AI providers are currently available',
+          503,
+        );
+      }
+      const routingCapability = gameJobCapability(request.jobType);
+      const decision = await this.router.route(routingCapability, providers, {
+        jobType: request.jobType,
+        capabilities: [routingCapability as any],
+        userPreferences: request.userPreferences,
+      });
+      selectedProvider = decision.providerName;
+    } else if (!this.ue5Adapter.isConfigured()) {
       throw new AppError(
-        'NO_PROVIDERS',
-        'No AI providers are currently available',
+        'UE5_WORKER_NOT_CONFIGURED',
+        'The self-hosted Unreal Engine 5 worker must be configured before creating a 3D build job.',
         503,
       );
     }
-
-    // Game jobs are composite: route on the capability the pipeline needs
-    // rather than asking a single provider to "create a game".
-    const routingCapability = gameJobCapability(request.jobType);
-    const decision = await this.router.route(routingCapability, providers, {
-      jobType: request.jobType,
-      capabilities: [routingCapability as any],
-      userPreferences: request.userPreferences,
-    });
 
     const job = await JobModel.create({
       _id: uuidv4(),
@@ -98,14 +111,14 @@ export class Orchestrator {
         requestedAt: new Date(),
         retryCount: 0,
         maxRetries: 3,
-        provider: decision.providerName,
+        provider: selectedProvider,
         projectId: request.projectId,
       },
       webhookUrl: request.webhookUrl,
     });
 
     logger.info(
-      `[Orchestrator] Job created: ${job.id} (type: ${request.jobType}, provider: ${decision.providerName})`,
+      `[Orchestrator] Job created: ${job.id} (type: ${request.jobType}, provider: ${selectedProvider})`,
     );
 
     // Enqueue job to Bull queue for async processing
@@ -166,9 +179,10 @@ export class Orchestrator {
     }
 
     try {
+      const isUE5Build = job.type === JobType.GAME_3D_BUILD;
       const providerName = String(job.metadata?.provider || '').toLowerCase();
-      const provider = this.providers.get(providerName);
-      if (!provider) {
+      const provider = this.providers.get(providerName)!;
+      if (!isUE5Build && !provider) {
         throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
       }
       // Update job status to processing
@@ -178,13 +192,16 @@ export class Orchestrator {
       await job.save();
       logger.info(`[Orchestrator] Processing job: ${jobId}`);
 
-      // Validate input with provider
-      const validation = await provider.validateInput(job.type, job.input);
-      if (!validation.valid) {
-        throw new ValidationError(
-          `Invalid input for ${job.type}`,
-          { errors: validation.errors },
-        );
+      // Native UE5 jobs validate their versioned room manifest in the adapter.
+      // Existing provider-backed jobs retain provider validation.
+      if (!isUE5Build) {
+        const validation = await provider!.validateInput(job.type, job.input);
+        if (!validation.valid) {
+          throw new ValidationError(
+            `Invalid input for ${job.type}`,
+            { errors: validation.errors },
+          );
+        }
       }
 
       job.progress = { percentage: 20, stage: 'validated' };
@@ -192,7 +209,24 @@ export class Orchestrator {
 
       // Execute task based on job type
       let output: any;
-      if (isGameJobType(job.type)) {
+      if (isUE5Build) {
+        job.progress = { percentage: 30, stage: 'building_unreal_engine_5_project' };
+        await job.save();
+        const build = await this.ue5Adapter.build(job.input as any);
+        output = {
+          id: build.buildId,
+          url: build.artifactUrl || '',
+          format: build.format || 'unreal-project',
+          size: build.size || 0,
+          metadata: {
+            engine: 'unreal_engine_5',
+            engineMajorVersion: 5,
+            buildId: build.buildId,
+            workerStatus: build.status,
+            ...(build.metadata || {}),
+          },
+        };
+      } else if (isGameJobType(job.type)) {
         job.progress = { percentage: 10, stage: 'validating_game_spec' };
         await job.save();
 
