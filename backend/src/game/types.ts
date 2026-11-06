@@ -55,7 +55,7 @@ export interface GameManifest {
   notes: string;
 }
 
-export const GAME_JOB_TYPES = ['game_creation', 'game_build'] as const;
+export const GAME_JOB_TYPES = ['game_creation', 'game_build', 'game_3d_build'] as const;
 
 export type GameJobType = (typeof GAME_JOB_TYPES)[number];
 
@@ -74,6 +74,8 @@ export function gameJobCapability(type: string): string {
       return 'image_generation';
     case 'game_build':
       return 'image_generation';
+    case 'game_3d_build':
+      return 'unreal_engine_5';
     default:
       return type;
   }
