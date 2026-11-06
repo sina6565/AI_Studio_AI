@@ -89,17 +89,23 @@ This is a target workflow description, not a claim that every multi-agent, video
 
 ## Current implementation notes
 
-The repository's documented game workflow is an **experimental 2D Phaser MVP**, not a general-purpose game engine or full 3D game generator. It uses validated, versioned, data-only game definitions and an in-app playable route. Keep that limitation explicit.
+The current repository separates three different creation paths; do not collapse them into one capability claim:
 
-The repository has previously documented:
+- **Game scene creation:** provider-backed scene artwork and a validated scene manifest, followed by a standalone, non-interactive HTML scene viewer. This is not a playable 2D game runtime.
+- **Website Builder:** a provider-free deterministic template/code generator. It supports a bilingual form, responsive standalone HTML, isolated preview, source editing, and HTML download. It does not yet write copy with an AI model or publish sites to a hosted domain.
+- **Native 3D Game Lab:** a separate `/studio/3d` workflow targeting Unreal Engine 5. It uses a versioned room manifest, Function approval, a Blender geometry preview and review renders, explicit Form approval, and a self-hosted UE5 worker adapter that prepares a UE5 source project.
+
+The UE5 worker is an owner-operated persistent process, not a generic Serverless function. It requires Blender and Unreal Engine 5 installed on a compatible machine plus an owner-supplied UE5 Third Person project template. The repository includes the worker service and import scripts, but a real Blender run, UE5 project import, gameplay test, and packaged runtime have not yet been verified. The generated source project currently provides a room mesh, PlayerStart, and navigation bounds; arbitrary Blueprint gameplay logic, AI characters, complete game objectives, and packaged executables are not claimed.
+
+The repository also includes:
 - React + Vite web client and React Native mobile app
-- Express/TypeScript API and authentication framework
+- Express/TypeScript API, authentication, and the existing Orchestrator
 - Agnes provider integration and provider-agnostic routing
-- Redis/Bull job processing
+- Redis/Bull job processing with the configured in-process fallback mode
 - MongoDB/Mongoose data layer
-- An experimental playable 2D game workflow
+- Self-hosted Blender/UE5 worker contract and approval-gate tests
 
-These are repository-level implementation notes; live-provider behavior and production readiness still require environment-specific evidence.
+These are repository-level implementation notes; live-provider behavior, native-engine execution, and production readiness still require environment-specific evidence.
 
 ## What's still unverified / where work can be blocked
 
@@ -108,6 +114,8 @@ Do not mark the platform “production-ready” based only on a successful unit 
 - **Live provider paths:** real Agnes/media API calls, provider limits, errors, fallback behavior, and returned asset accessibility.
 - **End-to-end workflows:** authentication → job creation → queue/worker → result persistence → UI display, for each advertised capability.
 - **Deployment:** deployed frontend and API routing, environment variables, health endpoints, database/Redis connectivity, logs, and restart/recovery behavior.
+- **Website publishing:** hosted storage, domain/DNS, CDN, TLS, publish/rollback and production site ownership are not yet implemented by the local HTML builder.
+- **Native 3D execution:** actual worker health, Blender render/audit, UE5 template import, collision/navigation, player movement, Blueprint gameplay, runtime camera, target-device performance, and packaged output must be tested on a configured engine machine.
 - **Mobile release:** native Android/iOS builds need the corresponding platform toolchains; type-checking alone is not a native build.
 - **Security:** authorization boundaries, generated-content isolation, secret handling, rate limits, and production configuration.
 - **Performance:** benchmark realistic queue depth, provider latency, worker concurrency, storage, and memory before making capacity claims.
@@ -162,7 +170,10 @@ Do not infer that an optional service, tool, provider, or framework is installed
 - [API](./docs/API.md)
 - [Providers](./docs/PROVIDERS.md)
 - [Sandbox](./docs/SANDBOX.md)
-- [Game creation](./docs/GAME_CREATION.md)
+- [Game scene creation](./docs/GAME_CREATION.md)
+- [Website creation](./docs/WEBSITE_CREATION.md)
+- [Unreal Engine 5 room pipeline](./docs/3D_GAME_ROOM_PIPELINE.md)
+- [3D model benchmark](./docs/3D_MODEL_BENCHMARK.md)
 - [Deployment](./docs/DEPLOYMENT.md)
 - [Development](./docs/DEVELOPMENT.md)
 - [Security](./docs/SECURITY.md)
