@@ -34,20 +34,19 @@ export class UnrealEngine5Adapter {
         })),
       });
     }
-    if (!this.baseUrl) {
-      throw new AppError(
-        'UE5_WORKER_NOT_CONFIGURED',
-        'Unreal Engine 5 worker is not configured. Set UE5_WORKER_URL on the self-hosted worker integration.',
-        503,
-      );
-    }
-
     const manifest = parsed.data.manifest;
     if (!manifest.pipeline.gates.functionApproved || !manifest.pipeline.gates.formApproved) {
       throw new AppError(
         'UE5_ROOM_GATES_NOT_APPROVED',
         'UE5 export is blocked until Function and Form gates have explicit approval.',
         409,
+      );
+    }
+    if (!this.baseUrl) {
+      throw new AppError(
+        'UE5_WORKER_NOT_CONFIGURED',
+        'Unreal Engine 5 worker is not configured. Set UE5_WORKER_URL on the self-hosted worker integration.',
+        503,
       );
     }
 
