@@ -111,6 +111,8 @@ if root_component:
     root_component.set_mobility(unreal.ComponentMobility.STATIC)
     root_component.set_collision_profile_name("BlockAll")
     root_component.set_collision_enabled(unreal.CollisionEnabled.QUERY_AND_PHYSICS)
+else:
+    raise RuntimeError("Imported room actor has no root component for collision.")
 
 # Keep player start and nav bounds derived from the same metre-based manifest.
 spawn = room.get("playerSpawn", [0, 0, 0])
@@ -129,6 +131,8 @@ nav = unreal.EditorLevelLibrary.spawn_actor_from_class(
 )
 if nav:
     nav.set_actor_scale3d(unreal.Vector(float(bounds[0]), float(bounds[1]), float(bounds[2])))
+else:
+    raise RuntimeError("Could not create NavMeshBoundsVolume.")
 
 # Preserve the authored gameplay contract in the generated project for the
 # owner to extend with Blueprint interactions after runtime review.
@@ -139,10 +143,27 @@ unreal.EditorLevelLibrary.save_current_level()
 unreal.EditorLoadingAndSavingUtils.save_dirty_packages(True, True)
 
 # Launch the generated room by default when this project is opened or played.
-maps_settings = project_file = Path(unreal.Paths.project_dir()) / "Config" / "DefaultGame.ini"
+maps_settings = Path(unreal.Paths.project_dir()) / "Config" / "DefaultGame.ini"
 section = "/Script/EngineSettings.GameMapsSettings"
 set_ini_value(maps_settings, section, "EditorStartupMap", level_path)
 set_ini_value(maps_settings, section, "GameDefaultMap", level_path)
+
+import_report = {
+    "schemaVersion": 1,
+    "status": "created",
+    "engine": "unreal_engine_5",
+    "generatedMap": level_path,
+    "roomMesh": room_mesh_path,
+    "playerStartCreated": True,
+    "navMeshBoundsCreated": True,
+    "collisionTraceFlag": "CTF_USE_COMPLEX_AS_SIMPLE",
+    "collisionProfile": "BlockAll",
+    "editorStartupMapSet": True,
+    "gameDefaultMapSet": True,
+}
+(build_dir / "ue5-import-report.json").write_text(
+    json.dumps(import_report, indent=2), encoding="utf-8"
+)
 
 print("SINA_UE5_LEVEL=" + level_path)
 print("SINA_UE5_ROOM_MESH=" + room_mesh_path)
