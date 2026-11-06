@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import {
-  Alert, Box, Button, Checkbox, Container, FormControlLabel, Grid, LinearProgress,
+  Alert, Button, Checkbox, Container, FormControlLabel, Grid, LinearProgress,
   MenuItem, Paper, Stack, TextField, Typography,
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
@@ -358,16 +358,16 @@ const Game3DBuilder: React.FC = () => {
         </Grid>
         <Grid item xs={12} md={8}>
           <Paper sx={{ overflow: 'hidden' }}>
-            <Box sx={{ height: 430, bgcolor: '#07101e' }}>
+            <div style={{ height: 430, backgroundColor: '#07101e' }}>
               <Canvas camera={{ position: [roomWidth * 1.17, -roomDepth * 1.65, roomHeight * 2.45] as [number, number, number], up: [0, 0, 1], fov: 48 }}>
                 <color attach="background" args={['#07101e']} />
                 <RoomPreview width={roomWidth} depth={roomDepth} height={roomHeight} doorwayWidth={doorwayWidth} doorwayHeight={doorwayHeight} portalDiameter={portalDiameter} />
               </Canvas>
-            </Box>
-            <Box sx={{ p: 2 }}>
+            </div>
+            <div style={{ padding: 16 }}>
               <Typography variant="subtitle1" fontWeight={700}>{t('game3d.previewTitle')}</Typography>
               <Typography variant="body2" color="text.secondary">{t('game3d.previewHint')}</Typography>
-              {previewUrl && <Box component="img" src={previewUrl} alt={t('game3d.blenderPreview')} sx={{ width: '100%', maxHeight: 460, objectFit: 'contain', mt: 2, borderRadius: 2, bgcolor: '#101827' }} />}
+              {previewUrl && <img src={previewUrl} alt={t('game3d.blenderPreview')} style={{ width: '100%', maxHeight: 460, objectFit: 'contain', marginTop: 16, borderRadius: 8, backgroundColor: '#101827' }} />}
               {auditReport && (
                 <Alert severity={auditReport.status === 'passed' ? 'success' : 'warning'} sx={{ mt: 2 }}>
                   {t('game3d.auditSummary')}: {String(auditReport.status || 'unknown')} · {Array.isArray(auditReport.appliedBooleanOpenings) ? auditReport.appliedBooleanOpenings.length : 0} {t('game3d.openingsCut')}
@@ -377,18 +377,18 @@ const Game3DBuilder: React.FC = () => {
                 <Grid container spacing={1.5} sx={{ mt: 1 }}>
                   {reviewViews.map((url, index) => (
                     <Grid item xs={6} md={4} key={url}>
-                      <Box sx={{ bgcolor: '#101827', borderRadius: 2, overflow: 'hidden', height: '100%' }}>
-                        <Box component="img" src={url} alt={url.split('/').pop() || t('game3d.reviewView')} loading="lazy" sx={{ display: 'block', width: '100%', aspectRatio: '4 / 3', objectFit: 'contain' }} />
+                      <div style={{ backgroundColor: '#101827', borderRadius: 8, overflow: 'hidden', height: '100%' }}>
+                        <img src={url} alt={url.split('/').pop() || t('game3d.reviewView')} loading="lazy" style={{ display: 'block', width: '100%', aspectRatio: '4 / 3', objectFit: 'contain' }} />
                         <Typography variant="caption" display="block" sx={{ p: 1, color: 'text.secondary' }}>
                           {url.split('/').pop() || (t('game3d.reviewView') + ' ' + (index + 1))}
                         </Typography>
-                      </Box>
+                      </div>
                     </Grid>
                   ))}
                 </Grid>
               )}
               {buildUrl && <Alert severity="success" sx={{ mt: 2 }}>{t('game3d.buildReady')} <a href={buildUrl} target="_blank" rel="noreferrer">{t('game3d.downloadProject')}</a></Alert>}
-            </Box>
+            </div>
           </Paper>
         </Grid>
       </Grid>
