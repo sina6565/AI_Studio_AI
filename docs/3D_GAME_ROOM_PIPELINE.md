@@ -10,7 +10,7 @@
 4. The authenticated Orchestrator sends the job to the self-hosted worker. Blender generates a procedural structural shell, applies Boolean opening cuts, places declared props and creates a review package.
 5. The worker returns a PNG for the browser, plus a .blend source, GLB, audit report, floor plan, four corner renders and ceiling-review views.
 6. The owner examines the returned Blender render and explicitly approves Form.
-7. The client submits `game_3d_build`. The adapter requires both approvals. The worker copies the configured owner-supplied UE5 Third Person project template, imports the combined GLB into a new generated level, creates a PlayerStart and NavMeshBoundsVolume, and packages the UE5 source project with review evidence into a ZIP.
+7. The client submits `game_3d_build`. The adapter requires both approvals. The worker copies the configured owner-supplied UE5 Third Person project template, imports the combined GLB into a new generated level, creates a generated startup level, enables per-polygon static collision on the room mesh, creates a PlayerStart and NavMeshBoundsVolume, writes an import report, and packages the UE5 source project with review evidence into a ZIP.
 8. The Jobs page displays the preview/build lifecycle and exposes completed artifacts.
 
 ## Implemented repository components
@@ -25,7 +25,7 @@
 | Orchestration | `backend/src/orchestrator/Orchestrator.ts` routes UE5 jobs to the native worker adapter, independently of image providers |
 | Adapter | `backend/src/game3d/UnrealEngine5Adapter.ts` validates gates, submits work, polls status and rejects incomplete/invalid artifacts |
 | Blender worker | `tools/ue5-room-worker/build_room_from_manifest.py` creates the room shell, Boolean openings, scene dressing, GLB/.blend and review views |
-| UE5 import | `tools/ue5-room-worker/import_glb_to_unreal.py` imports the GLB, creates a dedicated level, PlayerStart and NavMeshBoundsVolume |
+| UE5 import | `tools/ue5-room-worker/import_glb_to_unreal.py` imports the GLB, enables complex-as-simple static collision, creates the startup level, PlayerStart and NavMeshBoundsVolume, and writes `ue5-import-report.json` |
 | Worker service | `tools/ue5-room-worker/server.py` authenticated HTTP API, job state, background processing and artifact delivery |
 | Worker tests | `tools/ue5-room-worker/test_worker_contract.py` covers Function/Form and paid-service gates |
 
