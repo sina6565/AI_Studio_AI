@@ -16,6 +16,12 @@ const validInput = {
       purpose: 'Exploration and combat arena.',
       boundsMeters: [24, 18, 8],
       heroObjectId: 'central-gate',
+      primaryArrivalId: 'main-door',
+      surfaces: [
+        { id: 'north-wall', kind: 'wall', dimensionsMeters: [24, 0.3, 8], transform: { location: [0, 9, 4], rotationDegrees: [0, 0, 0] } },
+        { id: 'floor', kind: 'floor', dimensionsMeters: [24, 18, 0.3], transform: { location: [0, 0, 0], rotationDegrees: [0, 0, 0] } },
+        { id: 'ceiling', kind: 'ceiling', dimensionsMeters: [24, 18, 0.3], transform: { location: [0, 0, 8], rotationDegrees: [0, 0, 0] } },
+      ],
       playerSpawn: [0, 0, 0],
       productionCamera: { location: [0, -10, 5], target: [0, 0, 2], verticalFovDegrees: 75 },
       symmetry: { mode: 'bilateral', order: 2, exceptions: [] },
@@ -53,7 +59,13 @@ const validInput = {
       runtime: 'unreal_engine_5',
       meshGeneration: 'procedural_first',
       paidServicesAllowed: false,
-      gates: { functionApproved: true, formApproved: true, runtimeApproved: false },
+      gates: {
+        functionApproved: true,
+        functionApproval: { approvedBy: 'owner', approvedAt: '2026-11-06T00:00:00.000Z', evidence: ['plans/function-review.png'] },
+        formApproved: true,
+        formApproval: { approvedBy: 'owner', approvedAt: '2026-11-06T00:05:00.000Z', evidence: ['renders/form-review.png'] },
+        runtimeApproved: false,
+      },
     },
   },
 };
