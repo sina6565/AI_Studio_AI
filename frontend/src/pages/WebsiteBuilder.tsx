@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Alert, Box, Button, Chip, Container, Grid, MenuItem, Paper, Stack, TextField, Typography,
+  Alert, Button, Chip, Container, Grid, MenuItem, Paper, Stack, TextField, Typography,
 } from '@mui/material';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
@@ -251,8 +251,8 @@ const WebsiteBuilder: React.FC = () => {
               <Button size="small" variant="outlined" disabled={!html} onClick={download} startIcon={<DownloadRoundedIcon />}>{t.download}</Button>
             </Stack>
             {tab === 'preview'
-              ? <Box className="website-builder-frame"><iframe title="Website live preview" srcDoc={previewDocument} sandbox="" /></Box>
-              : <Box sx={{ p: 2 }}><Typography variant="caption" color="text.secondary">{t.editHint}</Typography><TextField value={html} onChange={(e) => setHtml(e.target.value)} multiline minRows={24} fullWidth dir="ltr" sx={{ mt: 2, '& textarea': { fontFamily: 'monospace', fontSize: 12 } }} /></Box>}
+              ? <div className="website-builder-frame"><iframe title="Website live preview" srcDoc={previewDocument} sandbox="" /></div>
+              : <div style={{ padding: 16 }}><Typography variant="caption" color="text.secondary">{t.editHint}</Typography><TextField value={html} onChange={(e) => setHtml(e.target.value)} multiline minRows={24} fullWidth dir="ltr" sx={{ mt: 2, '& textarea': { fontFamily: 'monospace', fontSize: 12 } }} /></Box>}
             {!html && <Typography color="text.secondary" sx={{ p: 3 }}>{t.draft}</Typography>}
           </Paper>
         </Grid>
