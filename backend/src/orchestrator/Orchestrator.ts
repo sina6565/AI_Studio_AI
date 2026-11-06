@@ -181,7 +181,7 @@ export class Orchestrator {
     try {
       const isUE5Build = job.type === JobType.GAME_3D_BUILD;
       const providerName = String(job.metadata?.provider || '').toLowerCase();
-      const provider = isUE5Build ? undefined : this.providers.get(providerName);
+      const provider = this.providers.get(providerName)!;
       if (!isUE5Build && !provider) {
         throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
       }
