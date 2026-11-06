@@ -93,14 +93,14 @@ def main():
     cube("Shell_EastWall", (11.75, 0, 4.5), (0.5, 18, 9), stone)
     cube("Shell_SouthWall", (0, -8.75, 4.5), (24, 0.5, 9), stone)
     # North wall opening: 3.2 m wide x 4.2 m high, passage is actually open.
-    cube("Shell_NorthLeft", (-9.2, 8.75, 4.5), (5.6, 0.5, 9), stone)
-    cube("Shell_NorthRight", (9.2, 8.75, 4.5), (5.6, 0.5, 9), stone)
-    cube("Shell_NorthLintel", (0, 8.75, 6.6), (12.8, 0.5, 4.8), stone)
+    cube("Shell_NorthLeft", (-6.8, 8.75, 4.5), (10.4, 0.5, 9), stone)
+    cube("Shell_NorthRight", (6.8, 8.75, 4.5), (10.4, 0.5, 9), stone)
+    cube("Shell_NorthLintel", (0, 8.75, 6.6), (3.2, 0.5, 4.8), stone)
 
     # Arrival frame and portal hero object, leaving the passage visibly open.
-    for x in (-2.05, 2.05):
+    for x in (-1.8, 1.8):
         cube("Arrival_Pilaster", (x, 8.25, 2.1), (0.42, 0.7, 4.2), trim, 0.08)
-    cube("Arrival_Transom", (0, 8.25, 4.25), (4.5, 0.7, 0.35), trim, 0.06)
+    cube("Arrival_Transom", (0, 8.25, 4.25), (4.2, 0.7, 0.35), trim, 0.06)
     torus("Hero_Portal_Ring", (0, 3.5, 4.1), 2.15, 0.16, trim)
     torus("Hero_Portal_InnerGlow", (0, 3.42, 4.1), 1.92, 0.055, glow)
 
