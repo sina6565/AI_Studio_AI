@@ -229,7 +229,7 @@ const Game3DBuilder: React.FC = () => {
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 3 }}>
             <Stack spacing={2}>
-              <TextField label={t('game3d.projectName')} value={title} onChange={(e) => setTitle(e.target.value)} fullWidth inputProps={{ maxLength: 120 }} disabled={busy} />
+              <TextField label={t('game3d.projectName')} value={title} onChange={(e) => setTitle(e.target.value)} fullWidth inputProps={{ maxLength: 120 }} disabled={busy || Boolean(previewUrl)} />
               <TextField label={t('game3d.description')} value={description} onChange={(e) => setDescription(e.target.value)} multiline minRows={4} fullWidth inputProps={{ maxLength: 4000 }} disabled={busy || Boolean(previewUrl)} />
               <TextField label={t('game3d.genre')} value={genre} onChange={(e) => setGenre(e.target.value)} fullWidth disabled={busy || Boolean(previewUrl)} />
               <TextField select label={t('game3d.platform')} value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} fullWidth disabled={busy || Boolean(previewUrl)}>
