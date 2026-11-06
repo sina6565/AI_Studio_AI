@@ -1,9 +1,9 @@
 # Experimental 2D Game Creation
 
-The current game workflow builds an experimental, data-driven 2D browser game on
+The existing Phaser workflow builds an experimental, data-driven 2D browser game on
 the existing React/Vite, Express/TypeScript, MongoDB, Redis/Bull, and provider
-stack. It does not generate arbitrary JavaScript, a full 3D game, or a native
-engine project.
+stack. This document describes only the 2D path. Native 3D game projects use the
+separate Unreal Engine 5 workflow documented in docs/3D_GAME_ROOM_PIPELINE.md.
 
 ## Workflow
 
