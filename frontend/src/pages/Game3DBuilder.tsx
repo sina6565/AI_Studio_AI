@@ -212,9 +212,23 @@ const Game3DBuilder: React.FC = () => {
   const [buildUrl, setBuildUrl] = useState('');
   const [jobId, setJobId] = useState('');
 
+  const validateRoomSettings = (): string | null => {
+    const numericValues = [roomWidth, roomDepth, roomHeight, doorwayWidth, doorwayHeight, portalDiameter];
+    if (!numericValues.every(Number.isFinite)) return t('game3d.invalidDimensions');
+    if (roomWidth < 12 || roomWidth > 80 || roomDepth < 12 || roomDepth > 80 || roomHeight < 4 || roomHeight > 30) {
+      return t('game3d.roomBounds');
+    }
+    if (doorwayWidth < 2.4 || doorwayWidth > roomWidth - 2) return t('game3d.doorWidthBounds');
+    if (doorwayHeight < 2.5 || doorwayHeight > roomHeight - 1) return t('game3d.doorHeightBounds');
+    if (portalDiameter < 2.5 || portalDiameter > Math.min(roomWidth, roomDepth) * 0.75) return t('game3d.portalBounds');
+    return null;
+  };
+
   const runPreview = async () => {
     setError(''); setStatus('submitting_preview'); setPreviewUrl(''); setReviewViews([]); setAuditReport(null); setBuildUrl(''); setJobId('');
     if (!title.trim() || !description.trim()) { setError(t('game3d.required')); return; }
+    const roomError = validateRoomSettings();
+    if (roomError) { setError(roomError); return; }
     if (!functionApproved) { setError(t('game3d.approveFunction')); return; }
     setBusy(true);
     try {
@@ -345,7 +359,7 @@ const Game3DBuilder: React.FC = () => {
         <Grid item xs={12} md={8}>
           <Paper sx={{ overflow: 'hidden' }}>
             <Box sx={{ height: 430, bgcolor: '#07101e' }}>
-              <Canvas camera={{ position: [roomWidth * 1.17, -roomDepth * 1.65, roomHeight * 2.45], up: [0, 0, 1], fov: 48 }}>
+              <Canvas camera={{ position: [roomWidth * 1.17, -roomDepth * 1.65, roomHeight * 2.45] as [number, number, number], up: [0, 0, 1], fov: 48 }}>
                 <color attach="background" args={['#07101e']} />
                 <RoomPreview width={roomWidth} depth={roomDepth} height={roomHeight} doorwayWidth={doorwayWidth} doorwayHeight={doorwayHeight} portalDiameter={portalDiameter} />
               </Canvas>
