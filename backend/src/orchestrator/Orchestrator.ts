@@ -72,7 +72,7 @@ export class Orchestrator {
     }
 
     const providers = this.getAvailableProviders();
-    const isUE5Build = request.jobType === JobType.GAME_3D_BUILD;
+    const isUE5Build = request.jobType === JobType.GAME_3D_BUILD || request.jobType === JobType.GAME_3D_PREVIEW;
     const isLocalWebsiteBuild = request.jobType === JobType.WEBSITE_BUILD;
     const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && isGameManifest(request.input);
     const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
@@ -185,13 +185,15 @@ export class Orchestrator {
     }
 
     try {
+      const isUE5Preview = job.type === JobType.GAME_3D_PREVIEW;
       const isUE5Build = job.type === JobType.GAME_3D_BUILD;
+      const isUE5Job = isUE5Preview || isUE5Build;
       const isLocalWebsiteBuild = job.type === JobType.WEBSITE_BUILD;
       const isReusableGameBuild = job.type === JobType.GAME_BUILD && isGameManifest(job.input);
       const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
       const providerName = String(job.metadata?.provider || '').toLowerCase();
       const provider = this.providers.get(providerName);
-      if (!provider && !isLocalBuild && !isUE5Build) {
+      if (!provider && !isLocalBuild && !isUE5Job) {
         throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
       }
       // Update job status to processing
@@ -203,7 +205,7 @@ export class Orchestrator {
 
       // Provider-backed jobs retain provider validation. Local website builds
       // and manifest-only game builds validate through their own domain paths.
-      if (provider && !isUE5Build) {
+      if (provider && !isUE5Job) {
         const validation = await provider.validateInput(job.type, job.input);
         if (!validation.valid) {
           throw new ValidationError(
@@ -222,20 +224,26 @@ export class Orchestrator {
         job.progress = { percentage: 35, stage: 'building_website' };
         await job.save();
         output = buildWebsite(job.input);
-      } else if (isUE5Build) {
-        job.progress = { percentage: 30, stage: 'building_unreal_engine_5_project' };
+      } else if (isUE5Job) {
+        job.progress = {
+          percentage: 30,
+          stage: isUE5Preview ? 'building_blender_room_preview' : 'building_unreal_engine_5_project',
+        };
         await job.save();
-        const build = await this.ue5Adapter.build(job.input as any);
+        const build = isUE5Preview
+          ? await this.ue5Adapter.preview(job.input as any)
+          : await this.ue5Adapter.build(job.input as any);
         output = {
           id: build.buildId,
           url: build.artifactUrl || '',
-          format: build.format || 'application/zip',
+          format: build.format || (isUE5Preview ? 'image/png' : 'application/zip'),
           size: build.size || 0,
           metadata: {
             engine: 'unreal_engine_5',
             engineMajorVersion: 5,
             buildId: build.buildId,
             workerStatus: build.status,
+            stage: isUE5Preview ? 'blender_preview' : 'ue5_project',
             ...(build.metadata || {}),
           },
         };
