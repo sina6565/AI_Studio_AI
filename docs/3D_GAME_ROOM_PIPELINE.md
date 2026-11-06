@@ -29,6 +29,12 @@
 | Worker service | `tools/ue5-room-worker/server.py` authenticated HTTP API, job state, background processing and artifact delivery |
 | Worker tests | `tools/ue5-room-worker/test_worker_contract.py` covers Function/Form and paid-service gates |
 
+## Parametric room authoring
+
+The 3D Game Lab lets the owner set room width and depth (12–80 m), height (4–30 m), primary entrance width/height, portal diameter, target platform metadata, and movement-style metadata. These values are written into the versioned room manifest. Blender derives the shell dimensions, wall locations, entrance Boolean cut, portal size, columns/plinths, floor markers, review-camera positions and lighting from the submitted dimensions. The UE5 adapter imports the resulting normalized geometry.
+
+This is a parametric procedural room builder, not yet a natural-language arbitrary-world or full-game generator. The current UE5 project template remains the owner-supplied Third Person template; first-person/top-down choices are recorded as design metadata but do not yet install a matching character controller. Target-platform selection is metadata only until platform-specific packaging is separately implemented and tested.
+
 ## Geometry and review requirements
 
 - Structural floors, walls and ceilings are built procedurally as continuous shell geometry.
