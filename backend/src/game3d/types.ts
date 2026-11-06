@@ -60,6 +60,14 @@ export const ue5RoomManifestSchema = z.object({
     purpose: z.string().min(1).max(1000),
     boundsMeters: positiveVector3,
     heroObjectId: z.string().min(1),
+    primaryArrivalId: z.string().min(1),
+    primaryArrivalException: z.string().min(1).optional(),
+    surfaces: z.array(z.object({
+      id: z.string().min(1),
+      kind: z.enum(['wall', 'floor', 'ceiling']),
+      dimensionsMeters: positiveVector3,
+      transform: z.object({ location: vector3, rotationDegrees: vector3 }).strict(),
+    }).strict()).min(3),
     playerSpawn: vector3,
     productionCamera: z.object({ location: vector3, target: vector3, verticalFovDegrees: z.number().min(20).max(120) }).strict(),
     symmetry: z.object({
@@ -88,19 +96,55 @@ export const ue5RoomManifestSchema = z.object({
     paidServicesAllowed: z.literal(false),
     gates: z.object({
       functionApproved: z.boolean().default(false),
+      functionApproval: z.object({
+        approvedBy: z.string().min(1),
+        approvedAt: z.string().datetime(),
+        evidence: z.array(z.string().min(1)).min(1),
+      }).strict().optional(),
       formApproved: z.boolean().default(false),
+      formApproval: z.object({
+        approvedBy: z.string().min(1),
+        approvedAt: z.string().datetime(),
+        evidence: z.array(z.string().min(1)).min(1),
+      }).strict().optional(),
       runtimeApproved: z.boolean().default(false),
     }).strict(),
   }).strict(),
 }).strict().superRefine((manifest, context) => {
   const ids = new Set(manifest.assets.map(asset => asset.id));
+  if (ids.size !== manifest.assets.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['assets'], message: 'Asset IDs must be unique.' });
+  }
   if (!ids.has(manifest.room.heroObjectId)) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['room', 'heroObjectId'], message: 'Hero object must reference a declared asset.' });
   }
-  const openingIds = new Set();
+  const surfaceIds = new Set(manifest.room.surfaces.map(surface => surface.id));
+  if (surfaceIds.size !== manifest.room.surfaces.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['room', 'surfaces'], message: 'Room surface IDs must be unique.' });
+  }
+  const openingIds = new Set<string>();
   for (const opening of manifest.openings) {
     if (openingIds.has(opening.id)) context.addIssue({ code: z.ZodIssueCode.custom, path: ['openings'], message: 'Opening IDs must be unique.' });
     openingIds.add(opening.id);
+    if (!surfaceIds.has(opening.wallId) || !manifest.room.surfaces.some(surface => surface.id === opening.wallId && surface.kind === 'wall')) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['openings'], message: 'Every opening must reference a declared wall surface.' });
+    }
+  }
+  const arrival = manifest.openings.find(opening => opening.id === manifest.room.primaryArrivalId);
+  if (!arrival && !manifest.room.primaryArrivalException) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['room', 'primaryArrivalId'], message: 'Primary arrival must reference an opening or declare a functional exception.' });
+  } else if (arrival && (arrival.kind !== 'door' || !arrival.traversable || (arrival.widthMeters < 2.4 && !manifest.room.primaryArrivalException))) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['room', 'primaryArrivalId'], message: 'Primary arrival must be a traversable door at least 2.4 m wide or have an explicit exception.' });
+  }
+  const symmetry = manifest.room.symmetry;
+  if ((symmetry.mode === 'none' && symmetry.order !== 1) || (symmetry.mode === 'bilateral' && symmetry.order !== 2) || (symmetry.mode === 'radial' && symmetry.order < 3)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['room', 'symmetry', 'order'], message: 'Symmetry order must match its declared mode.' });
+  }
+  if (manifest.pipeline.gates.functionApproved && !manifest.pipeline.gates.functionApproval) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['pipeline', 'gates', 'functionApproval'], message: 'Function approval requires reviewer, timestamp, and evidence.' });
+  }
+  if (manifest.pipeline.gates.formApproved && !manifest.pipeline.gates.formApproval) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['pipeline', 'gates', 'formApproval'], message: 'Form approval requires reviewer, timestamp, and evidence.' });
   }
   if (manifest.pipeline.gates.formApproved && !manifest.pipeline.gates.functionApproved) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['pipeline', 'gates'], message: 'Form approval requires Function approval.' });
