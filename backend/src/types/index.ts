@@ -17,6 +17,7 @@ export enum JobType {
   ASSET_3D_GENERATION = 'asset_3d_generation',
   GAME_CREATION = 'game_creation',
   GAME_BUILD = 'game_build',
+  GAME_3D_PREVIEW = 'game_3d_preview',
   GAME_3D_BUILD = 'game_3d_build',
   WEBSITE_BUILD = 'website_build',
   ANIMATION_GENERATION = 'animation_generation',
