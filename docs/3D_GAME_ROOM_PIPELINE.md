@@ -1,79 +1,74 @@
-# SINA AI STUDIO — Unreal Engine 5 Game Room Pipeline
+# SINA AI STUDIO — Native 3D Room and UE5 Project Pipeline
 
-Status: Unreal Engine 5 is the official 3D game engine. The Build 3D Game Rooms workflow is integrated as a room-authoring and validation pipeline that prepares packages for UE5. The worker must be self-hosted and is not yet verified as deployed.
+**Engine decision:** Unreal Engine 5 is the native 3D runtime. Blender is the deterministic room authoring and geometry-review stage. Phaser remains the independent 2D runtime; Three.js/React Three Fiber is used only for the web concept preview and cinematic surfaces.
 
-## Fixed engine decision
+## User workflow
 
-- 3D game runtime and project target: Unreal Engine 5.
-- Room authoring and geometry validation: Blender.
-- 2D game runtime: existing Phaser MVP, kept independent.
-- Three.js / React Three Fiber may remain in the cinematic web universe or lightweight previews; they are not the official 3D game runtime.
-- Orchestrator coordinates Game Agent, Asset Agent, room pipeline, and Unreal Engine 5 Adapter. End users provide a natural-language brief and should not need to operate Unreal Editor.
+1. Open **3D Game Lab** at `/studio/3d`.
+2. Enter the game title, room brief, genre and target platform.
+3. Confirm the Function brief. The client submits `game_3d_preview`.
+4. The authenticated Orchestrator sends the job to the self-hosted worker. Blender generates a procedural structural shell, applies Boolean opening cuts, places declared props and creates a review package.
+5. The worker returns a PNG for the browser, plus a .blend source, GLB, audit report, floor plan, four corner renders and ceiling-review views.
+6. The owner examines the returned Blender render and explicitly approves Form.
+7. The client submits `game_3d_build`. The adapter requires both approvals. The worker copies the configured owner-supplied UE5 Third Person project template, imports the combined GLB into a new generated level, creates a PlayerStart and NavMeshBoundsVolume, and packages the UE5 source project with review evidence into a ZIP.
+8. The Jobs page displays the preview/build lifecycle and exposes completed artifacts.
 
-## Build 3D Game Rooms capabilities mapped into SINA
+## Implemented repository components
 
-1. Function gate: room purpose, runtime surface, bounds, hero object, circulation, production camera, performance budget, and symmetry.
-2. Prop manifest: stable IDs, functional roles, dimensions, attachment face, semantic front, reuse class, polygon target, source provenance, and rejection criteria.
-3. Room layout: machine-readable shell, placements, circulation, spawn/respawn, collision, and navigation data.
-4. Opening schedule: doors, windows, and deep alcoves with dimensions, wall, destination, and traversal behavior. Traversable openings must agree with collision and navigation; decorative arches cannot create phantom routes.
-5. Asset preparation: isolated references and provenance; procedural Blender geometry first. Only approved, available free/local assets may be used.
-6. Blender composition: sealed wall/floor/ceiling substrates, real thickness, structural Boolean openings, prop placement, scale/orientation checks, and production camera.
-7. Review evidence: monochrome floor plan, elevations, four 120-degree corner views, center-up ceiling view, two opposed ceiling obliques, and opening/collision evidence.
-8. Form gate: human approval after geometry, attachment, symmetry, camera, and collision/navigation audits.
-9. UE5 handoff: export validated room/prop data and GLB/FBX assets through the owner-operated UE5 Adapter/Worker; import into a UE5 project, apply materials/collision/navigation, and run real-runtime tests.
-10. Runtime gate: verify loaded meshes/textures, lighting, camera fit, interactions, navigation, performance, and packaged output before explicit approval.
+| Layer | Implementation |
+|---|---|
+| Frontend | `frontend/src/pages/Game3DBuilder.tsx`, interactive R3F concept preview, Function/Form approval controls, polling, bilingual copy |
+| Frontend route | Protected `/studio/3d` route and navigation entry |
+| Frontend service | `frontend/src/services/ue5Game.ts` — submits separate preview and final-build jobs |
+| API | `backend/src/api/routes/jobs.ts` validates both job payloads against the versioned room contract |
+| Contract | `backend/src/game3d/types.ts` — dimensions, surfaces, props, openings, traversal, symmetry, approvals and free-only policy |
+| Orchestration | `backend/src/orchestrator/Orchestrator.ts` routes UE5 jobs to the native worker adapter, independently of image providers |
+| Adapter | `backend/src/game3d/UnrealEngine5Adapter.ts` validates gates, submits work, polls status and rejects incomplete/invalid artifacts |
+| Blender worker | `tools/ue5-room-worker/build_room_from_manifest.py` creates the room shell, Boolean openings, scene dressing, GLB/.blend and review views |
+| UE5 import | `tools/ue5-room-worker/import_glb_to_unreal.py` imports the GLB, creates a dedicated level, PlayerStart and NavMeshBoundsVolume |
+| Worker service | `tools/ue5-room-worker/server.py` authenticated HTTP API, job state, background processing and artifact delivery |
+| Worker tests | `tools/ue5-room-worker/test_worker_contract.py` covers Function/Form and paid-service gates |
 
-## Free-only constraints
+## Geometry and review requirements
 
-- No paid Meshy submission, paid API, hosted GPU, or subscription is part of the required workflow.
-- The Meshy path in the original skill is intentionally disabled unless the owner later gives explicit permission for a specific spend.
-- Prefer procedural Blender geometry and local/approved free assets.
-- UE5 worker is self-hosted/owner-operated. Configure `UE5_WORKER_URL` and optional `UE5_WORKER_TOKEN` outside source control. Never commit tokens or print secrets.
-- Do not describe a worker as available until its health check and a real test build succeed.
+- Structural floors, walls and ceilings are built procedurally as continuous shell geometry.
+- Doors/openings are cut into walls with Blender Exact Boolean operations before decorative surrounds.
+- The primary traversable arrival must be at least 2.4 m wide, unless an explicit functional exception is recorded.
+- Traversable openings must enable both collision and navigation.
+- Props are declared with stable IDs, function, dimensions, attachment, semantic front, source and transforms.
+- Review views include a floor plan, four room-corner views, one center-up ceiling view, two ceiling obliques and the production-camera render.
+- A successful Blender render is not evidence that the UE5 project opens or runs correctly.
 
-## Implemented backend integration
+## Free-only policy
 
-- Job type: `game_3d_build`.
-- API validates the versioned `UE5RoomManifest` before enqueueing.
-- Contract: `backend/src/game3d/types.ts`.
-- Adapter: `backend/src/game3d/UnrealEngine5Adapter.ts`.
-- Orchestrator routes UE5 jobs to the native worker path without requiring an image-generation provider.
-- Existing Phaser job types and provider routing remain separate.
-- Worker submit endpoint: `POST /api/v1/ue5/builds`.
-- Worker status endpoint: `GET /api/v1/ue5/builds/{buildId}`.
-- Adapter polls the worker for up to 30 minutes and only returns a completed artifact. Failed/unknown worker responses are not reported as successful.
-- Adapter blocks UE5 handoff until Function and Form approvals are both true.
-- No arbitrary model-generated scripts are executed by the API.
+- The contract requires `paidServicesAllowed: false`.
+- No Meshy paid task is invoked. No paid API, hosted GPU or subscription is required by the code.
+- The room shell and structural geometry use procedural Blender generation.
+- Hunyuan3D/TRELLIS remain optional self-hosted research candidates; neither is enabled as a production provider or declared a winning model.
+- Do not enable any external paid asset generation without separate, explicit owner authorization.
 
-### Worker request responsibilities
+## Self-hosted worker configuration
 
-The worker receives a validated manifest plus:
-- Blender authoring tool and GLB export format.
-- Preserve-source-project and geometry-audit requirements.
-- Unreal Engine 5 major version 5.
-- Request to return the UE project artifact; packaged builds remain disabled until Runtime approval.
+The worker cannot run inside a generic Alibaba Serverless function without Blender, Unreal Engine 5 and a project template installed. It requires a dedicated owner-controlled machine or a compatible persistent worker environment.
 
-The worker must:
-1. Validate request schema and idempotency key.
-2. Create an isolated workspace per job and enforce CPU, memory, disk, and time budgets.
-3. Run Blender in background mode to compose and audit the room.
-4. Export approved assets and import them into a version-pinned UE5 project template.
-5. Apply collision, navigation, player start, camera, materials, and allow-listed interactions.
-6. Run Unreal automation tests and launch a real runtime smoke test.
-7. Store logs, source project, hashes, test evidence, and output artifacts.
-8. Return a stable build ID and status. The status endpoint must report `queued`, `processing`, `completed`, or `failed`.
+Required on the worker:
+- Blender executable (`BLENDER_BIN`).
+- Unreal Engine 5 Editor command (`UE5_EDITOR_CMD`) for final builds.
+- One owner-supplied UE5 Third Person project directory (`UE5_PROJECT_TEMPLATE`) containing exactly one `.uproject`.
+- UE Python Script Plugin and glTF Importer enabled in the template.
+- `UE5_WORKER_TOKEN` and HTTPS reverse proxy.
+- `SINA_WORKER_PUBLIC_URL` set to the externally reachable HTTPS base so browser artifact URLs are not localhost links.
 
-## Acceptance criteria
+Required on the backend:
+- `UE5_WORKER_URL` set to the private HTTPS worker origin.
+- `UE5_WORKER_TOKEN` set to the same secret as the worker.
 
-- Existing Phaser 2D game builds and scene-viewer fallback remain unchanged.
-- A 3D job routes to the UE5 adapter, not Phaser or a Three.js gameplay runtime.
-- Server validates the manifest; worker validates it again.
-- Room openings, collision, navigation, and player routes agree.
-- No paid Meshy/API/GPU dependency is introduced.
-- Function and Form approvals block export; Runtime approval blocks release.
-- A successful Blender render is not treated as proof of a working UE5 game.
-- UE5 worker health and real build tests are recorded separately from API unit tests.
+See [tools/ue5-room-worker/README.md](../tools/ue5-room-worker/README.md) for installation and operation.
 
-## Current verified status
+## Current scope boundary — read before calling it complete
 
-Backend job registration, manifest validation, Orchestrator routing, and worker adapter code are committed on the feature branch. A real UE5 worker, Blender worker automation, and a real UE5 build have not yet been connected or verified. API tests have not yet been executed in this environment.
+This branch implements the UI, versioned manifest, job routing, approval gates, Blender room-generation worker, UE5 project import script and source-project packaging path. However, the native Blender/UE5 pipeline has **not yet been run on an actual machine with Blender and Unreal Engine 5 installed**, and no worker health check or real UE5 build artifact has been verified in this repository session.
+
+The generated UE5 project currently contains the generated environment, imported room mesh, player start and navigation bounds. The manifest stores allowed interactions, but this worker does not yet generate tested Blueprint gameplay logic, arbitrary objectives, enemy AI, character animation, packaged executables or mobile builds. Runtime approval, full gameplay acceptance testing and packaging remain separate stages.
+
+Do not describe this as a production-ready, fully playable 3D game until the worker is configured, a real UE5 project opens, navigation/interactions are implemented and tested, target-platform runtime smoke tests pass, and the owner explicitly approves Runtime.
