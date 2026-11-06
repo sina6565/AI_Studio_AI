@@ -74,7 +74,9 @@ if not room_actor:
     raise RuntimeError("UE5 could not spawn the imported room mesh.")
 room_actor.set_actor_label("SINA_GeneratedRoom")
 room_actor.set_folder_path("SINA/Generated")
-room_actor.set_editor_property("mobility", unreal.ComponentMobility.STATIC)
+root_component = room_actor.get_root_component()
+if root_component:
+    root_component.set_mobility(unreal.ComponentMobility.STATIC)
 
 # Keep player start and nav bounds derived from the same metre-based manifest.
 spawn = room.get("playerSpawn", [0, 0, 0])
