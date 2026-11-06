@@ -17,60 +17,99 @@ function Block({ position, size, color }: { position: [number, number, number]; 
   return <mesh position={position}><boxGeometry args={size} /><meshStandardMaterial color={color} roughness={0.7} /></mesh>;
 }
 
-function Column({ x, y }: { x: number; y: number }) {
+function Column({ x, y, height }: { x: number; y: number; height: number }) {
+  const radius = Math.max(0.24, Math.min(0.42, height * 0.047));
   return (
     <group position={[x, y, 0]}>
-      <mesh position={[0, 0, 4.5]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.42, 0.42, 9, 24]} />
+      <mesh position={[0, 0, height / 2]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[radius, radius, height, 24]} />
         <meshStandardMaterial color="#9b784f" metalness={0.55} roughness={0.38} />
       </mesh>
-      <Block position={[0, 0, 0.28]} size={[1.44, 1.44, 0.42]} color="#252b38" />
-      <Block position={[0, 0, 8.65]} size={[1.36, 1.36, 0.42]} color="#252b38" />
+      <Block position={[0, 0, 0.22]} size={[radius * 3.2, radius * 3.2, 0.35]} color="#252b38" />
+      <Block position={[0, 0, height - 0.22]} size={[radius * 3, radius * 3, 0.35]} color="#252b38" />
     </group>
   );
 }
 
-function RoomPreview() {
-  const columns = useMemo(() => [-8.5, -4.5, 4.5, 8.5].flatMap((x) => [-5.5, 5.5].map((y) => [x, y] as [number, number])), []);
+interface RoomPreviewProps {
+  width: number;
+  depth: number;
+  height: number;
+  doorwayWidth: number;
+  doorwayHeight: number;
+  portalDiameter: number;
+}
+
+function RoomPreview({ width, depth, height, doorwayWidth, doorwayHeight, portalDiameter }: RoomPreviewProps) {
+  const halfW = width / 2;
+  const halfD = depth / 2;
+  const wallT = 0.5;
+  const safeDoorW = Math.min(doorwayWidth, width - 2);
+  const safeDoorH = Math.min(doorwayHeight, height - 1);
+  const sideW = Math.max(0, (width - safeDoorW) / 2);
+  const sideCenter = safeDoorW / 2 + sideW / 2;
+  const portalR = Math.max(0.8, Math.min(portalDiameter / 2, height * 0.32));
+  const portalY = depth * 0.18;
+  const portalZ = height * 0.48;
+  const columns = useMemo(
+    () => [-0.34, -0.17, 0.17, 0.34].flatMap((xf) => [-0.31, 0.31].map((yf) => [width * xf, depth * yf] as [number, number])),
+    [width, depth],
+  );
+  const inlayY = [-0.3, -0.15, 0, 0.15, 0.3].map((v) => depth * v);
+  const plinths = [-1, 1].flatMap((side) => [-0.16, 0, 0.16].map((yf) => [side * width * 0.34, depth * yf] as [number, number]));
   return (
     <>
       <ambientLight intensity={1.1} />
-      <directionalLight position={[4, -6, 12]} intensity={2.4} />
-      <pointLight position={[0, 3.4, 4.1]} color="#16c6ee" intensity={85} distance={13} />
-      <Block position={[0, 0, -0.25]} size={[24, 18, 0.5]} color="#3a414e" />
-      <Block position={[0, 0, 9.25]} size={[24, 18, 0.5]} color="#151a28" />
-      <Block position={[-11.75, 0, 4.5]} size={[0.5, 18, 9]} color="#202b40" />
-      <Block position={[11.75, 0, 4.5]} size={[0.5, 18, 9]} color="#202b40" />
-      <Block position={[0, -8.75, 4.5]} size={[24, 0.5, 9]} color="#202b40" />
-      <Block position={[-6.8, 8.75, 4.5]} size={[10.4, 0.5, 9]} color="#202b40" />
-      <Block position={[6.8, 8.75, 4.5]} size={[10.4, 0.5, 9]} color="#202b40" />
-      <Block position={[0, 8.75, 6.6]} size={[3.2, 0.5, 4.8]} color="#202b40" />
-      <Block position={[-1.8, 8.25, 2.1]} size={[0.42, 0.7, 4.2]} color="#ba8a4c" />
-      <Block position={[1.8, 8.25, 2.1]} size={[0.42, 0.7, 4.2]} color="#ba8a4c" />
-      <Block position={[0, 8.25, 4.25]} size={[4.2, 0.7, 0.35]} color="#ba8a4c" />
-      <mesh position={[0, 3.5, 4.1]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[2.15, 0.16, 16, 64]} />
+      <directionalLight position={[width * 0.18, -depth * 0.35, height * 1.3]} intensity={2.4} />
+      <pointLight position={[0, portalY, portalZ]} color="#16c6ee" intensity={85} distance={Math.max(width, depth)} />
+      <Block position={[0, 0, -wallT / 2]} size={[width, depth, wallT]} color="#3a414e" />
+      <Block position={[0, 0, height + wallT / 2]} size={[width, depth, wallT]} color="#151a28" />
+      <Block position={[-halfW + wallT / 2, 0, height / 2]} size={[wallT, depth, height]} color="#202b40" />
+      <Block position={[halfW - wallT / 2, 0, height / 2]} size={[wallT, depth, height]} color="#202b40" />
+      <Block position={[0, -halfD + wallT / 2, height / 2]} size={[width, wallT, height]} color="#202b40" />
+      {sideW > 0.1 && <>
+        <Block position={[-sideCenter, halfD - wallT / 2, height / 2]} size={[sideW, wallT, height]} color="#202b40" />
+        <Block position={[sideCenter, halfD - wallT / 2, height / 2]} size={[sideW, wallT, height]} color="#202b40" />
+      </>}
+      {height - safeDoorH > 0.1 && (
+        <Block position={[0, halfD - wallT / 2, (height + safeDoorH) / 2]} size={[safeDoorW, wallT, height - safeDoorH]} color="#202b40" />
+      )}
+      <Block position={[-safeDoorW / 2 - 0.25, halfD - 0.6, safeDoorH / 2]} size={[0.42, 0.7, safeDoorH]} color="#ba8a4c" />
+      <Block position={[safeDoorW / 2 + 0.25, halfD - 0.6, safeDoorH / 2]} size={[0.42, 0.7, safeDoorH]} color="#ba8a4c" />
+      <Block position={[0, halfD - 0.6, safeDoorH - 0.12]} size={[safeDoorW + 0.92, 0.7, 0.24]} color="#ba8a4c" />
+      <mesh position={[0, portalY, portalZ]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[portalR, 0.16, 16, 64]} />
         <meshStandardMaterial color="#b98a4c" metalness={0.7} roughness={0.25} />
       </mesh>
-      <mesh position={[0, 3.48, 4.1]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.92, 0.055, 12, 64]} />
+      <mesh position={[0, portalY - 0.02, portalZ]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[Math.max(0.5, portalR - 0.23), 0.055, 12, 64]} />
         <meshStandardMaterial color="#20d9ff" emissive="#087baf" emissiveIntensity={2.2} />
       </mesh>
-      {columns.map(([x, y], index) => <Column key={index} x={x} y={y} />)}
-      {[-3, 0, 3].flatMap((y) => [-8.5, 8.5].map((x) => (
-        <Block key={x + ':' + y} position={[x, y, 0.65]} size={[1.8, 1.4, 1.3]} color="#252b38" />
-      )))}
-      {[-6, -3, 0, 3, 6].map((y) => <Block key={y} position={[0, y, 0.025]} size={[0.12, 1.8, 0.025]} color="#16c6ee" />)}
-      <OrbitControls makeDefault target={[0, 0, 4]} minDistance={12} maxDistance={55} />
+      {columns.map(([x, y], index) => <Column key={index} x={x} y={y} height={height} />)}
+      {plinths.map(([x, y], index) => (
+        <Block key={index} position={[x, y, 0.65]} size={[Math.min(1.8, width * 0.1), Math.min(1.4, depth * 0.1), 1.3]} color="#252b38" />
+      ))}
+      {inlayY.map((y) => <Block key={y} position={[0, y, 0.025]} size={[0.12, Math.min(1.8, depth * 0.1), 0.025]} color="#16c6ee" />)}
+      <OrbitControls makeDefault target={[0, 0, height * 0.45]} minDistance={Math.min(width, depth) * 0.55} maxDistance={Math.max(width, depth) * 2.3} />
     </>
   );
 }
 
 function makeManifest(input: {
   title: string; description: string; genre: string; platform: Platform;
+  width: number; depth: number; height: number; doorwayWidth: number; doorwayHeight: number; portalDiameter: number;
+  movement: 'third_person' | 'first_person' | 'top_down';
   functionApproved: boolean; formApproval?: { approvedBy: string; approvedAt: string; evidence: string[] };
 }) {
   const now = new Date().toISOString();
+  const width = input.width;
+  const depth = input.depth;
+  const height = input.height;
+  const doorWidth = Math.min(input.doorwayWidth, width - 2);
+  const doorHeight = Math.min(input.doorwayHeight, height - 1);
+  const halfW = width / 2;
+  const halfD = depth / 2;
+  const wallT = 0.5;
   return {
     manifest: {
       schemaVersion: 1,
@@ -84,34 +123,34 @@ function makeManifest(input: {
       room: {
         id: 'sina-gateway-room-v1',
         purpose: input.description.trim(),
-        boundsMeters: [24, 18, 9],
+        boundsMeters: [width, depth, height],
         heroObjectId: 'hero-portal',
         primaryArrivalId: 'main-arrival',
         surfaces: [
-          { id: 'north-wall', kind: 'wall', dimensionsMeters: [24, 0.5, 9], transform: { location: [0, 8.75, 4.5], rotationDegrees: [0, 0, 0] } },
-          { id: 'south-wall', kind: 'wall', dimensionsMeters: [24, 0.5, 9], transform: { location: [0, -8.75, 4.5], rotationDegrees: [0, 0, 0] } },
-          { id: 'west-wall', kind: 'wall', dimensionsMeters: [0.5, 18, 9], transform: { location: [-11.75, 0, 4.5], rotationDegrees: [0, 0, 0] } },
-          { id: 'east-wall', kind: 'wall', dimensionsMeters: [0.5, 18, 9], transform: { location: [11.75, 0, 4.5], rotationDegrees: [0, 0, 0] } },
-          { id: 'floor', kind: 'floor', dimensionsMeters: [24, 18, 0.5], transform: { location: [0, 0, -0.25], rotationDegrees: [0, 0, 0] } },
-          { id: 'ceiling', kind: 'ceiling', dimensionsMeters: [24, 18, 0.5], transform: { location: [0, 0, 9.25], rotationDegrees: [0, 0, 0] } },
+          { id: 'north-wall', kind: 'wall', dimensionsMeters: [width, wallT, height], transform: { location: [0, halfD - wallT / 2, height / 2], rotationDegrees: [0, 0, 0] } },
+          { id: 'south-wall', kind: 'wall', dimensionsMeters: [width, wallT, height], transform: { location: [0, -halfD + wallT / 2, height / 2], rotationDegrees: [0, 0, 0] } },
+          { id: 'west-wall', kind: 'wall', dimensionsMeters: [wallT, depth, height], transform: { location: [-halfW + wallT / 2, 0, height / 2], rotationDegrees: [0, 0, 0] } },
+          { id: 'east-wall', kind: 'wall', dimensionsMeters: [wallT, depth, height], transform: { location: [halfW - wallT / 2, 0, height / 2], rotationDegrees: [0, 0, 0] } },
+          { id: 'floor', kind: 'floor', dimensionsMeters: [width, depth, wallT], transform: { location: [0, 0, -wallT / 2], rotationDegrees: [0, 0, 0] } },
+          { id: 'ceiling', kind: 'ceiling', dimensionsMeters: [width, depth, wallT], transform: { location: [0, 0, height + wallT / 2], rotationDegrees: [0, 0, 0] } },
         ],
-        playerSpawn: [0, -6, 0.1],
-        productionCamera: { location: [0, -21, 12], target: [0, 1, 3.5], verticalFovDegrees: 65 },
+        playerSpawn: [0, -depth * 0.34, 0.1],
+        productionCamera: { location: [0, -depth * 1.17, height * 1.33], target: [0, depth * 0.05, height * 0.39], verticalFovDegrees: 65 },
         symmetry: { mode: 'bilateral', order: 2, exceptions: ['north-arrival-opening'] },
       },
       assets: [
-        { id: 'hero-portal', role: 'Hero energy portal ring', dimensionsMeters: [4.3, 0.45, 4.3], attachment: 'freestanding', semanticFront: 'positive_y', reusable: false, source: 'procedural_blender', transform: { location: [0, 3.5, 4.1], rotationDegrees: [90, 0, 0], scale: [1, 1, 1] } },
-        { id: 'arrival-left-pilaster', role: 'Left arrival frame pillar', dimensionsMeters: [0.42, 0.7, 4.2], attachment: 'floor', semanticFront: 'positive_y', source: 'procedural_blender', transform: { location: [-1.8, 8.25, 2.1], rotationDegrees: [0, 0, 0], scale: [1, 1, 1] } },
-        { id: 'arrival-right-pilaster', role: 'Right arrival frame pillar', dimensionsMeters: [0.42, 0.7, 4.2], attachment: 'floor', semanticFront: 'positive_y', source: 'procedural_blender', transform: { location: [1.8, 8.25, 2.1], rotationDegrees: [0, 0, 0], scale: [1, 1, 1] } },
+        { id: 'hero-portal', role: 'Hero energy portal ring', dimensionsMeters: [input.portalDiameter, 0.45, input.portalDiameter], attachment: 'freestanding', semanticFront: 'positive_y', reusable: false, source: 'procedural_blender', transform: { location: [0, depth * 0.18, height * 0.48], rotationDegrees: [90, 0, 0], scale: [1, 1, 1] } },
+        { id: 'arrival-left-pilaster', role: 'Left arrival frame pillar', dimensionsMeters: [0.42, 0.7, doorHeight], attachment: 'floor', semanticFront: 'positive_y', source: 'procedural_blender', transform: { location: [-doorWidth / 2 - 0.25, halfD - 0.6, doorHeight / 2], rotationDegrees: [0, 0, 0], scale: [1, 1, 1] } },
+        { id: 'arrival-right-pilaster', role: 'Right arrival frame pillar', dimensionsMeters: [0.42, 0.7, 4.2], attachment: 'floor', semanticFront: 'positive_y', source: 'procedural_blender', transform: { location: [doorWidth / 2 + 0.25, halfD - 0.6, doorHeight / 2], rotationDegrees: [0, 0, 0], scale: [1, 1, 1] } },
       ],
       openings: [{
         id: 'main-arrival', kind: 'door', wallId: 'north-wall',
-        widthMeters: 3.2, heightMeters: 4.2, destination: 'north-approach',
+        widthMeters: doorWidth, heightMeters: doorHeight, destination: 'north-approach',
         traversable: true, collisionEnabled: true, navigationEnabled: true,
       }],
       gameplay: {
-        movement: 'third_person', collisionRequired: true, navigationRequired: true,
-        respawnPoints: [[0, -6, 0.1]],
+        movement: input.movement, collisionRequired: true, navigationRequired: true,
+        respawnPoints: [[0, -depth * 0.34, 0.1]],
         interactions: [{ id: 'inspect-portal', action: 'inspect', targetId: 'hero-portal' }],
       },
       pipeline: {
@@ -155,6 +194,13 @@ const Game3DBuilder: React.FC = () => {
   const [description, setDescription] = useState('A third-person exploration room with a central energy portal, an open 3.2 meter entrance, and a clear traversal path.');
   const [genre, setGenre] = useState('adventure');
   const [platform, setPlatform] = useState<Platform>('windows');
+  const [roomWidth, setRoomWidth] = useState(24);
+  const [roomDepth, setRoomDepth] = useState(18);
+  const [roomHeight, setRoomHeight] = useState(9);
+  const [doorwayWidth, setDoorwayWidth] = useState(3.2);
+  const [doorwayHeight, setDoorwayHeight] = useState(4.2);
+  const [portalDiameter, setPortalDiameter] = useState(4.3);
+  const [movement, setMovement] = useState<'third_person' | 'first_person' | 'top_down'>('third_person');
   const [functionApproved, setFunctionApproved] = useState(false);
   const [formApproved, setFormApproved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -172,7 +218,12 @@ const Game3DBuilder: React.FC = () => {
     if (!functionApproved) { setError(t('game3d.approveFunction')); return; }
     setBusy(true);
     try {
-      const request = makeManifest({ title, description, genre, platform, functionApproved: true });
+      const request = makeManifest({
+        title, description, genre, platform,
+        width: roomWidth, depth: roomDepth, height: roomHeight,
+        doorwayWidth, doorwayHeight, portalDiameter, movement,
+        functionApproved: true,
+      });
       const created = await submitUE5RoomPreview(request);
       const id = (created.data as any)?.jobId || (created.data as any)?.id;
       if (!created.success || !id) throw new Error(created.error?.message || 'Could not queue the Blender preview.');
@@ -207,7 +258,12 @@ const Game3DBuilder: React.FC = () => {
         approvedAt: new Date().toISOString(),
         evidence: [previewUrl, 'studio:form-review-approved:v1'],
       };
-      const request = makeManifest({ title, description, genre, platform, functionApproved: true, formApproval });
+      const request = makeManifest({
+        title, description, genre, platform,
+        width: roomWidth, depth: roomDepth, height: roomHeight,
+        doorwayWidth, doorwayHeight, portalDiameter, movement,
+        functionApproved: true, formApproval,
+      });
       const created = await submitUE5RoomBuild(request);
       const id = (created.data as any)?.jobId || (created.data as any)?.id;
       if (!created.success || !id) throw new Error(created.error?.message || 'Could not queue the UE5 build.');
@@ -247,6 +303,35 @@ const Game3DBuilder: React.FC = () => {
                 <MenuItem value="android">Android</MenuItem>
                 <MenuItem value="ios">iOS</MenuItem>
               </TextField>
+              <Typography variant="subtitle2">{t('game3d.roomDimensions')}</Typography>
+              <Grid container spacing={1.5}>
+                <Grid item xs={4}>
+                  <TextField type="number" label={t('game3d.width')} value={roomWidth} onChange={(e) => setRoomWidth(Number(e.target.value))} inputProps={{ min: 12, max: 80, step: 1 }} fullWidth disabled={busy || Boolean(previewUrl)} />
+                </Grid>
+                <Grid item xs={4}>
+                  <TextField type="number" label={t('game3d.depth')} value={roomDepth} onChange={(e) => setRoomDepth(Number(e.target.value))} inputProps={{ min: 12, max: 80, step: 1 }} fullWidth disabled={busy || Boolean(previewUrl)} />
+                </Grid>
+                <Grid item xs={4}>
+                  <TextField type="number" label={t('game3d.height')} value={roomHeight} onChange={(e) => setRoomHeight(Number(e.target.value))} inputProps={{ min: 4, max: 30, step: 1 }} fullWidth disabled={busy || Boolean(previewUrl)} />
+                </Grid>
+              </Grid>
+              <Typography variant="subtitle2">{t('game3d.openingAndHero')}</Typography>
+              <Grid container spacing={1.5}>
+                <Grid item xs={4}>
+                  <TextField type="number" label={t('game3d.doorWidth')} value={doorwayWidth} onChange={(e) => setDoorwayWidth(Number(e.target.value))} inputProps={{ min: 2.4, max: 12, step: 0.1 }} fullWidth disabled={busy || Boolean(previewUrl)} />
+                </Grid>
+                <Grid item xs={4}>
+                  <TextField type="number" label={t('game3d.doorHeight')} value={doorwayHeight} onChange={(e) => setDoorwayHeight(Number(e.target.value))} inputProps={{ min: 2.5, max: 20, step: 0.1 }} fullWidth disabled={busy || Boolean(previewUrl)} />
+                </Grid>
+                <Grid item xs={4}>
+                  <TextField type="number" label={t('game3d.portalDiameter')} value={portalDiameter} onChange={(e) => setPortalDiameter(Number(e.target.value))} inputProps={{ min: 2.5, max: 15, step: 0.1 }} fullWidth disabled={busy || Boolean(previewUrl)} />
+                </Grid>
+              </Grid>
+              <TextField select label={t('game3d.movement')} value={movement} onChange={(e) => setMovement(e.target.value as typeof movement)} fullWidth disabled={busy || Boolean(previewUrl)}>
+                <MenuItem value="third_person">{t('game3d.thirdPerson')}</MenuItem>
+                <MenuItem value="first_person">{t('game3d.firstPerson')}</MenuItem>
+                <MenuItem value="top_down">{t('game3d.topDown')}</MenuItem>
+              </TextField>
               <FormControlLabel control={<Checkbox checked={functionApproved} onChange={(e) => setFunctionApproved(e.target.checked)} disabled={busy || Boolean(previewUrl)} />} label={t('game3d.functionApproval')} />
               <Button variant="contained" onClick={runPreview} disabled={busy || !functionApproved}>{t('game3d.generatePreview')}</Button>
               {previewUrl && <Button variant="text" color="inherit" onClick={reviseBrief} disabled={busy}>{t('game3d.reviseBrief')}</Button>}
@@ -260,9 +345,9 @@ const Game3DBuilder: React.FC = () => {
         <Grid item xs={12} md={8}>
           <Paper sx={{ overflow: 'hidden' }}>
             <Box sx={{ height: 430, bgcolor: '#07101e' }}>
-              <Canvas camera={{ position: [28, -30, 22], up: [0, 0, 1], fov: 48 }}>
+              <Canvas camera={{ position: [roomWidth * 1.17, -roomDepth * 1.65, roomHeight * 2.45], up: [0, 0, 1], fov: 48 }}>
                 <color attach="background" args={['#07101e']} />
-                <RoomPreview />
+                <RoomPreview width={roomWidth} depth={roomDepth} height={roomHeight} doorwayWidth={doorwayWidth} doorwayHeight={doorwayHeight} portalDiameter={portalDiameter} />
               </Canvas>
             </Box>
             <Box sx={{ p: 2 }}>
