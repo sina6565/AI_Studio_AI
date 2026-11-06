@@ -327,6 +327,9 @@ class Handler(BaseHTTPRequestHandler):
         segments = [unquote(p) for p in parsed.path.split("/") if p]
         if len(segments) == 5 and segments[:3] == ["api", "v1", "ue5"] and segments[3] in {"previews", "builds"}:
             kind, build_id = segments[3], segments[4]
+            if not build_id.replace('-', '').isalnum():
+                self.send_json(400, {"error": "invalid_build_id"})
+                return
             record = read_record(kind, build_id)
             if record is None:
                 self.send_json(404, {"error": "job_not_found"})
@@ -348,6 +351,16 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(404, {"error": "not_found"})
             return
         kind, runner, require_form = route_map[parsed.path]
+        blender_ready = bool(shutil.which(BLENDER_BIN) or Path(BLENDER_BIN).is_file())
+        if not blender_ready:
+            self.send_json(503, {"error": "BLENDER_BIN is not available on this worker."})
+            return
+        if require_form:
+            editor_ready = bool(UE5_EDITOR_CMD and (shutil.which(UE5_EDITOR_CMD) or Path(UE5_EDITOR_CMD).is_file()))
+            template_ready = bool(UE5_PROJECT_TEMPLATE and Path(UE5_PROJECT_TEMPLATE).is_dir())
+            if not editor_ready or not template_ready:
+                self.send_json(503, {"error": "UE5_EDITOR_CMD and UE5_PROJECT_TEMPLATE must be configured before UE5 builds."})
+                return
         try:
             payload = self.read_json()
             manifest = validate_payload(payload, require_form=require_form)
