@@ -58,7 +58,11 @@ export const ue5RoomManifestSchema = z.object({
   room: z.object({
     id: z.string().min(1).max(100),
     purpose: z.string().min(1).max(1000),
-    boundsMeters: positiveVector3,
+    boundsMeters: z.tuple([
+      z.number().min(12).max(80),
+      z.number().min(12).max(80),
+      z.number().min(4).max(30),
+    ]),
     heroObjectId: z.string().min(1),
     primaryArrivalId: z.string().min(1),
     primaryArrivalException: z.string().min(1).optional(),
@@ -135,6 +139,18 @@ export const ue5RoomManifestSchema = z.object({
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['room', 'primaryArrivalId'], message: 'Primary arrival must reference an opening or declare a functional exception.' });
   } else if (arrival && (arrival.kind !== 'door' || !arrival.traversable || (arrival.widthMeters < 2.4 && !manifest.room.primaryArrivalException))) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['room', 'primaryArrivalId'], message: 'Primary arrival must be a traversable door at least 2.4 m wide or have an explicit exception.' });
+  }
+  const [roomWidth, roomDepth, roomHeight] = manifest.room.boundsMeters;
+  const arrivalOpening = manifest.openings.find(opening => opening.id === manifest.room.primaryArrivalId);
+  if (arrivalOpening && arrivalOpening.widthMeters > roomWidth - 2) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['openings'], message: 'Primary arrival must leave at least 1 m of wall on both sides.' });
+  }
+  if (arrivalOpening && arrivalOpening.heightMeters > roomHeight - 1) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['openings'], message: 'Primary arrival must leave at least 1 m of wall above the opening.' });
+  }
+  const [spawnX, spawnY, spawnZ] = manifest.room.playerSpawn;
+  if (Math.abs(spawnX) >= roomWidth / 2 || Math.abs(spawnY) >= roomDepth / 2 || spawnZ < 0 || spawnZ > roomHeight) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['room', 'playerSpawn'], message: 'Player spawn must lie inside the room bounds.' });
   }
   const symmetry = manifest.room.symmetry;
   if ((symmetry.mode === 'none' && symmetry.order !== 1) || (symmetry.mode === 'bilateral' && symmetry.order !== 2) || (symmetry.mode === 'radial' && symmetry.order < 3)) {
