@@ -48,12 +48,14 @@ describe('game job type helpers', () => {
   it('recognises game job types', () => {
     expect(isGameJobType('game_creation')).toBe(true);
     expect(isGameJobType('game_build')).toBe(true);
+    expect(isGameJobType('game_3d_build')).toBe(true);
     expect(isGameJobType('image_generation')).toBe(false);
   });
 
   it('maps a game job type to the capability the pipeline needs', () => {
     expect(gameJobCapability('game_creation')).toBe('image_generation');
     expect(gameJobCapability('game_build')).toBe('image_generation');
+    expect(gameJobCapability('game_3d_build')).toBe('unreal_engine_5');
     expect(gameJobCapability('image_generation')).toBe('image_generation');
   });
 });
