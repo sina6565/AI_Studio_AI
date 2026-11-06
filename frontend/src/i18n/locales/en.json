@@ -11,7 +11,8 @@
     "settings": "Settings",
     "logout": "Logout",
     "universe": "Universe",
-    "websiteBuilder": "Website Builder"
+    "websiteBuilder": "Website Builder",
+    "game3d": "3D Game Lab"
   },
   "pages": {
     "dashboard": "Dashboard",
@@ -331,5 +332,29 @@
       "q3": "Is this a real reservation?",
       "a3": "No. This page saves a draft only in your current browser. It does not contact SINA or create a reservation."
     }
+  },
+  "game3d": {
+    "title": "3D Game Lab · Unreal Engine 5",
+    "subtitle": "Design a playable exploration room, inspect the Blender review render, approve its form, then request the native UE5 project.",
+    "freeNotice": "Free-only workflow: procedural Blender geometry first. No paid Meshy, hosted GPU, or paid AI calls are enabled. A configured owner-operated Blender/UE5 worker is required.",
+    "projectName": "Game title",
+    "description": "Game and room brief",
+    "genre": "Genre",
+    "platform": "Target platform",
+    "functionApproval": "I approve this room's function, dimensions, entrance, player route, and gameplay brief.",
+    "generatePreview": "Generate Blender review preview",
+    "formApproval": "I reviewed the generated Blender preview and approve this room form for UE5 handoff.",
+    "buildUE5": "Build Unreal Engine 5 project",
+    "previewTitle": "Interactive room concept",
+    "previewHint": "Rotate and zoom the concept preview. The Blender render below is the geometry review artifact; it is not a substitute for a real UE5 runtime test.",
+    "blenderPreview": "Blender room review",
+    "buildReady": "UE5 project artifact ready:",
+    "downloadProject": "Open / download project",
+    "jobId": "Job ID",
+    "viewJobs": "Track jobs",
+    "status": "Current stage",
+    "required": "Enter a game title and room description.",
+    "approveFunction": "Approve the Function brief before generating a preview.",
+    "approveForm": "Review the Blender image and approve the Form gate before starting the UE5 build."
   }
 }
