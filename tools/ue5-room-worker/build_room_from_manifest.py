@@ -52,7 +52,8 @@ def box(name, location, dimensions, mat, rotation=(0.0, 0.0, 0.0), bevel=0.0):
     obj.dimensions = dimensions
     obj.rotation_euler = rotation
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    obj.data.materials.append(mat)
+    if mat is not None:
+        obj.data.materials.append(mat)
     if bevel:
         modifier = obj.modifiers.new("EdgeBevel", "BEVEL")
         modifier.width = min(bevel, min(dimensions) * 0.2)
@@ -138,6 +139,8 @@ def apply_openings(manifest, surfaces):
         modifier.operation = "DIFFERENCE"
         modifier.solver = "EXACT"
         modifier.object = cutter
+        bpy.ops.object.select_all(action='DESELECT')
+        wall.select_set(True)
         bpy.context.view_layer.objects.active = wall
         bpy.ops.object.modifier_apply(modifier=modifier.name)
         bpy.data.objects.remove(cutter, do_unlink=True)
@@ -288,10 +291,16 @@ def main():
 
     bpy.ops.wm.save_as_mainfile(filepath=str(args.output.resolve()))
     bpy.ops.object.select_all(action="DESELECT")
-    for obj in bpy.context.scene.objects:
-        if obj.type == "MESH":
-            obj.select_set(True)
-    bpy.context.view_layer.objects.active = next((o for o in bpy.context.scene.objects if o.type == "MESH"), None)
+    mesh_objects = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
+    for obj in mesh_objects:
+        obj.select_set(True)
+    if not mesh_objects:
+        raise RuntimeError("No mesh geometry was created for GLB export.")
+    bpy.context.view_layer.objects.active = mesh_objects[0]
+    # A transform-applied combined room mesh imports consistently as one StaticMesh in UE5.
+    if len(mesh_objects) > 1:
+        bpy.ops.object.join()
+    bpy.context.object.name = "SINA_GeneratedRoom"
     bpy.ops.export_scene.gltf(filepath=str(args.glb.resolve()), export_format="GLB", use_selection=True)
 
     report = {
