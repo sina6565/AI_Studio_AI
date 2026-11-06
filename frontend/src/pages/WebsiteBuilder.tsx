@@ -252,7 +252,7 @@ const WebsiteBuilder: React.FC = () => {
             </Stack>
             {tab === 'preview'
               ? <div className="website-builder-frame"><iframe title="Website live preview" srcDoc={previewDocument} sandbox="" /></div>
-              : <div style={{ padding: 16 }}><Typography variant="caption" color="text.secondary">{t.editHint}</Typography><TextField value={html} onChange={(e) => setHtml(e.target.value)} multiline minRows={24} fullWidth dir="ltr" sx={{ mt: 2, '& textarea': { fontFamily: 'monospace', fontSize: 12 } }} /></Box>}
+              : <div style={{ padding: 16 }}><Typography variant="caption" color="text.secondary">{t.editHint}</Typography><TextField value={html} onChange={(e) => setHtml(e.target.value)} multiline minRows={24} fullWidth dir="ltr" sx={{ mt: 2, '& textarea': { fontFamily: 'monospace', fontSize: 12 } }} /></div>}
             {!html && <Typography color="text.secondary" sx={{ p: 3 }}>{t.draft}</Typography>}
           </Paper>
         </Grid>
