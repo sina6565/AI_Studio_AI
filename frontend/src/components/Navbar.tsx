@@ -58,6 +58,9 @@ const Navbar: React.FC = () => {
               <RouterLink to="/studio" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Button color="inherit">{t('nav.create')}</Button>
               </RouterLink>
+              <RouterLink to="/studio/3d" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit">{t('nav.game3d')}</Button>
+              </RouterLink>
               <RouterLink to="/website-builder" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Button color="inherit">{t('nav.websiteBuilder')}</Button>
               </RouterLink>
