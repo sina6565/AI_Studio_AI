@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
   Grid,
@@ -309,6 +309,9 @@ const Studio: React.FC = () => {
 
             {isGame ? (
               <Stack spacing={2}>
+                <Button component={RouterLink} to="/studio/3d" variant="outlined" color="secondary" fullWidth>
+                  {t('creation.open3DBuilder')}
+                </Button>
                 <Typography variant="caption" color="text.secondary">
                   {t('creation.gameModeCreateHint')}
                 </Typography>
