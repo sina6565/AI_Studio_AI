@@ -118,7 +118,7 @@ export class Orchestrator {
     });
 
     logger.info(
-      `[Orchestrator] Job created: ${job.id} (type: ${request.jobType}, provider: ${decision.providerName})`,
+      `[Orchestrator] Job created: ${job.id} (type: ${request.jobType}, provider: ${selectedProvider})`,
     );
 
     // Enqueue job to Bull queue for async processing
