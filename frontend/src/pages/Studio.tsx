@@ -6,7 +6,6 @@ import {
   Paper,
   TextField,
   Button,
-  Box,
   Typography,
   ToggleButton,
   ToggleButtonGroup,
@@ -278,7 +277,7 @@ const Studio: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               {t('creation.selectType')}
             </Typography>
-            <Box sx={{ mb: 3 }}>
+            <div style={{ marginBottom: 24 }}>
               <ToggleButtonGroup
                 value={contentType}
                 exclusive
@@ -291,7 +290,7 @@ const Studio: React.FC = () => {
                 <ToggleButton value="speech">TTS</ToggleButton>
                 <ToggleButton value="game">{t('creation.game')}</ToggleButton>
               </ToggleButtonGroup>
-            </Box>
+            </div>
 
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
@@ -397,7 +396,7 @@ const Studio: React.FC = () => {
                         inputProps={{ maxLength: 2000 }}
                       />
                       {scenes.length > 1 && (
-                        <Box>
+                        <div>
                           <Button
                             size="small"
                             color="error"
