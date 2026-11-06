@@ -107,7 +107,11 @@
     "sceneCounter": "صحنه {{current}} از {{total}}",
     "artifactHint": "فایل HTML دانلودی یک نمایشگر صحنه مستقل است. تصاویر از آدرس ارائه‌دهنده بارگذاری می‌شوند.",
     "websiteBuild": "ساخت وب‌سایت",
-    "websiteReady": "وب‌سایت آماده است"
+    "websiteReady": "وب‌سایت آماده است",
+    "ue5Preview": "پیش‌نمایش اتاق UE5",
+    "ue5Build": "ساخت پروژه UE5",
+    "ue5PreviewReady": "پیش‌نمایش بررسی محیط Blender آماده است",
+    "ue5BuildReady": "پروژه Unreal Engine 5 آماده است"
   },
   "projects": {
     "gameBuilds": "ساخت‌های بازی",
