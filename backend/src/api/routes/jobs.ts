@@ -22,7 +22,7 @@ router.use(authenticateToken);
 router.post('/', async (req: AuthenticatedRequest, res, next) => {
   try {
     const input = validateWithSchema<CreateJobInput>(req.body, schemas.createJob);
-    if (input.type === 'game_3d_build') {
+    if (input.type === 'game_3d_preview' || input.type === 'game_3d_build') {
       validateWithSchema(input.input, game3DBuildInputSchema, 'Invalid UE5 room build');
     } else if (isGameJobType(input.type)) {
       // Fail fast with a field-level message instead of a provider error later.
