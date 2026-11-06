@@ -107,7 +107,11 @@
     "sceneCounter": "Scene {{current}} of {{total}}",
     "artifactHint": "The downloaded HTML is a self-contained scene viewer. Scene images load from their provider URLs.",
     "websiteBuild": "Website build",
-    "websiteReady": "Website ready"
+    "websiteReady": "Website ready",
+    "ue5Preview": "UE5 room preview",
+    "ue5Build": "UE5 project build",
+    "ue5PreviewReady": "Blender room review preview ready",
+    "ue5BuildReady": "Unreal Engine 5 project ready"
   },
   "projects": {
     "gameBuilds": "Game builds",
