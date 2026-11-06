@@ -21,7 +21,16 @@ export class UnrealEngine5Adapter {
   private readonly token = process.env.UE5_WORKER_TOKEN;
 
   isConfigured(): boolean {
-    return Boolean(this.baseUrl);
+    if (!this.baseUrl || !this.token) return false;
+    try {
+      const url = new URL(this.baseUrl);
+      const secure = url.protocol === 'https:';
+      const localDevelopment = url.protocol === 'http:' &&
+        ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
+      return (secure || localDevelopment) && Boolean(url.hostname);
+    } catch {
+      return false;
+    }
   }
 
   async preview(rawInput: Game3DBuildInput): Promise<UE5BuildResult> {
