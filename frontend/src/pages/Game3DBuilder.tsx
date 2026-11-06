@@ -161,11 +161,13 @@ const Game3DBuilder: React.FC = () => {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [previewUrl, setPreviewUrl] = useState('');
+  const [reviewViews, setReviewViews] = useState<string[]>([]);
+  const [auditReport, setAuditReport] = useState<Record<string, any> | null>(null);
   const [buildUrl, setBuildUrl] = useState('');
   const [jobId, setJobId] = useState('');
 
   const runPreview = async () => {
-    setError(''); setStatus('submitting_preview'); setPreviewUrl(''); setBuildUrl(''); setJobId('');
+    setError(''); setStatus('submitting_preview'); setPreviewUrl(''); setReviewViews([]); setAuditReport(null); setBuildUrl(''); setJobId('');
     if (!title.trim() || !description.trim()) { setError(t('game3d.required')); return; }
     if (!functionApproved) { setError(t('game3d.approveFunction')); return; }
     setBusy(true);
@@ -179,6 +181,12 @@ const Game3DBuilder: React.FC = () => {
       const url = completed.result?.contentUrl || completed.output?.url;
       if (!url) throw new Error('The preview job completed without a review image URL.');
       setPreviewUrl(url);
+      const metadata = (completed.result?.metadata || completed.output?.metadata || {}) as Record<string, any>;
+      const views = Array.isArray(metadata.reviewViews)
+        ? metadata.reviewViews.filter((item: unknown): item is string => typeof item === 'string' && item.startsWith('https://'))
+        : [];
+      setReviewViews(views);
+      setAuditReport(metadata.audit && typeof metadata.audit === 'object' ? metadata.audit : null);
       setStatus('preview_ready');
       setFormApproved(false);
     } catch (err: any) {
@@ -187,7 +195,7 @@ const Game3DBuilder: React.FC = () => {
     } finally { setBusy(false); }
   };
 
-  const reviseBrief = () => { setPreviewUrl(''); setBuildUrl(''); setFormApproved(false); setFunctionApproved(false); setJobId(''); setStatus(''); setError(''); };
+  const reviseBrief = () => { setPreviewUrl(''); setReviewViews([]); setAuditReport(null); setBuildUrl(''); setFormApproved(false); setFunctionApproved(false); setJobId(''); setStatus(''); setError(''); };
 
   const runBuild = async () => {
     setError(''); setBuildUrl(''); setStatus('submitting_ue5_build');
@@ -261,6 +269,25 @@ const Game3DBuilder: React.FC = () => {
               <Typography variant="subtitle1" fontWeight={700}>{t('game3d.previewTitle')}</Typography>
               <Typography variant="body2" color="text.secondary">{t('game3d.previewHint')}</Typography>
               {previewUrl && <Box component="img" src={previewUrl} alt={t('game3d.blenderPreview')} sx={{ width: '100%', maxHeight: 460, objectFit: 'contain', mt: 2, borderRadius: 2, bgcolor: '#101827' }} />}
+              {auditReport && (
+                <Alert severity={auditReport.status === 'passed' ? 'success' : 'warning'} sx={{ mt: 2 }}>
+                  {t('game3d.auditSummary')}: {String(auditReport.status || 'unknown')} · {Array.isArray(auditReport.appliedBooleanOpenings) ? auditReport.appliedBooleanOpenings.length : 0} {t('game3d.openingsCut')}
+                </Alert>
+              )}
+              {reviewViews.length > 0 && (
+                <Grid container spacing={1.5} sx={{ mt: 1 }}>
+                  {reviewViews.map((url, index) => (
+                    <Grid item xs={6} md={4} key={url}>
+                      <Box sx={{ bgcolor: '#101827', borderRadius: 2, overflow: 'hidden', height: '100%' }}>
+                        <Box component="img" src={url} alt={url.split('/').pop() || t('game3d.reviewView')} loading="lazy" sx={{ display: 'block', width: '100%', aspectRatio: '4 / 3', objectFit: 'contain' }} />
+                        <Typography variant="caption" display="block" sx={{ p: 1, color: 'text.secondary' }}>
+                          {url.split('/').pop() || (t('game3d.reviewView') + ' ' + (index + 1))}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
               {buildUrl && <Alert severity="success" sx={{ mt: 2 }}>{t('game3d.buildReady')} <a href={buildUrl} target="_blank" rel="noreferrer">{t('game3d.downloadProject')}</a></Alert>}
             </Box>
           </Paper>
