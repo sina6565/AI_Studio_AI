@@ -53,14 +53,14 @@ const Dashboard: React.FC = () => {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       {user && (
-        <Box sx={{ mb: 4 }}>
+        <div style={{ marginBottom: 32 }}>
           <Typography variant="h4" gutterBottom>
             {t('app.subtitle')}
           </Typography>
           <Typography variant="body1" color="textSecondary">
             {t('auth.email')}: {user.email}
           </Typography>
-        </Box>
+        </div>
       )}
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
