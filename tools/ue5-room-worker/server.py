@@ -212,7 +212,7 @@ def zip_project(build_dir: Path, job_dir: Path):
             if any(part in {"Binaries", "DerivedDataCache", "Intermediate", "Saved", ".git"} for part in path.parts):
                 continue
             archive.write(path, path.relative_to(build_dir.parent))
-        for name in ("room.blend", "room.glb", "preview.png", "audit_report.json", "manifest.json"):
+        for name in ("room.blend", "room.glb", "preview.png", "audit_report.json", "manifest.json", "ue5-import-report.json"):
             candidate = job_dir / name
             if candidate.is_file():
                 archive.write(candidate, "SINA_Review/" + name)
@@ -230,6 +230,22 @@ def run_build(build_id: str, payload: dict):
         project_file = copy_project_template(template, project_dir)
         set_status("builds", build_id, progress=70, stage="importing_room_into_ue5")
         run_ue5_editor(project_file, glb_file, job_dir / "manifest.json", project_dir)
+        import_report_path = job_dir / "ue5-import-report.json"
+        if not import_report_path.is_file() or import_report_path.stat().st_size == 0:
+            raise RuntimeError("Unreal Editor did not produce the required UE5 import report.")
+        import_report = json.loads(import_report_path.read_text(encoding="utf-8"))
+        required_checks = (
+            import_report.get("status") == "created"
+            and bool(import_report.get("generatedMap"))
+            and bool(import_report.get("playerStartCreated"))
+            and bool(import_report.get("navMeshBoundsCreated"))
+            and import_report.get("collisionTraceFlag") == "CTF_USE_COMPLEX_AS_SIMPLE"
+            and import_report.get("collisionProfile") == "BlockAll"
+            and bool(import_report.get("editorStartupMapSet"))
+            and bool(import_report.get("gameDefaultMapSet"))
+        )
+        if not required_checks:
+            raise RuntimeError("UE5 import report is missing required map, player-start, navigation, collision or startup-map evidence.")
         set_status("builds", build_id, progress=90, stage="packaging_project_source")
         artifact = zip_project(project_dir, job_dir)
         metadata = {
@@ -241,6 +257,7 @@ def run_build(build_id: str, payload: dict):
             "glbSha256": sha256(glb_file),
             "blendSha256": sha256(blend_file),
             "audit": audit,
+            "ue5Import": import_report,
             "projectFile": project_file.name,
         }
         set_status(
