@@ -56,7 +56,8 @@
     "gameModeCreate": "Create game definition",
     "gameModeCreateHint": "Generates scene art and a versioned, data-only game blueprint. Build it to play the 2D collection game.",
     "attachProject": "Attach to project (optional)",
-    "noProject": "Do not attach to a project"
+    "noProject": "Do not attach to a project",
+    "open3DBuilder": "Open 3D Game Lab · Unreal Engine 5"
   },
   "job": {
     "status": "Status",
