@@ -42,6 +42,10 @@ calling an image provider again. It produces only the neutral HTML scene viewer.
 It does not add gameplay rules, scoring, collectibles, hazards, win/loss logic,
 or a playable Phaser runtime.
 
+## Native 3D room creation
+
+For parametric Unreal Engine 5 room authoring, use the protected **3D Game Lab** at `/studio/3d`. Its separate `game_3d_preview` and `game_3d_build` jobs use Blender and the self-hosted UE5 worker. See [3D_GAME_ROOM_PIPELINE.md](./3D_GAME_ROOM_PIPELINE.md). This is separate from scene-image generation and the HTML scene viewer described above.
+
 ## Product boundary
 
 The commercial SINA AI STUDIO codebase must contain only original game concepts,
