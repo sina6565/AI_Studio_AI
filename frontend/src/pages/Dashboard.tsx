@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, Paper, Box, Typography, Card, CardContent, LinearProgress, Alert, Button } from '@mui/material';
+import { Container, Grid, Paper, Typography, Card, CardContent, LinearProgress, Alert, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
@@ -125,6 +125,13 @@ const Dashboard: React.FC = () => {
               }}
             >
               <div>
+                <Typography variant="body2" fontWeight="500">
+                  {job.type}
+                </Typography>
+                <Typography variant="caption" color="textSecondary">
+                  {new Date(job.createdAt).toLocaleString()}
+                </Typography>
+              </div>
               <Typography
                 variant="body2"
                 sx={{
