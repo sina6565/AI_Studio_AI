@@ -9,6 +9,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
 import { submitUE5RoomBuild, submitUE5RoomPreview } from '../services/ue5Game';
+import Playable3DGame from '../components/games/Playable3DGame';
 import type { Job } from '../types';
 
 type Platform = 'windows' | 'linux' | 'mac' | 'android' | 'ios';
@@ -211,6 +212,7 @@ const Game3DBuilder: React.FC = () => {
   const [auditReport, setAuditReport] = useState<Record<string, any> | null>(null);
   const [buildUrl, setBuildUrl] = useState('');
   const [jobId, setJobId] = useState('');
+  const [playtestOpen, setPlaytestOpen] = useState(false);
 
   const validateRoomSettings = (): string | null => {
     const numericValues = [roomWidth, roomDepth, roomHeight, doorwayWidth, doorwayHeight, portalDiameter];
@@ -358,12 +360,22 @@ const Game3DBuilder: React.FC = () => {
         </Grid>
         <Grid item xs={12} md={8}>
           <Paper sx={{ overflow: 'hidden' }}>
-            <div style={{ height: 430, backgroundColor: '#07101e' }}>
-              <Canvas camera={{ position: [roomWidth * 1.17, -roomDepth * 1.65, roomHeight * 2.45] as [number, number, number], up: [0, 0, 1], fov: 48 }}>
-                <color attach="background" args={['#07101e']} />
-                <RoomPreview width={roomWidth} depth={roomDepth} height={roomHeight} doorwayWidth={doorwayWidth} doorwayHeight={doorwayHeight} portalDiameter={portalDiameter} />
-              </Canvas>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, padding: 12 }}>
+              <Typography variant="subtitle1" fontWeight={700}>{playtestOpen ? 'Playable browser test' : t('game3d.previewTitle')}</Typography>
+              <Button variant={playtestOpen ? 'outlined' : 'contained'} onClick={() => setPlaytestOpen((value) => !value)}>
+                {playtestOpen ? 'Return to room preview' : 'Play browser test'}
+              </Button>
             </div>
+            {playtestOpen ? (
+              <Playable3DGame width={roomWidth} depth={roomDepth} height={roomHeight} />
+            ) : (
+              <div style={{ height: 430, backgroundColor: '#07101e' }}>
+                <Canvas camera={{ position: [roomWidth * 1.17, -roomDepth * 1.65, roomHeight * 2.45] as [number, number, number], up: [0, 0, 1], fov: 48 }}>
+                  <color attach="background" args={['#07101e']} />
+                  <RoomPreview width={roomWidth} depth={roomDepth} height={roomHeight} doorwayWidth={doorwayWidth} doorwayHeight={doorwayHeight} portalDiameter={portalDiameter} />
+                </Canvas>
+              </div>
+            )}
             <div style={{ padding: 16 }}>
               <Typography variant="subtitle1" fontWeight={700}>{t('game3d.previewTitle')}</Typography>
               <Typography variant="body2" color="text.secondary">{t('game3d.previewHint')}</Typography>
