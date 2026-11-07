@@ -361,13 +361,16 @@ const Game3DBuilder: React.FC = () => {
         <Grid item xs={12} md={8}>
           <Paper sx={{ overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, padding: 12 }}>
-              <Typography variant="subtitle1" fontWeight={700}>{playtestOpen ? 'Playable browser test' : t('game3d.previewTitle')}</Typography>
+              <Typography variant="subtitle1" fontWeight={700}>{playtestOpen ? t('game3d.playtestTitle') : t('game3d.previewTitle')}</Typography>
               <Button variant={playtestOpen ? 'outlined' : 'contained'} onClick={() => setPlaytestOpen((value) => !value)}>
-                {playtestOpen ? 'Return to room preview' : 'Play browser test'}
+                {playtestOpen ? t('game3d.playtestReturn') : t('game3d.playtestButton')}
               </Button>
             </div>
             {playtestOpen ? (
-              <Playable3DGame width={roomWidth} depth={roomDepth} height={roomHeight} />
+              <>
+                <Typography variant="body2" color="text.secondary" sx={{ px: 2, pb: 1 }}>{t('game3d.playtestHelp')}</Typography>
+                <Playable3DGame width={roomWidth} depth={roomDepth} height={roomHeight} />
+              </>
             ) : (
               <div style={{ height: 430, backgroundColor: '#07101e' }}>
                 <Canvas camera={{ position: [roomWidth * 1.17, -roomDepth * 1.65, roomHeight * 2.45] as [number, number, number], up: [0, 0, 1], fov: 48 }}>
