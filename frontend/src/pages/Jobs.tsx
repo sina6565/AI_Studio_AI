@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { parsePlayableGameDefinition } from '../games/playableGame';
-import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Box, Typography, Chip, LinearProgress, Alert, Card, CardMedia } from '@mui/material';
+import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Typography, Chip, LinearProgress, Alert, Card, CardMedia } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
 import { Job } from '../types';
@@ -199,13 +199,13 @@ const Jobs: React.FC = () => {
                         </Alert>
                       )}
                       {manifest && (
-                        <Box>
+                        <div>
                           <Typography variant="subtitle2">
                             {t('game.manifest')}: {manifest.title} — {manifest.assetCount}{' '}
                             {t('game.assets')}, {manifest.scenes?.length || 0}{' '}
                             {t('game.scenes')}
                           </Typography>
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                             {manifest.scenes.map((scene) => {
                               const imageUrl = safePreviewImageUrl(scene.imageUrl);
                               return imageUrl ? (
@@ -216,13 +216,13 @@ const Jobs: React.FC = () => {
                                     image={imageUrl}
                                     alt={scene.name}
                                   />
-                                  <Box sx={{ p: 0.5 }}>
+                                  <div style={{ padding: 4 }}>
                                     <Typography variant="caption">{scene.name}</Typography>
-                                  </Box>
+                                  </div>
                                 </Card>
                               ) : null;
                             })}
-                          </Box>
+                          </div>
                           {job.type === 'game_creation' && job.status === 'completed' && (
                             <Button
                               size="small"
@@ -234,16 +234,16 @@ const Jobs: React.FC = () => {
                               {buildingJobId === job.id ? t('common.loading') : t('jobs.buildPlayableGame')}
                             </Button>
                           )}
-                        </Box>
+                        </div>
                       )}
                       {artifact && (
-                        <Box sx={{ mt: manifest ? 2 : 0 }}>
+                        <div style={{ marginTop: manifest ? 16 : 0 }}>
                           <Typography variant="subtitle2">{t('jobs.artifact')}</Typography>
                           <Typography variant="caption" color="text.secondary" display="block">
                             {artifact.filename} &middot; {artifact.format} &middot;{' '}
                             {artifact.sceneCount} {t('game.scenes')}
                           </Typography>
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                             <Button
                               size="small"
                               variant="contained"
@@ -263,7 +263,7 @@ const Jobs: React.FC = () => {
                                 {t('jobs.previewSceneViewer')}
                               </Button>
                             )}
-                          </Box>
+                          </div>
                           <Typography
                             variant="caption"
                             color="text.secondary"
@@ -274,7 +274,7 @@ const Jobs: React.FC = () => {
                           </Typography>
                           <Typography variant="caption" color="text.secondary" display="block">
                           </Typography>
-                        </Box>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
