@@ -2,8 +2,7 @@
  * Game creation service.
  *
  * Turns a validated game spec into a scene manifest through the existing
- * provider-agnostic image router. Builds also create a versioned, data-only
- * Phaser gameplay definition and retain the standalone scene-viewer fallback.
+ * provider-agnostic image router and renders a standalone scene-viewer artifact.
  * It never fabricates scene images: provider failures propagate to the job.
  */
 
@@ -20,10 +19,7 @@ import type {
   GameSpec,
 } from './types';
 import { renderSceneViewer, sceneViewerFilename } from './SceneViewerRenderer';
-import {
-  createPlayableGameDefinition,
-  PlayableGameDefinition,
-} from './PlayableGameDefinition';
+import { createPlayableGameDefinition, PlayableGameDefinition } from './PlayableGameDefinition';
 
 export type GameProgressReporter = (
   percentage: number,
@@ -38,7 +34,7 @@ export interface GameBuildOptions {
   jobType?: JobType;
 }
 
-/** Playable 2D definition plus the backward-compatible scene-viewer artifact. */
+/** Scene manifest plus a standalone, non-interactive scene-viewer artifact. */
 export interface GameBuildResult {
   manifest: GameManifest;
   playableGame: PlayableGameDefinition;
@@ -226,8 +222,7 @@ export class GameService {
   }
 
   /**
-   * Build a validated Phaser 2D definition and safe scene-viewer fallback from
-   * either a game spec or an existing manifest (whose assets are reused).
+   * Build a safe, non-interactive scene viewer from a game spec or existing manifest.
    */
   async buildGame(
     input: GameSpec | GameManifest,

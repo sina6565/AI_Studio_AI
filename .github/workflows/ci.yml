@@ -54,6 +54,21 @@ jobs:
       - name: Run frontend tests
         run: npm test -- --run
 
+
+  ue5-worker-contract:
+    name: UE5 worker (Python syntax + gate tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate worker scripts
+        run: python -m py_compile tools/ue5-room-worker/server.py tools/ue5-room-worker/build_room_from_manifest.py tools/ue5-room-worker/import_glb_to_unreal.py
+      - name: Test worker approval gates
+        working-directory: tools/ue5-room-worker
+        run: python -m unittest discover -s . -p "test_*.py"
+
   mobile:
     name: Mobile (type-check)
     runs-on: ubuntu-latest
