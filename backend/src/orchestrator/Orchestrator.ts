@@ -279,6 +279,7 @@ export class Orchestrator {
             size: build.size,
             metadata: {
               manifest: build.manifest,
+              playableGame: build.playableGame,
               artifact: {
                 filename: build.filename,
                 format: 'text/html',
