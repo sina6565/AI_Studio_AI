@@ -21,7 +21,7 @@ const HAZARD_LAYOUT = [
 type GameKeys = Set<string>;
 
 function GameWorld({
-  width, depth, keys, finished, onCollect, onHit, onTime, onFinish,
+  width, depth, height, keys, finished, onCollect, onHit, onTime, onFinish,
 }: Props & {
   keys: React.MutableRefObject<GameKeys>;
   finished: boolean;
