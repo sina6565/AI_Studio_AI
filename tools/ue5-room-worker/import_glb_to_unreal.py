@@ -142,8 +142,18 @@ unreal.EditorLevelLibrary.save_current_level()
 unreal.EditorLoadingAndSavingUtils.save_dirty_packages(True, True)
 
 # Launch the generated room by default when this project is opened or played.
+# Require the standard UE5 Third Person template GameMode so the generated
+# level launches with a real playable character/controller, not just a camera.
+game_mode_asset = "/Game/ThirdPerson/Blueprints/BP_ThirdPersonGameMode"
+if not unreal.EditorAssetLibrary.does_asset_exist(game_mode_asset):
+    raise RuntimeError(
+        "The supplied UE5 project must be the Third Person template and contain "
+        "BP_ThirdPersonGameMode at " + game_mode_asset
+    )
+game_mode_class = game_mode_asset + ".BP_ThirdPersonGameMode_C"
 maps_settings = Path(unreal.Paths.project_dir()) / "Config" / "DefaultGame.ini"
 section = "/Script/EngineSettings.GameMapsSettings"
+set_ini_value(maps_settings, section, "GlobalDefaultGameMode", game_mode_class)
 set_ini_value(maps_settings, section, "EditorStartupMap", level_path)
 set_ini_value(maps_settings, section, "GameDefaultMap", level_path)
 
@@ -158,7 +168,7 @@ import_report = {
     "collisionTraceFlag": "CTF_USE_COMPLEX_AS_SIMPLE",
     "collisionProfile": "BlockAll",
     "editorStartupMapSet": True,
-    "gameDefaultMapSet": True,
+    "gameDefaultMapSet": True,\n    "defaultGameMode": game_mode_class,\n    "thirdPersonTemplateVerified": True,
 }
 (build_dir / "ue5-import-report.json").write_text(
     json.dumps(import_report, indent=2), encoding="utf-8"
