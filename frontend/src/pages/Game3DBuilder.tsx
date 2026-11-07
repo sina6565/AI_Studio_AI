@@ -348,6 +348,7 @@ const Game3DBuilder: React.FC = () => {
                 <MenuItem value="first_person">{t('game3d.firstPerson')}</MenuItem>
                 <MenuItem value="top_down">{t('game3d.topDown')}</MenuItem>
               </TextField>
+              <Alert severity="info">{t('game3d.movementModeNote')}</Alert>
               <FormControlLabel control={<Checkbox checked={functionApproved} onChange={(e) => setFunctionApproved(e.target.checked)} disabled={busy || Boolean(previewUrl)} />} label={t('game3d.functionApproval')} />
               <Button variant="contained" onClick={runPreview} disabled={busy || !functionApproved}>{t('game3d.generatePreview')}</Button>
               {previewUrl && <Button variant="text" color="inherit" onClick={reviseBrief} disabled={busy}>{t('game3d.reviseBrief')}</Button>}
