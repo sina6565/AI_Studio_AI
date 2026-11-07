@@ -168,7 +168,9 @@ import_report = {
     "collisionTraceFlag": "CTF_USE_COMPLEX_AS_SIMPLE",
     "collisionProfile": "BlockAll",
     "editorStartupMapSet": True,
-    "gameDefaultMapSet": True,\n    "defaultGameMode": game_mode_class,\n    "thirdPersonTemplateVerified": True,
+    "gameDefaultMapSet": True,
+    "defaultGameMode": game_mode_class,
+    "thirdPersonTemplateVerified": True,
 }
 (build_dir / "ue5-import-report.json").write_text(
     json.dumps(import_report, indent=2), encoding="utf-8"
