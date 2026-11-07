@@ -134,14 +134,14 @@ const Jobs: React.FC = () => {
                   <TableCell>{job.type === 'website_build' ? t('jobs.websiteBuild') : job.type === 'game_3d_preview' ? t('jobs.ue5Preview') : job.type === 'game_3d_build' ? t('jobs.ue5Build') : job.type}</TableCell>
                   <TableCell>
                     {job.progress && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <LinearProgress
                           variant="determinate"
                           value={job.progress.percentage}
                           sx={{ flex: 1 }}
                         />
                         <Typography variant="body2">{job.progress.percentage}%</Typography>
-                      </Box>
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>{new Date(job.createdAt).toLocaleString()}</TableCell>
