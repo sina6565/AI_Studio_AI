@@ -61,6 +61,7 @@ Required on the worker:
 - Blender executable (`BLENDER_BIN`).
 - Unreal Engine 5 Editor command (`UE5_EDITOR_CMD`) for final builds.
 - One owner-supplied UE5 Third Person project directory (`UE5_PROJECT_TEMPLATE`) containing exactly one `.uproject`.
+- The template must contain `/Game/ThirdPerson/Blueprints/BP_ThirdPersonGameMode`; the importer verifies and sets this GameMode so the generated map uses the template's playable third-person character.
 - UE Python Script Plugin and glTF Importer enabled in the template.
 - `UE5_WORKER_TOKEN` and HTTPS reverse proxy.
 - `SINA_WORKER_PUBLIC_URL` set to the externally reachable HTTPS base so browser artifact URLs are not localhost links.
