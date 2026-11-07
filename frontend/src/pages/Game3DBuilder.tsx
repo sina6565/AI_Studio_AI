@@ -370,7 +370,14 @@ const Game3DBuilder: React.FC = () => {
             {playtestOpen ? (
               <>
                 <Typography variant="body2" color="text.secondary" sx={{ px: 2, pb: 1 }}>{t('game3d.playtestHelp')}</Typography>
-                <Playable3DGame width={roomWidth} depth={roomDepth} height={roomHeight} />
+                <Playable3DGame
+                  width={roomWidth}
+                  depth={roomDepth}
+                  height={roomHeight}
+                  doorwayWidth={doorwayWidth}
+                  doorwayHeight={doorwayHeight}
+                  portalDiameter={portalDiameter}
+                />
               </>
             ) : (
               <div style={{ height: 430, backgroundColor: '#07101e' }}>
