@@ -243,6 +243,8 @@ def run_build(build_id: str, payload: dict):
             and import_report.get("collisionProfile") == "BlockAll"
             and bool(import_report.get("editorStartupMapSet"))
             and bool(import_report.get("gameDefaultMapSet"))
+            and bool(import_report.get("thirdPersonTemplateVerified"))
+            and "BP_ThirdPersonGameMode_C" in str(import_report.get("defaultGameMode", ""))
         )
         if not required_checks:
             raise RuntimeError("UE5 import report is missing required map, player-start, navigation, collision or startup-map evidence.")
