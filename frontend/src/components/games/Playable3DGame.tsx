@@ -44,11 +44,16 @@ function GameWorld({
   const goal = useRef(new THREE.Vector3(0, depth * 0.37, 1.2));
 
   useEffect(() => {
+    spawn.current.set(0, -depth * 0.34, 0.9);
+    orbPositions.current = ORB_LAYOUT.map(([x, y]) => new THREE.Vector3(width * x, depth * y, 1.15));
+    hazardPositions.current = HAZARD_LAYOUT.map(([x, y]) => new THREE.Vector3(width * x, depth * y, 0.8));
+    goal.current.set(0, depth * 0.37, 1.2);
     if (player.current) player.current.position.copy(spawn.current);
     collected.current.clear();
     orbMeshes.current.forEach((mesh) => { if (mesh) mesh.visible = true; });
     elapsed.current = 0;
     lastSecond.current = 90;
+    hitCooldown.current = 0;
     ended.current = false;
   }, [width, depth]);
 
