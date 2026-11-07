@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Container, Paper, TextField, Button, Box, Typography, Alert, Tabs, Tab } from '@mui/material';
+import { Container, Paper, TextField, Button, Typography, Alert, Tabs, Tab } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
 
@@ -70,14 +70,14 @@ const Auth: React.FC = () => {
         <Typography variant="h4" align="center" gutterBottom>
           {t('app.title')}
         </Typography>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <div style={{ borderBottom: '1px solid rgba(255,255,255,0.12)', marginBottom: 24 }}>
           <Tabs value={tab} onChange={(_, v) => setTab(v)}>
             <Tab label={t('auth.login')} />
             <Tab label={t('auth.signup')} />
           </Tabs>
-        </Box>
+        </div>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <TextField
             label={t('auth.email')}
             type="email"
@@ -111,7 +111,7 @@ const Auth: React.FC = () => {
           >
             {loading ? t('common.loading') : (tab === 0 ? t('auth.login') : t('auth.signup'))}
           </Button>
-        </Box>
+        </div>
       </Paper>
     </Container>
   );
