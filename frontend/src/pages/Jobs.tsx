@@ -16,6 +16,8 @@ const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [buildNotice, setBuildNotice] = useState<string | null>(null);
+  const [buildingJobId, setBuildingJobId] = useState<string | null>(null);
   const [previewManifest, setPreviewManifest] = useState<SceneViewerPreviewManifest | null>(null);
 
   useEffect(() => {
@@ -47,6 +49,27 @@ const Jobs: React.FC = () => {
     }
   };
 
+  const handleBuildPlayableGame = async (sourceJob: Job, manifest: SceneViewerPreviewManifest) => {
+    setError(null);
+    setBuildNotice(null);
+    setBuildingJobId(sourceJob.id);
+    try {
+      const projectId = typeof sourceJob.metadata?.projectId === 'string'
+        ? sourceJob.metadata.projectId
+        : undefined;
+      const response = await apiClient.buildGameJob(manifest, projectId);
+      if (response.success && response.data) {
+        setBuildNotice(t('jobs.playableBuildQueued', { jobId: response.data.jobId }));
+      } else {
+        setError(t('creation.gameQueuedFailed'));
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || t('creation.gameQueuedFailed'));
+    } finally {
+      setBuildingJobId(null);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -68,6 +91,7 @@ const Jobs: React.FC = () => {
         {t('pages.jobs')}
       </Typography>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {buildNotice && <Alert severity="success" sx={{ mb: 2 }}>{buildNotice}</Alert>}
       {loading ? (
         <LinearProgress />
       ) : jobs.length === 0 ? (
@@ -199,6 +223,17 @@ const Jobs: React.FC = () => {
                               ) : null;
                             })}
                           </Box>
+                          {job.type === 'game_creation' && job.status === 'completed' && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              sx={{ mt: 1 }}
+                              disabled={buildingJobId === job.id}
+                              onClick={() => handleBuildPlayableGame(job, manifest)}
+                            >
+                              {buildingJobId === job.id ? t('common.loading') : t('jobs.buildPlayableGame')}
+                            </Button>
+                          )}
                         </Box>
                       )}
                       {artifact && (
