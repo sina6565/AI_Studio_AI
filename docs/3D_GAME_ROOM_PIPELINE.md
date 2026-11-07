@@ -78,3 +78,15 @@ This branch implements the UI, versioned manifest, job routing, approval gates, 
 The generated UE5 project currently contains the generated environment, imported room mesh, player start and navigation bounds. The manifest stores allowed interactions, but this worker does not yet generate tested Blueprint gameplay logic, arbitrary objectives, enemy AI, character animation, packaged executables or mobile builds. Runtime approval, full gameplay acceptance testing and packaging remain separate stages.
 
 Do not describe this as a production-ready, fully playable 3D game until the worker is configured, a real UE5 project opens, navigation/interactions are implemented and tested, target-platform runtime smoke tests pass, and the owner explicitly approves Runtime.
+
+## Browser gameplay prototype
+
+The 3D Game Lab now includes a local, immediately playable browser prototype for gameplay iteration. It is independent of the Blender/UE5 worker and does not require an API key, hosted GPU, paid service, or external asset provider.
+
+- Third-person capsule movement with WASD and arrow keys; touch directional controls are included.
+- Five energy-core pickups, three damage hazards, a three-life limit, a 90-second timer, and a portal exit that unlocks after all cores are collected.
+- Camera follow, collision against the room bounds, respawn after hazard contact, win/loss states, and restart.
+- This is a browser gameplay testbed. It is not represented as a packaged Unreal Engine build and does not prove UE5 runtime behavior.
+
+The native UE5 path still requires a configured self-hosted worker and a real UE5 Editor run. The current native export remains an environment/project-source handoff; Blueprint gameplay, enemy AI, character-animation customization, target-platform packaging, and runtime acceptance tests are still outstanding.
+
