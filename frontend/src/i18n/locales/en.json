@@ -54,7 +54,10 @@
     "jobId": "Job ID",
     "viewJobs": "Track progress on the Jobs page",
     "gameModeCreate": "Create game definition",
+    "gameModeBuild": "Build playable 2D game",
     "gameModeCreateHint": "Generates scene art and a versioned, data-only game blueprint. Build it to play the 2D collection game.",
+    "gameModeBuildHint": "Builds a validated Phaser 4 game: move, collect crystals, avoid hazards, and reach the exit. The downloadable scene viewer remains available as a fallback.",
+    "gameBuildQueued": "Playable 2D game build queued. Track it on the Jobs page.",
     "attachProject": "Attach to project (optional)",
     "noProject": "Do not attach to a project",
     "open3DBuilder": "Open 3D Game Lab · Unreal Engine 5"
@@ -106,7 +109,11 @@
     "previousScene": "Previous",
     "nextScene": "Next",
     "sceneCounter": "Scene {{current}} of {{total}}",
+    "playGame": "Play 2D game",
+    "buildPlayableGame": "Build playable 2D game from this manifest",
+    "playableBuildQueued": "Playable 2D build queued (job {{jobId}}). Track it on Jobs.",
     "artifactHint": "The downloaded HTML is a self-contained scene viewer. Scene images load from their provider URLs.",
+    "gameplayNote": "This is a scene-art preview. Use Play 2D Game for controls and gameplay.",
     "websiteBuild": "Website build",
     "websiteReady": "Website ready",
     "ue5Preview": "UE5 room preview",
@@ -117,6 +124,7 @@
   "projects": {
     "gameBuilds": "Game builds",
     "noGameBuilds": "No game builds are linked to this project yet.",
+    "playGame": "Play",
     "openJobs": "View all jobs"
   },
   "landing": {
@@ -387,5 +395,24 @@
     "playtestTitle": "Playable 3D browser test",
     "playtestHelp": "Collect all five energy cores, avoid hazards, then enter the portal. Move with WASD or arrow keys; touch controls are available below.",
     "movementModeNote": "The current browser playtest uses third-person movement. First-person and top-down are saved as design metadata for the native UE5 path; matching controllers are not generated yet."
+  },
+  "playGame": {
+    "title": "Playable 2D Game",
+    "backToJobs": "Back to jobs",
+    "jobNotFound": "Game job not found.",
+    "jobNotPlayable": "This is not a completed playable game build.",
+    "invalidDefinition": "The saved game definition is invalid or unsupported.",
+    "loadFailed": "Could not load the game.",
+    "runtimeFailed": "The game runtime could not start",
+    "score": "Score",
+    "crystals": "Crystals",
+    "lives": "Lives",
+    "time": "Time",
+    "restart": "Restart",
+    "instructions": "Use arrow keys or WASD to move. Collect every crystal, avoid red hazards, then reach the green exit before time runs out.",
+    "won": "You escaped!",
+    "lostTimeout": "Time ran out. Try again!",
+    "lostLives": "You ran out of lives. Try again!",
+    "finalScore": "Final score"
   }
 }
