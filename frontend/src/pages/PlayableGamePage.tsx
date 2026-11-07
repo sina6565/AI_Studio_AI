@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Box, Button, Chip, Container, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Button, Chip, Container, Paper, Stack, Typography } from '@mui/material';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PhaserPlayableGameCanvas from '../components/games/PhaserPlayableGameCanvas';
@@ -81,7 +81,7 @@ const PlayableGamePage: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-        <Box>
+        <div style={{ minWidth: 0 }}>
           <Typography variant="h3" component="h1">
             {definition?.title || t('playGame.title')}
           </Typography>
@@ -90,7 +90,7 @@ const PlayableGamePage: React.FC = () => {
               {definition.description}
             </Typography>
           )}
-        </Box>
+        </div>
         <Button component={Link} to="/jobs" variant="outlined">
           {t('playGame.backToJobs')}
         </Button>
@@ -115,7 +115,7 @@ const PlayableGamePage: React.FC = () => {
             <Chip label={`${t('playGame.crystals')}: ${visibleSnapshot?.collectedCrystals ?? 0}/${visibleSnapshot?.totalCrystals ?? 0}`} />
             <Chip label={`${t('playGame.lives')}: ${visibleSnapshot?.lives ?? definition.rules.startingLives}`} color="error" />
             <Chip label={`${t('playGame.time')}: ${visibleSnapshot?.secondsRemaining ?? definition.rules.timeLimitSeconds}s`} />
-            <Box sx={{ flex: 1 }} />
+            <div style={{ flex: 1 }} />
             <Button variant="outlined" onClick={restartGame}>
               {t('playGame.restart')}
             </Button>
