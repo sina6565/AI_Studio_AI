@@ -95,12 +95,13 @@ class APIClient {
         imagePrompt?: string;
       }>;
     },
+    mode: 'create' | 'build' = 'create',
     projectId?: string,
   ): Promise<
     APIResponse<{ jobId: string; status: string; createdAt: string }>
   > {
     const response = await this.client.post('/v1/jobs', {
-      type: 'game_creation',
+      type: mode === 'build' ? 'game_build' : 'game_creation',
       input: spec,
       ...(projectId ? { projectId } : {}),
     });
