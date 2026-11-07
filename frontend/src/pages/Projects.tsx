@@ -3,6 +3,7 @@ import { Container, Grid, Paper, Button, Typography, Dialog, TextField, Alert, L
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import apiClient from '../services/api';
+import { parsePlayableGameDefinition } from '../games/playableGame';
 import { Job, Project } from '../types';
 
 const Projects: React.FC = () => {
@@ -119,6 +120,15 @@ const Projects: React.FC = () => {
                               <Typography variant="caption" color="text.secondary">
                                 {job.status}
                               </Typography>
+                              {parsePlayableGameDefinition(job.result?.metadata?.playableGame) && (
+                                <Button
+                                  size="small"
+                                  component={Link}
+                                  to={`/play/${encodeURIComponent(job.id)}`}
+                                >
+                                  {t('projects.playGame')}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         );
