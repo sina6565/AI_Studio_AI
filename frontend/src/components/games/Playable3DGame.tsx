@@ -2,7 +2,14 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-type Props = { width: number; depth: number; height: number };
+type Props = {
+  width: number;
+  depth: number;
+  height: number;
+  doorwayWidth?: number;
+  doorwayHeight?: number;
+  portalDiameter?: number;
+};
 
 const ORB_LAYOUT = [
   [-0.28, -0.12],
@@ -21,7 +28,7 @@ const HAZARD_LAYOUT = [
 type GameKeys = Set<string>;
 
 function GameWorld({
-  width, depth, height, keys, finished, onCollect, onHit, onTime, onFinish,
+  width, depth, height, doorwayWidth, doorwayHeight, portalDiameter, keys, finished, onCollect, onHit, onTime, onFinish,
 }: Props & {
   keys: React.MutableRefObject<GameKeys>;
   finished: boolean;
@@ -38,6 +45,9 @@ function GameWorld({
   const lastSecond = useRef(90);
   const ended = useRef(false);
   const { camera } = useThree();
+  const openingWidth = Math.min(doorwayWidth ?? width * 0.44, width - 2);
+  const openingHeight = Math.min(doorwayHeight ?? height - 0.6, height - 1);
+  const portalRadius = Math.max(0.8, Math.min((portalDiameter ?? 2.9) / 2, height * 0.32));
   const spawn = useRef(new THREE.Vector3(0, -depth * 0.34, 0.9));
   const orbPositions = useRef(ORB_LAYOUT.map(([x, y]) => new THREE.Vector3(width * x, depth * y, 1.15)));
   const hazardPositions = useRef(HAZARD_LAYOUT.map(([x, y]) => new THREE.Vector3(width * x, depth * y, 0.8)));
@@ -55,7 +65,7 @@ function GameWorld({
     lastSecond.current = 90;
     hitCooldown.current = 0;
     ended.current = false;
-  }, [width, depth]);
+  }, [width, depth, height, doorwayWidth, doorwayHeight, portalDiameter]);
 
   useFrame((_, delta) => {
     if (!player.current || finished || ended.current) return;
@@ -123,9 +133,9 @@ function GameWorld({
       <mesh position={[-width / 2, 0, height / 2]}><boxGeometry args={[0.6, depth, height]} /><meshStandardMaterial color="#1a2b42" /></mesh>
       <mesh position={[width / 2, 0, height / 2]}><boxGeometry args={[0.6, depth, height]} /><meshStandardMaterial color="#1a2b42" /></mesh>
       <mesh position={[0, -depth / 2, height / 2]}><boxGeometry args={[width, 0.6, height]} /><meshStandardMaterial color="#1a2b42" /></mesh>
-      <mesh position={[-width * 0.36, depth / 2, height / 2]}><boxGeometry args={[width * 0.28, 0.6, height]} /><meshStandardMaterial color="#1a2b42" /></mesh>
-      <mesh position={[width * 0.36, depth / 2, height / 2]}><boxGeometry args={[width * 0.28, 0.6, height]} /><meshStandardMaterial color="#1a2b42" /></mesh>
-      <mesh position={[0, depth / 2, height - 0.3]}><boxGeometry args={[width * 0.44, 0.6, 0.6]} /><meshStandardMaterial color="#1a2b42" /></mesh>
+      <mesh position={[-(openingWidth / 2 + (width - openingWidth) / 4), depth / 2, height / 2]}><boxGeometry args={[(width - openingWidth) / 2, 0.6, height]} /><meshStandardMaterial color="#1a2b42" /></mesh>
+      <mesh position={[(openingWidth / 2 + (width - openingWidth) / 4), depth / 2, height / 2]}><boxGeometry args={[(width - openingWidth) / 2, 0.6, height]} /><meshStandardMaterial color="#1a2b42" /></mesh>
+      {height - openingHeight > 0.1 && <mesh position={[0, depth / 2, (height + openingHeight) / 2]}><boxGeometry args={[openingWidth, 0.6, height - openingHeight]} /><meshStandardMaterial color="#1a2b42" /></mesh>}
       {ORB_LAYOUT.map(([x, y], index) => (
         <mesh key={index} ref={(mesh) => { orbMeshes.current[index] = mesh; }} position={[width * x, depth * y, 1.15]}>
           <icosahedronGeometry args={[0.48, 1]} />
@@ -139,8 +149,8 @@ function GameWorld({
         </group>
       ))}
       <group position={[0, depth * 0.37, 1.2]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[1.45, 0.18, 16, 48]} /><meshStandardMaterial color="#d8a45b" metalness={0.75} roughness={0.2} /></mesh>
-        <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[1.15, 0.07, 12, 48]} /><meshStandardMaterial color="#22d3ee" emissive="#0b9fcb" emissiveIntensity={2.4} /></mesh>
+        <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[portalRadius, 0.18, 16, 48]} /><meshStandardMaterial color="#d8a45b" metalness={0.75} roughness={0.2} /></mesh>
+        <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[Math.max(0.5, portalRadius - 0.3), 0.07, 12, 48]} /><meshStandardMaterial color="#22d3ee" emissive="#0b9fcb" emissiveIntensity={2.4} /></mesh>
       </group>
       <mesh ref={player} position={[0, -depth * 0.34, 0.9]} castShadow>
         <capsuleGeometry args={[0.42, 0.7, 6, 12]} />
@@ -167,11 +177,15 @@ export default function Playable3DGame({ width, depth, height }: Props) {
       }
     };
     const up = (event: KeyboardEvent) => keys.current.delete(event.key.toLowerCase());
+    const clearPressed = () => keys.current.clear();
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
+    window.addEventListener('blur', clearPressed);
     return () => {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
+      window.removeEventListener('blur', clearPressed);
+      clearPressed();
     };
   }, []);
 
@@ -201,7 +215,7 @@ export default function Playable3DGame({ width, depth, height }: Props) {
       <div style={{ height: 480, touchAction: 'none' }}>
         <Canvas key={session} camera={{ position: [0, -12, 8], up: [0, 0, 1], fov: 55 }}>
           <GameWorld
-            width={width} depth={depth} height={height} keys={keys} finished={Boolean(result)}
+            width={width} depth={depth} height={height} doorwayWidth={doorwayWidth} doorwayHeight={doorwayHeight} portalDiameter={portalDiameter} keys={keys} finished={Boolean(result)}
             onCollect={collect} onHit={hit} onTime={setSeconds} onFinish={finish}
           />
         </Canvas>
@@ -210,11 +224,11 @@ export default function Playable3DGame({ width, depth, height }: Props) {
         <span style={{ fontSize: 13, opacity: 0.85 }}>WASD / arrow keys · Touch: hold the direction pad · Collect all 5 cores, then enter the portal.</span>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 38px)', gridTemplateRows: 'repeat(2, 34px)', gap: 4 }}>
           <span />
-          <button onPointerDown={hold('w')} onPointerUp={release('w')} onPointerLeave={release('w')} aria-label="Move forward">↑</button>
+          <button onPointerDown={hold('w')} onPointerUp={release('w')} onPointerCancel={release('w')} onLostPointerCapture={release('w')} onPointerLeave={release('w')} aria-label="Move forward">↑</button>
           <span />
-          <button onPointerDown={hold('a')} onPointerUp={release('a')} onPointerLeave={release('a')} aria-label="Move left">←</button>
-          <button onPointerDown={hold('s')} onPointerUp={release('s')} onPointerLeave={release('s')} aria-label="Move backward">↓</button>
-          <button onPointerDown={hold('d')} onPointerUp={release('d')} onPointerLeave={release('d')} aria-label="Move right">→</button>
+          <button onPointerDown={hold('a')} onPointerUp={release('a')} onPointerCancel={release('a')} onLostPointerCapture={release('a')} onPointerLeave={release('a')} aria-label="Move left">←</button>
+          <button onPointerDown={hold('s')} onPointerUp={release('s')} onPointerCancel={release('s')} onLostPointerCapture={release('s')} onPointerLeave={release('s')} aria-label="Move backward">↓</button>
+          <button onPointerDown={hold('d')} onPointerUp={release('d')} onPointerCancel={release('d')} onLostPointerCapture={release('d')} onPointerLeave={release('d')} aria-label="Move right">→</button>
         </div>
         {result && <strong style={{ color: result === 'won' ? '#73f0bd' : '#ff8d9b' }}>{result === 'won' ? 'Level complete!' : 'Game over'}</strong>}
         <button onClick={restart} style={{ border: '1px solid #36cbe8', borderRadius: 8, padding: '8px 14px', color: '#7deaff', background: 'transparent', cursor: 'pointer' }}>Restart</button>
