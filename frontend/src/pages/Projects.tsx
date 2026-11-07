@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Container, Grid, Paper, Button, Box, Typography, Dialog, TextField, Alert, LinearProgress } from '@mui/material';
+import { Container, Grid, Paper, Button, Typography, Dialog, TextField, Alert, LinearProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import apiClient from '../services/api';
@@ -57,12 +57,12 @@ const Projects: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <Typography variant="h3">{t('pages.projects')}</Typography>
         <Button variant="contained" onClick={() => setOpenDialog(true)}>
           + {t('common.create')}
         </Button>
-      </Box>
+      </div>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {loading ? (
@@ -98,7 +98,7 @@ const Projects: React.FC = () => {
                     {new Date(project.createdAt).toLocaleDateString()}
                   </Typography>
 
-                  <Box sx={{ mt: 2 }}>
+                  <div style={{ marginTop: 16 }}>
                     <Typography variant="subtitle2">{t('projects.gameBuilds')}</Typography>
                     {gameJobs.length === 0 ? (
                       <Typography variant="caption" color="text.secondary">
@@ -108,26 +108,26 @@ const Projects: React.FC = () => {
                       gameJobs.map((job) => {
 
                         return (
-                          <Box
+                          <div
                             key={job.id}
-                            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mt: 1 }}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 8 }}
                           >
-                            <Box sx={{ minWidth: 0 }}>
+                            <div style={{ minWidth: 0 }}>
                               <Typography variant="body2" noWrap>
                                 {String(job.input.title || job.id)}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 {job.status}
                               </Typography>
-                            </Box>
-                          </Box>
+                            </div>
+                          </div>
                         );
                       })
                     )}
                     <Button size="small" component={Link} to="/jobs" sx={{ mt: 1 }}>
                       {t('projects.openJobs')}
                     </Button>
-                  </Box>
+                  </div>
                 </Paper>
               </Grid>
             );
@@ -136,7 +136,7 @@ const Projects: React.FC = () => {
       )}
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-        <Box sx={{ p: 3 }}>
+        <div style={{ padding: 24 }}>
           <Typography variant="h6" gutterBottom>
             Create Project
           </Typography>
@@ -156,15 +156,15 @@ const Projects: React.FC = () => {
             fullWidth
             sx={{ mb: 2 }}
           />
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             <Button variant="contained" onClick={handleCreateProject}>
               {t('common.save')}
             </Button>
             <Button variant="outlined" onClick={() => setOpenDialog(false)}>
               {t('common.close')}
             </Button>
-          </Box>
-        </Box>
+          </div>
+        </div>
       </Dialog>
     </Container>
   );
