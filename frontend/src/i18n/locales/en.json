@@ -385,6 +385,7 @@
     "playtestButton": "Play browser game",
     "playtestReturn": "Return to room preview",
     "playtestTitle": "Playable 3D browser test",
-    "playtestHelp": "Collect all five energy cores, avoid hazards, then enter the portal. Move with WASD or arrow keys; touch controls are available below."
+    "playtestHelp": "Collect all five energy cores, avoid hazards, then enter the portal. Move with WASD or arrow keys; touch controls are available below.",
+    "movementModeNote": "The current browser playtest uses third-person movement. First-person and top-down are saved as design metadata for the native UE5 path; matching controllers are not generated yet."
   }
 }
