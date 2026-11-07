@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { parsePlayableGameDefinition } from '../games/playableGame';
 import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Box, Typography, Chip, LinearProgress, Alert, Card, CardMedia } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
@@ -91,6 +93,9 @@ const Jobs: React.FC = () => {
                   ? manifestCandidate
                   : null;
                 const previewableManifest = job.type === 'game_build' ? manifest : null;
+                const playableGame = job.type === 'game_build'
+                  ? parsePlayableGameDefinition(job.result?.metadata?.playableGame)
+                  : null;
                 const artifact = job.result?.metadata?.artifact;
                 return (
                 <React.Fragment key={job.id}>
@@ -134,6 +139,15 @@ const Jobs: React.FC = () => {
                       >
                         {t('job.download')}
                       </a>
+                    )}
+                    {job.status === 'completed' && playableGame && (
+                      <Button
+                        size="small"
+                        component={Link}
+                        to={`/play/${encodeURIComponent(job.id)}`}
+                      >
+                        {t('jobs.playGame')}
+                      </Button>
                     )}
                   </TableCell>
                 </TableRow>
