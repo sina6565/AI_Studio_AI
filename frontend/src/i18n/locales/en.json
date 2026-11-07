@@ -381,6 +381,10 @@
     "roomBounds": "Room width and depth must be 12–80 m; height must be 4–30 m.",
     "doorWidthBounds": "The entrance must be at least 2.4 m wide and leave at least 1 m of wall on both sides.",
     "doorHeightBounds": "The entrance must be at least 2.5 m high and leave at least 1 m of wall above it.",
-    "portalBounds": "Portal diameter must be at least 2.5 m and fit inside the room."
+    "portalBounds": "Portal diameter must be at least 2.5 m and fit inside the room.",
+    "playtestButton": "Play browser game",
+    "playtestReturn": "Return to room preview",
+    "playtestTitle": "Playable 3D browser test",
+    "playtestHelp": "Collect all five energy cores, avoid hazards, then enter the portal. Move with WASD or arrow keys; touch controls are available below."
   }
 }
