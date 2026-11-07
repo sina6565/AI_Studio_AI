@@ -123,16 +123,17 @@ const Jobs: React.FC = () => {
                       </Button>
                     )}
                     {job.status === 'completed' && job.result?.contentUrl && (
-                      <Button
-                        size="small"
+                      <a
                         href={job.result.contentUrl}
-                        target={['website_build', 'game_3d_build'].includes(job.type) ? undefined : '_blank'}
-                        download={['website_build', 'game_3d_build'].includes(job.type)
+                        target={job.type === 'website_build' || job.type === 'game_3d_build' ? undefined : '_blank'}
+                        rel="noreferrer"
+                        download={job.type === 'website_build' || job.type === 'game_3d_build'
                           ? (typeof job.result.metadata?.filename === 'string' ? job.result.metadata.filename : job.type === 'game_3d_build' ? 'sina-unreal-project.zip' : 'website.html')
                           : undefined}
+                        style={{ display: 'inline-block', padding: '6px 10px', borderRadius: 6, color: '#22d3ee', textDecoration: 'none', fontWeight: 600, fontSize: 13 }}
                       >
                         {t('job.download')}
-                      </Button>
+                      </a>
                     )}
                   </TableCell>
                 </TableRow>
