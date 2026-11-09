@@ -7,6 +7,7 @@ import { AppError } from '../../types/errors';
 import logger from '../../utils/logger';
 import { JobPriority } from '../../types';
 import { isGameJobType } from '../../game/types';
+import { game3DBuildInputSchema } from '../../game3d/types';
 
 interface CreateJobInput {
   type: string;
@@ -21,9 +22,13 @@ router.use(authenticateToken);
 router.post('/', async (req: AuthenticatedRequest, res, next) => {
   try {
     const input = validateWithSchema<CreateJobInput>(req.body, schemas.createJob);
-    if (isGameJobType(input.type)) {
+    if (input.type === 'game_3d_preview' || input.type === 'game_3d_build') {
+      validateWithSchema(input.input, game3DBuildInputSchema, 'Invalid UE5 room build');
+    } else if (isGameJobType(input.type)) {
       // Fail fast with a field-level message instead of a provider error later.
       validateWithSchema(input.input, schemas.gameSpec);
+    } else if (input.type === 'website_build') {
+      validateWithSchema(input.input, schemas.websiteSpec);
     }
     const userId = req.user!.userId;
     if (input.projectId) {

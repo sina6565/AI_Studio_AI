@@ -1,26 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Box, Typography, Chip, LinearProgress, Alert, Card, CardMedia } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import apiClient from '../services/api';
 import { parsePlayableGameDefinition } from '../games/playableGame';
+import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Typography, Chip, LinearProgress, Alert, Card, CardMedia } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import apiClient from '../services/api';
 import { Job } from '../types';
 import SceneViewerPreviewDialog, {
   isSceneViewerPreviewManifest,
   safePreviewImageUrl,
   SceneViewerPreviewManifest,
 } from '../components/games/SceneViewerPreviewDialog';
-
-function getApiErrorMessage(error: unknown): string | undefined {
-  if (!error || typeof error !== 'object' || !('response' in error)) return undefined;
-  const response = error.response;
-  if (!response || typeof response !== 'object' || !('data' in response)) return undefined;
-  const data = response.data;
-  if (!data || typeof data !== 'object' || !('error' in data)) return undefined;
-  const payload = data.error;
-  if (!payload || typeof payload !== 'object' || !('message' in payload)) return undefined;
-  return typeof payload.message === 'string' ? payload.message : undefined;
-}
 
 const Jobs: React.FC = () => {
   const { t } = useTranslation();
@@ -60,10 +49,7 @@ const Jobs: React.FC = () => {
     }
   };
 
-  const handleBuildPlayableGame = async (
-    sourceJob: Job,
-    manifest: SceneViewerPreviewManifest,
-  ) => {
+  const handleBuildPlayableGame = async (sourceJob: Job, manifest: SceneViewerPreviewManifest) => {
     setError(null);
     setBuildNotice(null);
     setBuildingJobId(sourceJob.id);
@@ -77,8 +63,8 @@ const Jobs: React.FC = () => {
       } else {
         setError(t('creation.gameQueuedFailed'));
       }
-    } catch (err: unknown) {
-      setError(getApiErrorMessage(err) || t('creation.gameQueuedFailed'));
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || t('creation.gameQueuedFailed'));
     } finally {
       setBuildingJobId(null);
     }
@@ -145,17 +131,17 @@ const Jobs: React.FC = () => {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{job.type}</TableCell>
+                  <TableCell>{job.type === 'website_build' ? t('jobs.websiteBuild') : job.type === 'game_3d_preview' ? t('jobs.ue5Preview') : job.type === 'game_3d_build' ? t('jobs.ue5Build') : job.type}</TableCell>
                   <TableCell>
                     {job.progress && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <LinearProgress
                           variant="determinate"
                           value={job.progress.percentage}
                           sx={{ flex: 1 }}
                         />
                         <Typography variant="body2">{job.progress.percentage}%</Typography>
-                      </Box>
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>{new Date(job.createdAt).toLocaleString()}</TableCell>
@@ -166,9 +152,17 @@ const Jobs: React.FC = () => {
                       </Button>
                     )}
                     {job.status === 'completed' && job.result?.contentUrl && (
-                      <Button size="small" href={job.result.contentUrl} target="_blank">
+                      <a
+                        href={job.result.contentUrl}
+                        target={job.type === 'website_build' || job.type === 'game_3d_build' ? undefined : '_blank'}
+                        rel="noreferrer"
+                        download={job.type === 'website_build' || job.type === 'game_3d_build'
+                          ? (typeof job.result.metadata?.filename === 'string' ? job.result.metadata.filename : job.type === 'game_3d_build' ? 'sina-unreal-project.zip' : 'website.html')
+                          : undefined}
+                        style={{ display: 'inline-block', padding: '6px 10px', borderRadius: 6, color: '#22d3ee', textDecoration: 'none', fontWeight: 600, fontSize: 13 }}
+                      >
                         {t('job.download')}
-                      </Button>
+                      </a>
                     )}
                     {job.status === 'completed' && playableGame && (
                       <Button
@@ -181,7 +175,7 @@ const Jobs: React.FC = () => {
                     )}
                   </TableCell>
                 </TableRow>
-                {(job.error?.message || manifest) && (
+                {(job.error?.message || manifest || job.type === 'website_build' && job.status === 'completed' || ['game_3d_preview', 'game_3d_build'].includes(job.type) && job.status === 'completed') && (
                   <TableRow>
                     <TableCell colSpan={5} sx={{ bgcolor: '#fafafa' }}>
                       {job.error?.message && (
@@ -189,14 +183,29 @@ const Jobs: React.FC = () => {
                           {job.error.code}: {job.error.message}
                         </Alert>
                       )}
+                      {job.type === 'website_build' && job.status === 'completed' && (
+                        <Alert severity="success" sx={{ mb: 1 }}>
+                          {t('jobs.websiteReady')}: {String(job.result?.metadata?.filename || 'website.html')}
+                        </Alert>
+                      )}
+                      {job.type === 'game_3d_preview' && job.status === 'completed' && (
+                        <Alert severity="success" sx={{ mb: 1 }}>
+                          {t('jobs.ue5PreviewReady')} — {String(job.result?.format || 'image/png')}
+                        </Alert>
+                      )}
+                      {job.type === 'game_3d_build' && job.status === 'completed' && (
+                        <Alert severity="success" sx={{ mb: 1 }}>
+                          {t('jobs.ue5BuildReady')} — {String(job.result?.metadata?.engine || 'Unreal Engine 5')}
+                        </Alert>
+                      )}
                       {manifest && (
-                        <Box>
+                        <div>
                           <Typography variant="subtitle2">
                             {t('game.manifest')}: {manifest.title} — {manifest.assetCount}{' '}
                             {t('game.assets')}, {manifest.scenes?.length || 0}{' '}
                             {t('game.scenes')}
                           </Typography>
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                             {manifest.scenes.map((scene) => {
                               const imageUrl = safePreviewImageUrl(scene.imageUrl);
                               return imageUrl ? (
@@ -207,13 +216,13 @@ const Jobs: React.FC = () => {
                                     image={imageUrl}
                                     alt={scene.name}
                                   />
-                                  <Box sx={{ p: 0.5 }}>
+                                  <div style={{ padding: 4 }}>
                                     <Typography variant="caption">{scene.name}</Typography>
-                                  </Box>
+                                  </div>
                                 </Card>
                               ) : null;
                             })}
-                          </Box>
+                          </div>
                           {job.type === 'game_creation' && job.status === 'completed' && (
                             <Button
                               size="small"
@@ -222,21 +231,19 @@ const Jobs: React.FC = () => {
                               disabled={buildingJobId === job.id}
                               onClick={() => handleBuildPlayableGame(job, manifest)}
                             >
-                              {buildingJobId === job.id
-                                ? t('common.loading')
-                                : t('jobs.buildPlayableGame')}
+                              {buildingJobId === job.id ? t('common.loading') : t('jobs.buildPlayableGame')}
                             </Button>
                           )}
-                        </Box>
+                        </div>
                       )}
                       {artifact && (
-                        <Box sx={{ mt: manifest ? 2 : 0 }}>
+                        <div style={{ marginTop: manifest ? 16 : 0 }}>
                           <Typography variant="subtitle2">{t('jobs.artifact')}</Typography>
                           <Typography variant="caption" color="text.secondary" display="block">
                             {artifact.filename} &middot; {artifact.format} &middot;{' '}
                             {artifact.sceneCount} {t('game.scenes')}
                           </Typography>
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                             <Button
                               size="small"
                               variant="contained"
@@ -256,7 +263,7 @@ const Jobs: React.FC = () => {
                                 {t('jobs.previewSceneViewer')}
                               </Button>
                             )}
-                          </Box>
+                          </div>
                           <Typography
                             variant="caption"
                             color="text.secondary"
@@ -266,9 +273,8 @@ const Jobs: React.FC = () => {
                             {t('jobs.artifactHint')}
                           </Typography>
                           <Typography variant="caption" color="text.secondary" display="block">
-                            {t('jobs.gameplayNote')}
                           </Typography>
-                        </Box>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>

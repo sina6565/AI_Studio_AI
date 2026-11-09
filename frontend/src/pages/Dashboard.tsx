@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, Paper, Box, Typography, Card, CardContent, LinearProgress, Alert, Button } from '@mui/material';
+import { Container, Grid, Paper, Typography, Card, CardContent, LinearProgress, Alert, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
@@ -53,14 +53,14 @@ const Dashboard: React.FC = () => {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       {user && (
-        <Box sx={{ mb: 4 }}>
+        <div style={{ marginBottom: 32 }}>
           <Typography variant="h4" gutterBottom>
             {t('app.subtitle')}
           </Typography>
           <Typography variant="body1" color="textSecondary">
             {t('auth.email')}: {user.email}
           </Typography>
-        </Box>
+        </div>
       )}
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -114,25 +114,24 @@ const Dashboard: React.FC = () => {
           <Typography color="textSecondary">No jobs yet</Typography>
         ) : (
           jobs.slice(0, 5).map((job) => (
-            <Box
+            <div
               key={job.id}
-              sx={{
-                py: 1.5,
-                px: 1,
+              style={{
+                padding: '12px 8px',
                 borderBottom: '1px solid #eee',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
               }}
             >
-              <Box>
+              <div>
                 <Typography variant="body2" fontWeight="500">
                   {job.type}
                 </Typography>
                 <Typography variant="caption" color="textSecondary">
                   {new Date(job.createdAt).toLocaleString()}
                 </Typography>
-              </Box>
+              </div>
               <Typography
                 variant="body2"
                 sx={{
@@ -149,7 +148,7 @@ const Dashboard: React.FC = () => {
               >
                 {job.status}
               </Typography>
-            </Box>
+            </div>
           ))
         )}
         <Button fullWidth sx={{ mt: 2 }} onClick={() => navigate('/jobs')}>

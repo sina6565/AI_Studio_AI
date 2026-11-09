@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "benchmarkId": "sina-ue5-room-assets-v1",
+  "status": "planned",
+  "sameInputRequired": true,
+  "paidCallsEnabled": false,
+  "candidates": [
+    {"id":"meshy-7.1","provider":"meshy","task":"image-to-3d","geometryModel":"meshy-7.1","textureModel":"meshy-7","paid":true,"enabled":false,"class":"hero_asset"},
+    {"id":"meshy-t2.5","provider":"meshy","task":"image-to-3d","geometryModel":"meshy-t2.5","textureModel":"meshy-n1","paid":true,"enabled":false,"class":"game_ready_asset"},
+    {"id":"meshy-t2","provider":"meshy","task":"image-to-3d","geometryModel":"meshy-t2","textureModel":"meshy-n1","paid":true,"enabled":false,"class":"modular_props"},
+    {"id":"hunyuan3d-2mini","provider":"self_hosted","task":"image-to-3d","geometryModel":"tencent/Hunyuan3D-2mini","textureModel":null,"paid":false,"enabled":false,"class":"general_asset","hardwareGate":"gpu_vram_and_cuda_verified"},
+    {"id":"trellis-image-large","provider":"self_hosted","task":"image-to-3d","geometryModel":"microsoft/TRELLIS-image-large","textureModel":null,"paid":false,"enabled":false,"class":"general_asset","hardwareGate":"nvidia_gpu_16gb_vram_linux"}
+  ],
+  "scoring": {
+    "silhouetteFidelity": 20,
+    "geometryCompleteness": 15,
+    "topologyAndPolyBudget": 15,
+    "uvMaterialsPbr": 10,
+    "scalePivotAttachment": 10,
+    "collisionNavigation": 10,
+    "ue5ImportRuntime": 10,
+    "latencyReproducibility": 5,
+    "costDeploymentFit": 5
+  },
+  "results": [],
+  "winnerByAssetClass": {}
+}

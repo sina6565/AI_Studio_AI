@@ -206,6 +206,8 @@ describe('GameService.buildGame', () => {
     expect(build.manifest.scenes).toHaveLength(validSpec.scenes.length);
     expect(build.playableGame.schemaVersion).toBe(1);
     expect(build.playableGame.world.layout.join('')).toContain('P');
+    expect(build.playableGame.world.layout.join('')).toContain('C');
+    expect(Object.keys(build).sort()).toEqual(['dataUrl', 'filename', 'html', 'manifest', 'playableGame', 'size'].sort());
   });
 
   it('embeds the generated scene images in the viewer', async () => {

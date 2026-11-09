@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
   Grid,
   Paper,
   TextField,
   Button,
-  Box,
   Typography,
   ToggleButton,
   ToggleButtonGroup,
@@ -280,7 +279,7 @@ const Studio: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               {t('creation.selectType')}
             </Typography>
-            <Box sx={{ mb: 3 }}>
+            <div style={{ marginBottom: 24 }}>
               <ToggleButtonGroup
                 value={contentType}
                 exclusive
@@ -293,7 +292,7 @@ const Studio: React.FC = () => {
                 <ToggleButton value="speech">TTS</ToggleButton>
                 <ToggleButton value="game">{t('creation.game')}</ToggleButton>
               </ToggleButtonGroup>
-            </Box>
+            </div>
 
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
@@ -314,7 +313,7 @@ const Studio: React.FC = () => {
                 <ToggleButtonGroup
                   value={gameMode}
                   exclusive
-                  onChange={(_e, value) => value && setGameMode(value)}
+                  onChange={(_event, value) => value && setGameMode(value)}
                   size="small"
                   disabled={loading}
                 >
@@ -322,11 +321,13 @@ const Studio: React.FC = () => {
                   <ToggleButton value="build">{t('creation.gameModeBuild')}</ToggleButton>
                 </ToggleButtonGroup>
                 <Typography variant="caption" color="text.secondary">
-                  {t(
-                    gameMode === 'build'
-                      ? 'creation.gameModeBuildHint'
-                      : 'creation.gameModeCreateHint',
-                  )}
+                  {t(gameMode === 'build' ? 'creation.gameModeBuildHint' : 'creation.gameModeCreateHint')}
+                </Typography>
+                <Button component={RouterLink} to="/studio/3d" variant="outlined" color="secondary" fullWidth>
+                  {t('creation.open3DBuilder')}
+                </Button>
+                <Typography variant="caption" color="text.secondary">
+                  {t('creation.gameModeCreateHint')}
                 </Typography>
                 <TextField
                   label={t('creation.gameTitle')}
@@ -410,7 +411,7 @@ const Studio: React.FC = () => {
                         inputProps={{ maxLength: 2000 }}
                       />
                       {scenes.length > 1 && (
-                        <Box>
+                        <div>
                           <Button
                             size="small"
                             color="error"
@@ -419,17 +420,17 @@ const Studio: React.FC = () => {
                           >
                             {t('creation.removeScene')}
                           </Button>
-                        </Box>
+                        </div>
                       )}
                     </Stack>
                   </Paper>
                 ))}
 
-                <Box>
+                <div>
                   <Button onClick={addScene} disabled={loading || scenes.length >= MAX_SCENES}>
                     {t('creation.addScene')}
                   </Button>
-                </Box>
+                </div>
               </Stack>
             ) : (
               <TextField
