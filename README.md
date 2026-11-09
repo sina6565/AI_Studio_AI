@@ -192,3 +192,47 @@ Do not infer that an optional service, tool, provider, or framework is installed
 **Status: active development; production readiness not established by this README.**
 
 This document intentionally separates existing architecture, optional proposals, and unverified release work. Update it as implementation changes are merged and verified.
+
+## Test & Verification Report (2026-11-09)
+
+This section records **test cases actually reported by the latest successful GitHub Actions CI run**, and keeps older agent-reported/external checks separate. Counts are per executed test case in the referenced run; they are not cumulative lifetime totals and do not count build/type-check jobs as test cases.
+
+### Latest verified GitHub Actions run
+
+- **Repository / branch:** `sina6565/AI_Studio_AI` / `main`
+- **Commit:** `cdd7b99eae5a7c445d53e9957812446c8a15d740`
+- **CI run:** [Run #42635882064](https://github.com/sina6565/AI_Studio_AI/actions/runs/42635882064)
+- **Result:** 4/4 CI jobs passed; 149/149 test cases passed.
+
+| Test area | Test suites/files | Executed tests | Passed | Failed |
+|---|---:|---:|---:|---:|
+| Backend (Jest) | 18 suites | 119 | 119 | 0 |
+| Frontend (Vitest) | 8 files | 25 | 25 | 0 |
+| UE5 worker contract (Python unittest) | 1 test module | 5 | 5 | 0 |
+| **Total** | **27** | **149** | **149** | **0** |
+
+The same run also passed the backend build, frontend type-check/build, mobile TypeScript type-check, UE5 worker Python syntax compilation, and the worker approval-gate test job. These are successful CI checks, but build/type-check steps are not added to the 149 test-case count.
+
+### Historical checks reported outside the current GitHub Actions run
+
+The repository's [Cinematic Universe Verification Record](./docs/release/CINEMATIC-UNIVERSE-VERIFICATION-RECORD.md) preserves an implementation-agent report dated 2026-10-20:
+
+| Reported area | Reported checks |
+|---|---:|
+| Frontend tests | 5/5 passed |
+| Backend tests | 90/90 passed |
+| Mobile | 3 checks reported passed (type-check, lint, tests; test-case count not supplied) |
+| **Historical reported test cases** | **95/95 passed** |
+
+**Evidence qualification:** these 95 historical test cases are agent-reported project history, not raw logs from the current GitHub Actions run. The record also reports a live full-stack preview and desktop/mobile visual review as passed, but supplies no count of individual assertions or scenarios. They are therefore recorded separately and are **not added** to the latest 149-test CI total. The report's 3 mobile checks are not counted as three test cases.
+
+### Tests and runs outside GitHub
+
+No independently accessible test-run logs or result exports from external environments (for example local machines, Replit, Base44, Lovable, or other hosted previews) were available during this audit. Their test totals and pass counts are therefore **unknown / not independently verified** and must not be represented as zero or as successful. Add each external run only when its platform, date, commit/build identifier, executed test count, passed/failed count, and evidence link or log are supplied.
+
+### Scope and limitations
+
+- The 149/149 figure is the exact test-case count from the latest successful CI run above, not a claim that every feature or every historical run has passed.
+- CI tests do not prove live Agnes/provider calls, production deployment, external service connectivity, a real Blender render, UE5 editor import, playable native-engine gameplay, or packaged game output.
+- Earlier failed or cancelled runs remain part of repository history; the latest main-branch CI result is the successful run linked above.
+- Keep external/manual test evidence separate from automated CI, and never add overlapping historical runs together as if they were unique tests.
