@@ -236,3 +236,30 @@ No independently accessible test-run logs or result exports from external enviro
 - CI tests do not prove live Agnes/provider calls, production deployment, external service connectivity, a real Blender render, UE5 editor import, playable native-engine gameplay, or packaged game output.
 - Earlier failed or cancelled runs remain part of repository history; the latest main-branch CI result is the successful run linked above.
 - Keep external/manual test evidence separate from automated CI, and never add overlapping historical runs together as if they were unique tests.
+
+### Full CI pipeline and process checks — latest run on this README commit
+
+The latest CI execution on commit `42ca33c242c9513c3c7196d4c4e4199bb8146927` is [Run #42669544900](https://github.com/sina6565/AI_Studio_AI/actions/runs/42669544900). All four jobs completed successfully:
+
+| Pipeline job | Process/checks executed | Result |
+|---|---|---|
+| Backend (build + tests) | Locked dependency install (`npm ci`), TypeScript type-check/build (`npm run build`), Jest test suite | Passed; 18 suites / 119 tests |
+| Frontend (build) | Locked dependency install, type-check/build (`npm run build`), Vitest tests (`npm test -- --run`) | Passed; 8 files / 25 tests |
+| Mobile (type-check) | Locked dependency install (`npm ci --legacy-peer-deps`), TypeScript type-check (`npm run type-check`) | Passed; no separate mobile test-case count is configured in this workflow |
+| UE5 worker (Python syntax + gate tests) | Python 3.12 setup, `py_compile` for worker scripts, Python unittest discovery for approval gates | Passed; 5 tests |
+
+**Current CI test-case total: 149 passed, 0 failed.** The four jobs also include dependency installation, builds, type-checks, and syntax validation; those process checks are recorded above but are not added to the 149 test cases.
+
+### Repository security and code-scanning workflows
+
+These are separate from the 149 application/worker test cases and must not be added to that count.
+
+| Workflow | Latest observed run on commit `42ca33c` | Status at audit time |
+|---|---|---|
+| Secret scan / Gitleaks | [Run #42669545052](https://github.com/sina6565/AI_Studio_AI/actions/runs/42669545052) | Passed |
+| Microsoft Defender for DevOps | [Run #42669545114](https://github.com/sina6565/AI_Studio_AI/actions/runs/42669545114) | In progress; not counted as passed |
+| GitHub CodeQL code scanning | [Run #42669543933](https://github.com/sina6565/AI_Studio_AI/actions/runs/42669543933) | JavaScript/TypeScript analysis still in progress at audit time; Python and Actions analysis jobs passed |
+
+### Explicit coverage boundaries
+
+The current CI workflow does **not** define separate automated test jobs for live API/provider integration, MongoDB/Redis production connectivity, full browser/device E2E, mobile runtime/UI tests, deployment smoke tests, live Agnes generation, Blender rendering, Unreal Editor import, or packaged/playable UE5 game validation. These areas must remain marked **not covered by this CI run**, unless separate external evidence is added. A successful build or worker contract test is not proof of an end-to-end engine/gameplay test.
