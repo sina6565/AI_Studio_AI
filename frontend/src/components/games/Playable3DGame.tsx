@@ -160,7 +160,7 @@ function GameWorld({
   );
 }
 
-export default function Playable3DGame({ width, depth, height }: Props) {
+export default function Playable3DGame({ width, depth, height, doorwayWidth, doorwayHeight, portalDiameter }: Props) {
   const keys = useRef<GameKeys>(new Set());
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
