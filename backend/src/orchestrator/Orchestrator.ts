@@ -306,6 +306,12 @@ export class Orchestrator {
       } else {
         if (!provider) throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
         switch (job.type) {
+        case JobType.TEXT_GENERATION:
+          job.progress = { percentage: 30, stage: 'generating_text' };
+          await job.save();
+          output = await (provider as any).generateText(job.input as any);
+          break;
+
         case JobType.IMAGE_GENERATION:
           job.progress = { percentage: 30, stage: 'generating_image' };
           await job.save();
