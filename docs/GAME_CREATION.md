@@ -1,60 +1,40 @@
-# Game Scene Creation
+# Game Creation
 
-SINA AI STUDIO currently supports creation of game concepts as scene manifests
-and generated visual assets. It also supports a standalone HTML scene viewer.
-This workflow is an asset and scene-preview pipeline, not a playable game
-runtime.
+SINA AI STUDIO has three distinct game workflows. Keep their outputs and readiness claims separate.
 
-## Workflow
+## 1. Scene concept and asset generation
 
-1. In Studio, enter an original game title, description, genre, art style, and
-   one or more scene descriptions.
-2. Submit the game creation job and optionally attach it to a project.
-3. The configured image-generation provider creates the scene artwork.
-4. Open the completed job to inspect the scene manifest, preview individual
-   scenes, or download the standalone HTML scene viewer.
+The authenticated `game_creation` job validates a game concept, routes scene-art requests through the existing provider abstraction, and stores a versioned scene manifest with generated image assets.
 
-## API shape
+The workflow accepts an original title, description, genre, art style and one or more scene descriptions. It does not fabricate assets: provider errors are surfaced as job failures.
 
-The authenticated `POST /api/v1/jobs` endpoint accepts a game-creation spec:
+## 2. Browser-playable 2D game
 
-```json
-{
-  "type": "game_creation",
-  "projectId": "507f1f77bcf86cd799439011",
-  "input": {
-    "title": "Original Project",
-    "description": "A short description of the original game concept.",
-    "genre": "adventure",
-    "artStyle": "stylised",
-    "scenes": [
-      { "name": "Opening Scene", "description": "Describe the original setting." }
-    ]
-  }
-}
-```
+The authenticated `game_build` workflow can create a deterministic, schema-validated Phaser 4.2.1 game definition from a game spec or reuse an existing scene manifest. The current playable definition includes:
+- A 20 × 15 tile map with validated outer walls and reachable objectives.
+- Player start, exit, collectibles and hazards.
+- Allow-listed movement, score, lives, timer, win and loss rules.
+- A browser runtime rendered by `PhaserPlayableGameCanvas`.
 
-The optional `projectId` is checked against the authenticated user's project.
-The job result stores the scene manifest and links to its generated assets.
+After a completed `game_build` job, the protected route `/play/:jobId` loads `result.metadata.playableGame` and starts the Phaser runtime. The job also returns a standalone HTML scene viewer; that viewer is a visual scene presentation and should not be confused with the Phaser playable route.
 
-A `game_build` job can reuse a previously generated scene manifest without
-calling an image provider again. It produces only the neutral HTML scene viewer.
-It does not add gameplay rules, scoring, collectibles, hazards, win/loss logic,
-or a playable Phaser runtime.
+Relevant implementation:
+- `backend/src/game/GameService.ts`
+- `backend/src/game/PlayableGameDefinition.ts`
+- `frontend/src/games/playableGame.ts`
+- `frontend/src/components/games/PhaserPlayableGameCanvas.tsx`
+- `frontend/src/pages/PlayableGamePage.tsx`
 
-## Native 3D room creation
+The current 2D game is a deterministic collection-game prototype, not yet a general-purpose authoring system for arbitrary mechanics, multiplayer or native packaged games. User-editable mechanics, level editor, broader genre templates and mobile touch-control acceptance remain follow-up work.
 
-For parametric Unreal Engine 5 room authoring, use the protected **3D Game Lab** at `/studio/3d`. Its separate `game_3d_preview` and `game_3d_build` jobs use Blender and the self-hosted UE5 worker. See [3D_GAME_ROOM_PIPELINE.md](./3D_GAME_ROOM_PIPELINE.md). This is separate from scene-image generation and the HTML scene viewer described above.
+## 3. Native 3D room authoring and UE5 project export
 
-## Product boundary
+For parametric Unreal Engine 5 room authoring, use the protected **3D Game Lab** at `/studio/3d`. Its separate `game_3d_preview` and `game_3d_build` jobs use Blender and the self-hosted UE5 worker. See [3D_GAME_ROOM_PIPELINE.md](./3D_GAME_ROOM_PIPELINE.md).
 
-The commercial SINA AI STUDIO codebase must contain only original game concepts,
-mechanics, names, art direction, and implementation. Do not add third-party
-gameplay, assets, names, or documentation unless their commercial-use rights
-have been verified and approved.
+This workflow creates a procedural room and UE5 source-project package behind explicit Function/Form approval gates. A room render or project ZIP is not proof of a fully playable 3D game. Actual Blender/UE5 worker execution, character/controller validation, collision/navigation, gameplay interactions, runtime playtesting, packaged executables and mobile builds must be verified on a real configured worker before production-readiness claims.
 
-## Current limits
+## Product and licensing boundary
 
-The scene viewer is a visual preview and is not a playable game. Generic
-playable-game authoring, user-defined mechanics, a full 3D runtime, multiplayer,
-and packaged native engine exports are not implemented by this workflow.
+The commercial SINA AI STUDIO codebase must contain original game concepts, mechanics, names, art direction and implementation. Third-party gameplay, models, weights, datasets, textures and documentation require independent commercial-use rights review. Source-code license and model-weight license are separate checks.
+
+The UE5 room pipeline is free-only by default. Do not invoke paid asset generation, hosted GPU services or subscriptions without separate explicit owner approval.
