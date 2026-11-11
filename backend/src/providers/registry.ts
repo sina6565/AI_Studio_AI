@@ -1,5 +1,6 @@
 import logger from '../utils/logger';
 import { AgnesProvider } from './agnes/AgnesProvider';
+import { OpenRouterProvider } from './openrouter/OpenRouterProvider';
 import { IProvider } from './interfaces/IProvider';
 
 class ProviderRegistry {
@@ -26,6 +27,23 @@ class ProviderRegistry {
           logger.info('[ProviderRegistry] Agnes provider initialized successfully');
         } else {
           logger.warn('[ProviderRegistry] Agnes provider credentials validation failed');
+        }
+      }
+
+      if (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_ENABLED !== 'false') {
+        const openrouter = new OpenRouterProvider();
+        await openrouter.initialize({
+          name: 'openrouter',
+          apiKey: process.env.OPENROUTER_API_KEY,
+          apiUrl: process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1',
+          timeout: Number(process.env.OPENROUTER_TIMEOUT || 180000),
+          models: { text: process.env.OPENROUTER_MODEL || 'openrouter/auto' },
+        });
+        if (await openrouter.validateCredentials()) {
+          this.providers.set('openrouter', openrouter);
+          logger.info('[ProviderRegistry] OpenRouter multimodal provider initialized');
+        } else {
+          logger.warn('[ProviderRegistry] OpenRouter key validation failed; provider not registered');
         }
       }
 
