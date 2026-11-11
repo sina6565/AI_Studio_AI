@@ -39,10 +39,35 @@ describe('local website builder', () => {
     expect(html).not.toContain('<script>alert(1)</script>');
   });
 
+  it('renders user-defined sections and SEO metadata safely', () => {
+    const html = renderWebsiteHtml({
+      ...validSpec,
+      name: 'SINA <Studio>',
+      features: [
+        { title: 'Build websites', description: 'Create responsive pages.' },
+        { title: 'Game design', description: 'Prototype playable worlds.' },
+      ],
+    });
+
+    expect(html).toContain('<title>SINA &lt;Studio&gt; — From an idea to a universe</title>');
+    expect(html).toContain('property="og:title"');
+    expect(html).toContain('name="robots" content="index,follow"');
+    expect(html).toContain('"@type":"WebSite"');
+    expect(html).toContain('<h3>Build websites</h3><p>Create responsive pages.</p>');
+    expect(html).toContain('<h3>Game design</h3><p>Prototype playable worlds.</p>');
+  });
+
   it('supports Persian right-to-left output', () => {
     const html = renderWebsiteHtml({ ...validSpec, language: 'fa' });
     expect(html).toContain('<html lang="fa" dir="rtl">');
     expect(html).toContain('ارتباط');
+  });
+
+  it('rejects more than six custom sections', () => {
+    expect(() => buildWebsite({
+      ...validSpec,
+      features: Array.from({ length: 7 }, (_, index) => ({ title: `Section ${index}`, description: 'Details' })),
+    })).toThrow();
   });
 
   it('rejects invalid emails and unknown fields', () => {
