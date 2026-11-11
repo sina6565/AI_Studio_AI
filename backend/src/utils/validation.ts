@@ -93,6 +93,10 @@ export const schemas = {
     palette: z.enum(['midnight', 'light', 'ocean']),
     language: z.enum(['en', 'fa']),
     contactEmail: z.string().trim().email().max(254).optional().or(z.literal('')),
+    features: z.array(z.object({
+      title: z.string().trim().min(1).max(100),
+      description: z.string().trim().min(1).max(500),
+    }).strict()).max(6).optional(),
   }).strict(),
 
   // User registration schema
