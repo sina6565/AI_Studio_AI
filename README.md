@@ -263,3 +263,14 @@ These are separate from the 149 application/worker test cases and must not be ad
 ### Explicit coverage boundaries
 
 The current CI workflow does **not** define separate automated test jobs for live API/provider integration, MongoDB/Redis production connectivity, full browser/device E2E, mobile runtime/UI tests, deployment smoke tests, live Agnes generation, Blender rendering, Unreal Editor import, or packaged/playable UE5 game validation. These areas must remain marked **not covered by this CI run**, unless separate external evidence is added. A successful build or worker contract test is not proof of an end-to-end engine/gameplay test.
+
+
+## Ownership, proprietary rights, and repository access
+
+- **Project owner and rights holder designated by the project owner:** ام صفرپور.
+- **Sole designated GitHub owner account:** [`sina6565`](https://github.com/sina6565). The repository is maintained under this account; do not describe another person or account as a co-owner or rights holder unless the project owner explicitly authorizes that change in writing.
+- **Repository:** [`sina6565/AI_Studio_AI`](https://github.com/sina6565/AI_Studio_AI), default branch: `main`.
+- **Code and materials:** SINA AI STUDIO's original code, architecture, documentation, designs, branding, and original assets are proprietary, subject to the rights of their applicable owners and the separate terms of third-party components. See the root `LICENSE` notice. Repository access does not grant a public license to reuse or redistribute proprietary materials.
+- **Access policy:** The intended repository visibility is **Private**. Only the designated owner and collaborators explicitly authorized by that owner should have access. Do not infer or grant ownership from write, maintain, or administrative access alone.
+- **Product capability protection:** Changing GitHub repository visibility from Public to Private is an access-control and source-confidentiality measure only. It must not remove, disable, downgrade, hide, or otherwise restrict any SINA AI STUDIO feature, API, provider adapter, Orchestrator, Agent, workflow, user entitlement, or runtime capability. Preserve the existing implementation and deployment behavior. If a GitHub-hosted service or workflow has a plan-dependent visibility restriction, document and resolve that separately without reducing SINA product functionality.
+- **Verification:** Repository visibility and collaborator permissions must be checked in GitHub repository settings after the owner applies the Private setting. Do not report the repository as Private until GitHub confirms the change.
