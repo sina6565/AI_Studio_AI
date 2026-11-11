@@ -138,7 +138,7 @@ const WebsiteBuilder: React.FC = () => {
     setLoading(true);
     setStatus(t.submitting);
     try {
-      const features = featuresText.split('\\n').map((line) => line.trim()).filter(Boolean).map((line) => {
+      const features = featuresText.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => {
         const separator = line.indexOf('|');
         return separator < 0
           ? { title: line, description: brief.trim() }
