@@ -8,6 +8,10 @@ export const websiteBuildSpecSchema = z.object({
   palette: z.enum(['midnight', 'light', 'ocean']),
   language: z.enum(['en', 'fa']),
   contactEmail: z.string().trim().email().max(254).optional().or(z.literal('')),
+  features: z.array(z.object({
+    title: z.string().trim().min(1).max(100),
+    description: z.string().trim().min(1).max(500),
+  }).strict()).max(6).optional(),
 }).strict();
 
 export type WebsiteBuildSpec = z.infer<typeof websiteBuildSpecSchema>;
@@ -78,10 +82,20 @@ export function renderWebsiteHtml(input: WebsiteBuildSpec): string {
   const tagline = escapeHtml(spec.tagline);
   const description = escapeHtml(spec.description);
   const email = spec.contactEmail ? escapeHtml(spec.contactEmail) : '';
-  const cards = language.cards[spec.kind].map((label, index) =>
-    '<article class="card"><span class="number">0' + (index + 1) + '</span><h3>' +
-    escapeHtml(label) + '</h3><p>' + description + '</p></article>',
+  const featureItems = spec.features?.length
+    ? spec.features
+    : language.cards[spec.kind].map((title) => ({ title, description: spec.description }));
+  const cards = featureItems.map((feature, index) =>
+    '<article class="card"><span class="number">' + String(index + 1).padStart(2, '0') + '</span><h3>' +
+    escapeHtml(feature.title) + '</h3><p>' + escapeHtml(feature.description) + '</p></article>',
   ).join('\n');
+  const structuredData = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: spec.name,
+    description: spec.description,
+    inLanguage: spec.language,
+  }).replace(/</g, '\\u003c');
 
   const contactAction = email
     ? '<a class="button" href="mailto:' + email + '">' + language.cta + '</a>'
@@ -94,8 +108,14 @@ export function renderWebsiteHtml(input: WebsiteBuildSpec): string {
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<meta name="description" content="' + description + '">',
+    '<meta name="robots" content="index,follow">',
+    '<meta property="og:type" content="website">',
+    '<meta property="og:title" content="' + name + ' — ' + tagline + '">',
+    '<meta property="og:description" content="' + description + '">',
+    '<meta name="twitter:card" content="summary">',
     '<meta name="generator" content="SINA AI STUDIO local website builder">',
-    '<title>' + name + '</title>',
+    '<title>' + name + ' — ' + tagline + '</title>',
+    '<script type="application/ld+json">' + structuredData + '</script>',
     '<style>',
     ':root{color-scheme:' + palette.colorScheme + ';--bg:' + palette.background + ';--panel:' + palette.panel + ';--accent:' + palette.accent + ';--text:' + palette.text + '}',
     '*{box-sizing:border-box}html{scroll-behavior:smooth}',
