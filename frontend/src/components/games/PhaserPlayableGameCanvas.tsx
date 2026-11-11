@@ -237,7 +237,6 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
             key={direction}
             type="button"
             aria-label={label}
-            aria-pressed={touchInputRef.current[direction]}
             style={{ ...controlStyle, gridArea }}
             onPointerDown={(event) => {
               event.preventDefault();
