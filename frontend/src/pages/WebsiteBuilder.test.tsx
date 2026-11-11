@@ -63,6 +63,24 @@ describe('WebsiteBuilder', () => {
     expect(screen.getByTitle('Website live preview')).toHaveAttribute('srcdoc', expect.stringContaining('SINA test site'));
   });
 
+  it('submits custom website sections from the brief editor', async () => {
+    render(<MemoryRouter><WebsiteBuilder /></MemoryRouter>);
+    fireEvent.change(screen.getByLabelText('Website / brand name'), { target: { value: 'SINA Studio' } });
+    fireEvent.change(screen.getByLabelText('Main headline'), { target: { value: 'Build a universe' } });
+    fireEvent.change(screen.getByLabelText('What is this website about?'), { target: { value: 'A creative studio' } });
+    fireEvent.change(screen.getByLabelText('Sections (one per line: title | description, up to 6)'), {
+      target: { value: 'Websites | Build responsive websites\\nGames | Create playable worlds' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Generate website' }));
+    await waitFor(() => expect(createWebsiteJobMock).toHaveBeenCalledTimes(1));
+    expect(createWebsiteJobMock).toHaveBeenCalledWith(expect.objectContaining({
+      features: [
+        { title: 'Websites', description: 'Build responsive websites' },
+        { title: 'Games', description: 'Create playable worlds' },
+      ],
+    }));
+  });
+
   it('requires a headline before creating a job', async () => {
     render(<MemoryRouter><WebsiteBuilder /></MemoryRouter>);
     fireEvent.change(screen.getByLabelText('Website / brand name'), { target: { value: 'SINA Studio' } });
