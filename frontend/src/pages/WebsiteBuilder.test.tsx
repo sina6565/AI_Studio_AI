@@ -69,7 +69,7 @@ describe('WebsiteBuilder', () => {
     fireEvent.change(screen.getByLabelText('Main headline'), { target: { value: 'Build a universe' } });
     fireEvent.change(screen.getByLabelText('What is this website about?'), { target: { value: 'A creative studio' } });
     fireEvent.change(screen.getByLabelText('Sections (one per line: title | description, up to 6)'), {
-      target: { value: 'Websites | Build responsive websites\\nGames | Create playable worlds' },
+      target: { value: 'Websites | Build responsive websites\nGames | Create playable worlds' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Generate website' }));
     await waitFor(() => expect(createWebsiteJobMock).toHaveBeenCalledTimes(1));
