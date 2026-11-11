@@ -8,8 +8,10 @@ The authenticated \`website_build\` job creates a responsive, editable, standalo
 
 ## Output
 
+The optional `features` array supports up to six user-defined sections, each with an escaped title and description. The standalone document includes a descriptive title, meta description, robots directive, Open Graph/Twitter metadata, and a small Schema.org `WebSite` JSON-LD block. No canonical URL is emitted because the builder does not know the eventual public domain.
+
 A completed job includes a downloadable \`text/html\` data URL and \`result.metadata.html\`, \`filename\`, and generator metadata. The builder supports an in-app sandboxed preview, source editing, and HTML download. The HTML has no external script or runtime dependency.
 
 ## Deliberate limits
 
-This is a deterministic template/code generator, not AI-written copy generation. Text is supplied by the user, and cards/sections are generated from the selected site type. Hosted publishing, DNS, persistent website hosting, arbitrary React/Vue projects, and automatic AI copywriting are not implemented in this release.
+This is a deterministic template/code generator, not AI-written copy generation. Text is supplied by the user, and cards/sections are generated from the selected site type. Hosted publishing, DNS, persistent website hosting, arbitrary React/Vue projects, and automatic AI copywriting are not implemented in this release. Custom section content is user-supplied; it is not represented as AI-generated.
