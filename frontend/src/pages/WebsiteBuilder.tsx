@@ -20,6 +20,7 @@ const copy: Record<string, Record<string, string>> = {
     name: 'Website / brand name',
     tagline: 'Main headline',
     brief: 'What is this website about?',
+    features: 'Sections (one per line: title | description, up to 6)',
     email: 'Contact email (optional)',
     kind: 'Website type',
     palette: 'Visual theme',
@@ -55,6 +56,7 @@ const copy: Record<string, Record<string, string>> = {
     name: 'نام وب‌سایت یا برند',
     tagline: 'تیتر اصلی',
     brief: 'این وب‌سایت درباره چیست؟',
+    features: 'بخش‌های سایت (هر خط: عنوان | توضیح، حداکثر ۶ بخش)',
     email: 'ایمیل تماس (اختیاری)',
     kind: 'نوع وب‌سایت',
     palette: 'تم ظاهری',
@@ -104,6 +106,7 @@ const WebsiteBuilder: React.FC = () => {
   const [name, setName] = useState('');
   const [tagline, setTagline] = useState('');
   const [brief, setBrief] = useState(() => searchParams.get('prompt') || '');
+  const [featuresText, setFeaturesText] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [kind, setKind] = useState<SiteKind>('business');
   const [palette, setPalette] = useState<Palette>('midnight');
@@ -135,6 +138,15 @@ const WebsiteBuilder: React.FC = () => {
     setLoading(true);
     setStatus(t.submitting);
     try {
+      const features = featuresText.split('\\n').map((line) => line.trim()).filter(Boolean).map((line) => {
+        const separator = line.indexOf('|');
+        return separator < 0
+          ? { title: line, description: brief.trim() }
+          : { title: line.slice(0, separator).trim(), description: line.slice(separator + 1).trim() };
+      });
+      if (features.length > 6 || features.some((feature) => !feature.title || !feature.description)) {
+        throw new Error('Add at most six sections, each with a title and description.');
+      }
       const created = await apiClient.createWebsiteJob({
         name: name.trim(),
         tagline: tagline.trim(),
@@ -142,6 +154,7 @@ const WebsiteBuilder: React.FC = () => {
         kind,
         palette,
         language: language as 'en' | 'fa',
+        ...(features.length ? { features } : {}),
         ...(contactEmail.trim() ? { contactEmail: contactEmail.trim() } : {}),
       });
       const nextJobId = created.data?.jobId;
@@ -224,6 +237,7 @@ const WebsiteBuilder: React.FC = () => {
               <TextField label={t.name} value={name} onChange={(e) => setName(e.target.value)} fullWidth disabled={loading} inputProps={{ maxLength: 70 }} />
               <TextField label={t.tagline} value={tagline} onChange={(e) => setTagline(e.target.value)} fullWidth disabled={loading} inputProps={{ maxLength: 160 }} />
               <TextField label={t.brief} value={brief} onChange={(e) => setBrief(e.target.value)} fullWidth multiline minRows={4} disabled={loading} inputProps={{ maxLength: 2000 }} />
+              <TextField label={t.features} value={featuresText} onChange={(e) => setFeaturesText(e.target.value)} fullWidth multiline minRows={3} disabled={loading} inputProps={{ maxLength: 3600 }} helperText={language === 'fa' ? 'نمونه: خدمات طراحی | طراحی سایت و هویت بصری' : 'Example: Design services | Websites and visual identity'} />
               <TextField label={t.email} type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} fullWidth disabled={loading} inputProps={{ maxLength: 254 }} />
               <TextField select label={t.kind} value={kind} onChange={(e) => setKind(e.target.value as SiteKind)} disabled={loading}>
                 <MenuItem value="portfolio">{t.portfolio}</MenuItem>
