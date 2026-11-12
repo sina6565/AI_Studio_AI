@@ -21,8 +21,9 @@ export interface PromptGameBuildResult {
 
 function cleanTitle(value: string): string {
   return value
-    .replace(/^(please\s+)?(create|build|make|design)\s+(me\s+)?(a\s+)?(2d\s+)?(game|video game)\s*(about|for|where|called|named)?\s*/i, '')
-    .replace(/^(یک|یه)\s*(بازی|گیم)\s*(دوبعدی\s*)?(بساز|طراحی کن|ایجاد کن)?\s*(درباره|برای)?\s*/u, '')
+    .replace(/^(please\\s+)?(create|build|make|design)\\s+(me\\s+)?(a\\s+)?(2d\\s+)?/i, '')
+    .replace(/^(یک|یه)\\s*(بازی|گیم)\\s*(دوبعدی\\s*)?/u, '')
+    .split(/\\bwhere\\b|\\bthat\\b|\\bwith\\b|که|تا/u)[0]
     .replace(/[.!؟?؛;]+$/u, '')
     .trim();
 }
