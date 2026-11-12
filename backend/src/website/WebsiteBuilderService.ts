@@ -50,6 +50,19 @@ function inferWebsiteName(prompt: string, language: 'en' | 'fa'): string {
 }
 
 /** Deterministic one-prompt interpreter. AI copy generation is intentionally not claimed. */
+function normalizePromptDescription(prompt: string, language: 'en' | 'fa'): string {
+  if (language === 'fa') {
+    return prompt
+      .replace(/^(لطفاً\\s*)?(یک|یه)\\s*(وب.?سایت|سایت)\\s*/u, 'وب‌سایتی ')
+      .replace(/\\s*(بساز|طراحی کن|ایجاد کن)[.!؟?]*$/u, '')
+      .trim();
+  }
+  return prompt
+    .replace(/^(please\\s+)?(create|build|make|design)\\s+(me\\s+)?(a\\s+)?(website|web site|site)\\s*/i, 'A website ')
+    .replace(/\\s*(please)[.!?]*$/i, '')
+    .trim();
+}
+
 export function createWebsiteSpecFromPrompt(input: unknown): WebsiteBuildSpec {
   const parsed = websitePromptBuildSchema.parse(input);
   const language = inferWebsiteLanguage(parsed.prompt, parsed.language);
@@ -70,7 +83,7 @@ export function createWebsiteSpecFromPrompt(input: unknown): WebsiteBuildSpec {
   return {
     name,
     tagline,
-    description: parsed.prompt,
+    description: normalizePromptDescription(parsed.prompt, language),
     kind,
     palette: parsed.palette || 'midnight',
     language,
