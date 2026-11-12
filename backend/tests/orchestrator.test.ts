@@ -133,6 +133,44 @@ describe('Orchestrator', () => {
     });
   });
 
+  describe('local Ollama website routing', () => {
+    it('selects an optional local text provider for prompt-based website jobs', async () => {
+      const localOrchestrator = new Orchestrator();
+      const ollama = {
+        name: 'ollama',
+        capabilities: ['text_generation'],
+        generateText: jest.fn(async () => JSON.stringify({
+          name: 'Local site',
+          tagline: 'Built locally',
+          description: 'Local website copy.',
+          kind: 'business',
+          palette: 'midnight',
+          language: 'en',
+          features: [
+            { title: 'About', description: 'About the business.' },
+            { title: 'Services', description: 'What it offers.' },
+            { title: 'Contact', description: 'How to get in touch.' },
+          ],
+        })),
+        validateInput: jest.fn(async () => ({ valid: true })),
+      } as any;
+      localOrchestrator.registerProvider(ollama);
+      const createJob = Job.create as jest.Mock;
+      createJob.mockClear();
+
+      const response = await localOrchestrator.createJob({
+        userId: 'test-user-1',
+        jobType: JobType.WEBSITE_BUILD,
+        input: { prompt: 'Create a website for a local design studio.', language: 'en' },
+      });
+
+      expect(response.status).toBe(JobStatus.QUEUED);
+      expect(createJob).toHaveBeenCalledWith(expect.objectContaining({
+        metadata: expect.objectContaining({ provider: 'ollama' }),
+      }));
+    });
+  });
+
   describe('manifest-based game builds', () => {
 
     it('executes a manifest-based game build when no AI provider is registered', async () => {
