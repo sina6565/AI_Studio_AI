@@ -134,6 +134,30 @@ describe('Orchestrator', () => {
   });
 
   describe('local Ollama website routing', () => {
+    it('selects the optional local text provider for prompt-based playable games', async () => {
+      const localOrchestrator = new Orchestrator();
+      const ollama = {
+        name: 'ollama',
+        capabilities: ['text_generation'],
+        generateText: jest.fn(async () => '{}'),
+        validateInput: jest.fn(async () => ({ valid: true })),
+      } as any;
+      localOrchestrator.registerProvider(ollama);
+      const createJob = Job.create as jest.Mock;
+      createJob.mockClear();
+
+      const response = await localOrchestrator.createJob({
+        userId: 'test-user-1',
+        jobType: JobType.GAME_BUILD,
+        input: { prompt: 'Build a 2D space maze where the pilot collects energy cores and escapes.' },
+      });
+
+      expect(response.status).toBe(JobStatus.QUEUED);
+      expect(createJob).toHaveBeenCalledWith(expect.objectContaining({
+        metadata: expect.objectContaining({ provider: 'ollama' }),
+      }));
+    });
+
     it('selects an optional local text provider for prompt-based website jobs', async () => {
       const localOrchestrator = new Orchestrator();
       const ollama = {
