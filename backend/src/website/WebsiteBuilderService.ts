@@ -53,13 +53,13 @@ function inferWebsiteName(prompt: string, language: 'en' | 'fa'): string {
 function normalizePromptDescription(prompt: string, language: 'en' | 'fa'): string {
   if (language === 'fa') {
     return prompt
-      .replace(/^(لطفاً\\s*)?(یک|یه)\\s*(وب.?سایت|سایت)\\s*/u, 'وب‌سایتی ')
-      .replace(/\\s*(بساز|طراحی کن|ایجاد کن)[.!؟?]*$/u, '')
+      .replace(/^(لطفاً\s*)?(یک|یه)\s*(وب.?سایت|سایت)\s*/u, 'وب‌سایتی ')
+      .replace(/\s*(بساز|طراحی کن|ایجاد کن)[.!؟?]*$/u, '')
       .trim();
   }
   return prompt
-    .replace(/^(please\\s+)?(create|build|make|design)\\s+(me\\s+)?(a\\s+)?(website|web site|site)\\s*/i, 'A website ')
-    .replace(/\\s*(please)[.!?]*$/i, '')
+    .replace(/^(please\s+)?(create|build|make|design)\s+(me\s+)?(a\s+)?(website|web site|site)\s*/i, 'A website ')
+    .replace(/\s*(please)[.!?]*$/i, '')
     .trim();
 }
 
