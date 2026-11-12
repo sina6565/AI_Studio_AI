@@ -10,7 +10,7 @@ import { AppError, ValidationError } from '../types/errors';
 import { GameService, isGameManifest } from '../game/GameService';
 import { buildPlayableGameFromPrompt, promptGameBuildInputSchema } from '../game/PromptGameBuilder';
 import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
-import { buildWebsite } from '../website/WebsiteBuilderService';
+import { buildWebsite, buildWebsiteWithPrompt, websitePromptBuildSchema } from '../website/WebsiteBuilderService';
 import { UnrealEngine5Adapter } from '../game3d/UnrealEngine5Adapter';
 
 export interface OrchestratorRequest {
@@ -75,6 +75,9 @@ export class Orchestrator {
     const providers = this.getAvailableProviders();
     const isUE5Build = request.jobType === JobType.GAME_3D_BUILD || request.jobType === JobType.GAME_3D_PREVIEW;
     const isLocalWebsiteBuild = request.jobType === JobType.WEBSITE_BUILD;
+    const websiteTextProvider = isLocalWebsiteBuild && websitePromptBuildSchema.safeParse(request.input).success
+      ? providers.find((candidate) => candidate.capabilities.includes('text_generation') && typeof candidate.generateText === 'function')
+      : undefined;
     const isPromptGameBuild = request.jobType === JobType.GAME_BUILD && promptGameBuildInputSchema.safeParse(request.input).success;
     const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && (isGameManifest(request.input) || isPromptGameBuild);
     const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
@@ -99,7 +102,7 @@ export class Orchestrator {
     const providerName = isUE5Build
       ? 'unreal-engine-5-worker'
       : isLocalWebsiteBuild
-        ? 'local-website-builder'
+        ? (websiteTextProvider?.name || 'local-website-builder')
         : isPromptGameBuild
           ? 'local-prompt-game-builder'
           : isReusableGameBuild
@@ -228,7 +231,15 @@ export class Orchestrator {
       if (isLocalWebsiteBuild) {
         job.progress = { percentage: 35, stage: 'building_website' };
         await job.save();
-        output = buildWebsite(job.input);
+        if (websitePromptBuildSchema.safeParse(job.input).success) {
+          const generateText = provider?.generateText
+            ? (params: { prompt: string; system: string; format: 'json'; temperature: number; maxTokens: number }) =>
+                provider.generateText!(params)
+            : undefined;
+          output = await buildWebsiteWithPrompt(job.input, generateText);
+        } else {
+          output = buildWebsite(job.input);
+        }
       } else if (isUE5Job) {
         job.progress = {
           percentage: 30,
