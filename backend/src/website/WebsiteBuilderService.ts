@@ -303,7 +303,7 @@ export async function buildWebsiteWithPrompt(
       };
       buildMode = 'ollama-local-text';
     } catch (error) {
-      fallbackReason = error instanceof Error ? error.message.slice(0, 240) : 'Local text generation failed';
+      fallbackReason = 'Local text generation or response validation failed; deterministic fallback was used.';
       spec = createWebsiteSpecFromPrompt(parsed);
     }
   } else {
@@ -311,10 +311,15 @@ export async function buildWebsiteWithPrompt(
   }
 
   const result = buildWebsite(spec);
-  result.metadata.buildMode = buildMode;
-  result.metadata.aiCopyGeneration = buildMode === 'ollama-local-text';
-  result.metadata.textProvider = buildMode === 'ollama-local-text' ? 'ollama' : 'none';
-  if (fallbackReason) result.metadata.fallbackReason = fallbackReason;
-  return result;
+  return {
+    ...result,
+    metadata: {
+      ...result.metadata,
+      buildMode,
+      aiCopyGeneration: buildMode === 'ollama-local-text',
+      textProvider: buildMode === 'ollama-local-text' ? 'ollama' : 'none',
+      ...(fallbackReason ? { fallbackReason } : {}),
+    },
+  };
 }
 
