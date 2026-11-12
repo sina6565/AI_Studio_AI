@@ -10,7 +10,7 @@ This checklist defines the release boundary for the prompt-first website and bro
 - [x] English and Persian language detection/selection and RTL output.
 - [x] SEO title, meta description, robots directive, Open Graph/Twitter tags and Schema.org WebSite JSON-LD.
 - [x] Sandboxed preview, editable HTML source and standalone HTML download.
-- [ ] LLM-quality copywriting through an approved local text-generation provider.
+- [x] Optional LLM-quality content specification through the owner-enabled local Ollama provider, with strict JSON validation and deterministic fallback when unavailable.
 - [ ] Multi-page routing, navigation editor and page-level content editing.
 - [ ] Persistent project revisions and restore/rollback.
 - [ ] Public publishing, domain binding, HTTPS, sitemap and canonical URL generation after a real domain is configured.
