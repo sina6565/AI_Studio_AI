@@ -29,6 +29,14 @@ describe('validateEnvironment', () => {
     expect(ollama?.present).toBe(false);
   });
 
+  it('reports an explicitly disabled Ollama toggle as present but optional', () => {
+    process.env.OLLAMA_ENABLED = 'false';
+    const result = validateEnvironment();
+    const ollama = result.checks.find((c) => c.name === 'OLLAMA_ENABLED');
+    expect(ollama?.present).toBe(true);
+    expect(ollama?.required).toBe(false);
+  });
+
   it('detects a present database url as satisfying the required check', () => {
     process.env.DATABASE_URL = 'mongodb://localhost:27017/test';
     const result = validateEnvironment();
