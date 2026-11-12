@@ -1,4 +1,4 @@
-import { buildWebsite, renderWebsiteHtml } from '../src/website/WebsiteBuilderService';
+import { buildWebsite, buildWebsiteWithPrompt, renderWebsiteHtml } from '../src/website/WebsiteBuilderService';
 
 const validSpec = {
   name: 'SINA Studio',
@@ -47,6 +47,47 @@ describe('local website builder', () => {
 
     expect(result.metadata.html).toContain('<html lang="fa" dir="rtl">');
     expect(result.metadata.html).toContain('ارتباط با ما');
+  });
+
+  it('uses a validated local LLM website brief when a text provider is available', async () => {
+    const generateText = jest.fn().mockResolvedValue(JSON.stringify({
+      name: 'Ceramics Atelier',
+      tagline: 'Objects shaped with care',
+      description: 'A thoughtful studio for handmade ceramic objects.',
+      kind: 'business',
+      palette: 'ocean',
+      language: 'en',
+      features: [
+        { title: 'The studio', description: 'Meet the makers and their process.' },
+        { title: 'Collections', description: 'Explore small-batch ceramic pieces.' },
+        { title: 'Visit and contact', description: 'Ask about workshops and availability.' },
+      ],
+    }));
+
+    const result = await buildWebsiteWithPrompt({
+      prompt: 'Create a website for a handmade ceramics studio.',
+      language: 'en',
+    }, generateText);
+
+    expect(generateText).toHaveBeenCalledTimes(1);
+    expect(result.metadata.buildMode).toBe('ollama-local-text');
+    expect(result.metadata.aiCopyGeneration).toBe(true);
+    expect(result.metadata.textProvider).toBe('ollama');
+    expect(result.metadata.html).toContain('<title>Ceramics Atelier — Objects shaped with care</title>');
+    expect(result.metadata.html).toContain('Collections');
+  });
+
+  it('falls back to the deterministic prompt interpreter when local text generation fails', async () => {
+    const result = await buildWebsiteWithPrompt({
+      prompt: 'Create a website for a handmade ceramics shop.',
+      language: 'en',
+    }, async () => 'not valid JSON');
+
+    expect(result.metadata.buildMode).toBe('local-prompt-interpreter');
+    expect(result.metadata.aiCopyGeneration).toBe(false);
+    expect(result.metadata.textProvider).toBe('none');
+    expect(result.metadata.fallbackReason).toBeDefined();
+    expect(result.metadata.html).toContain('handmade ceramics shop');
   });
 
   it('escapes user text before writing it into HTML', () => {
