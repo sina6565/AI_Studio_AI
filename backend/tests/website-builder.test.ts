@@ -25,6 +25,30 @@ describe('local website builder', () => {
     expect(html).toContain('mailto:hello@sina.example');
   });
 
+  it('builds a complete responsive site from one natural-language prompt', () => {
+    const result = buildWebsite({
+      prompt: 'Create a website for a handmade ceramics shop. Include product highlights and contact information.',
+      language: 'en',
+    });
+    const html = result.metadata.html;
+
+    expect(result.metadata.buildMode).toBe('single-prompt-local-interpreter');
+    expect(result.metadata.aiCopyGeneration).toBe(false);
+    expect(result.metadata.hostedPublishing).toBe(false);
+    expect(html).toContain('<title>handmade ceramics shop — Discover handmade ceramics shop</title>');
+    expect(html).toContain('Products and benefits');
+    expect(html).toContain('name="description"');
+  });
+
+  it('detects Persian prompt language and generates RTL output', () => {
+    const result = buildWebsite({
+      prompt: 'یک وب‌سایت برای فروشگاه محصولات دست‌ساز بساز که معرفی، محصولات و راه‌های تماس داشته باشد.',
+    });
+
+    expect(result.metadata.html).toContain('<html lang="fa" dir="rtl">');
+    expect(result.metadata.html).toContain('ارتباط با ما');
+  });
+
   it('escapes user text before writing it into HTML', () => {
     const html = renderWebsiteHtml({
       ...validSpec,
