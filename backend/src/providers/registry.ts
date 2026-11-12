@@ -6,50 +6,55 @@ import { IProvider } from './interfaces/IProvider';
 class ProviderRegistry {
   private providers = new Map<string, IProvider>();
 
-  /** Initialize optional providers independently so one unavailable provider never blocks another. */
+  /** Initialize optional providers concurrently; a slow or missing service cannot block another. */
   async initializeAll(): Promise<void> {
-    if (process.env.AGNES_ENABLED === 'true') {
-      try {
-        const provider = new AgnesProvider();
-        await provider.initialize({
-          name: 'agnes',
-          apiKey: process.env.AGNES_API_KEY,
-          apiUrl: process.env.AGNES_API_URL,
-          timeout: Number(process.env.AGNES_TIMEOUT || 300000),
-        });
-        if (await provider.validateCredentials()) {
-          this.providers.set('agnes', provider);
-          logger.info('[ProviderRegistry] Agnes provider initialized successfully');
-        } else {
-          logger.warn('[ProviderRegistry] Agnes provider credentials or health check failed');
-        }
-      } catch (error) {
-        logger.warn('[ProviderRegistry] Agnes initialization skipped; other providers will continue', error);
-      }
-    }
-
-    if (process.env.OLLAMA_ENABLED === 'true') {
-      try {
-        const provider = new OllamaProvider();
-        await provider.initialize({
-          name: 'ollama',
-          apiUrl: process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434',
-          timeout: Number(process.env.OLLAMA_TIMEOUT || 120000),
-          models: { text_generation: process.env.OLLAMA_MODEL || 'qwen2.5:7b' },
-        });
-        if (await provider.validateCredentials()) {
-          this.providers.set('ollama', provider);
-          logger.info('[ProviderRegistry] Local Ollama text provider initialized successfully');
-        } else {
-          logger.warn('[ProviderRegistry] Ollama is enabled but the local server/model is unavailable; deterministic fallbacks remain active');
-        }
-      } catch (error) {
-        logger.warn('[ProviderRegistry] Ollama initialization skipped; deterministic fallbacks remain active', error);
-      }
-    }
+    const initializers: Promise<void>[] = [];
+    if (process.env.AGNES_ENABLED === 'true') initializers.push(this.initializeAgnes());
+    if (process.env.OLLAMA_ENABLED === 'true') initializers.push(this.initializeOllama());
+    await Promise.all(initializers);
 
     if (this.providers.size === 0) {
       logger.warn('[ProviderRegistry] No providers were successfully initialized');
+    }
+  }
+
+  private async initializeAgnes(): Promise<void> {
+    try {
+      const provider = new AgnesProvider();
+      await provider.initialize({
+        name: 'agnes',
+        apiKey: process.env.AGNES_API_KEY,
+        apiUrl: process.env.AGNES_API_URL,
+        timeout: Number(process.env.AGNES_TIMEOUT || 300000),
+      });
+      if (await provider.validateCredentials()) {
+        this.providers.set('agnes', provider);
+        logger.info('[ProviderRegistry] Agnes provider initialized successfully');
+      } else {
+        logger.warn('[ProviderRegistry] Agnes provider credentials or health check failed');
+      }
+    } catch (error) {
+      logger.warn('[ProviderRegistry] Agnes initialization skipped; other providers will continue', error);
+    }
+  }
+
+  private async initializeOllama(): Promise<void> {
+    try {
+      const provider = new OllamaProvider();
+      await provider.initialize({
+        name: 'ollama',
+        apiUrl: process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434',
+        timeout: Number(process.env.OLLAMA_TIMEOUT || 120000),
+        models: { text_generation: process.env.OLLAMA_MODEL || 'qwen2.5:7b' },
+      });
+      if (await provider.validateCredentials()) {
+        this.providers.set('ollama', provider);
+        logger.info('[ProviderRegistry] Local Ollama text provider initialized successfully');
+      } else {
+        logger.warn('[ProviderRegistry] Ollama is enabled but the local server/model is unavailable; deterministic fallbacks remain active');
+      }
+    } catch (error) {
+      logger.warn('[ProviderRegistry] Ollama initialization skipped; deterministic fallbacks remain active', error);
     }
   }
 
