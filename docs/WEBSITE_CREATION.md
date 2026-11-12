@@ -19,4 +19,4 @@ The fallback is a deterministic local prompt interpreter and template/code gener
 
 ## Optional local text model
 
-Set `OLLAMA_ENABLED=true`, `OLLAMA_BASE_URL` and `OLLAMA_MODEL` on the backend. The default model name is `qwen2.5:7b`; it must already be installed in the self-hosted Ollama instance. The app does not download models automatically. Use HTTPS for a remote Ollama endpoint; loopback HTTP is permitted for local development. If the endpoint or model is unavailable, prompt builds continue through the deterministic local fallback.
+Set `OLLAMA_ENABLED=true`, `OLLAMA_BASE_URL` and `OLLAMA_MODEL` on the backend. The default model name is `qwen2.5:7b`; it must already be installed in the self-hosted Ollama instance. The app does not download models automatically. Use HTTPS for public remote endpoints; HTTP is permitted for loopback, private IPv4, and explicitly local/private hostnames such as a self-hosted Docker service. If the endpoint or model is unavailable, prompt builds continue through the deterministic local fallback.
