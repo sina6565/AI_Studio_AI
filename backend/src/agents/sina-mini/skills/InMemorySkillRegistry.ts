@@ -17,10 +17,9 @@ export class InMemorySkillRegistry implements SkillRegistry {
     this.skills.set(key, { ...skill, id, enabled: Boolean(skill.enabled) });
   }
 
-  async get(skillId: string): Promise<AgentSkill | undefined> {
-    const normalizedId = skillId.trim().toLowerCase();
-    const matches = Array.from(this.skills.values()).filter((skill) => skill.id === normalizedId);
-    return matches.length === 1 ? { ...matches[0] } : undefined;
+  async get(ownerId: string, skillId: string): Promise<AgentSkill | undefined> {
+    const skill = this.skills.get(this.skillKey(ownerId, skillId));
+    return skill ? { ...skill } : undefined;
   }
 
   async list(ownerId: string): Promise<AgentSkill[]> {
