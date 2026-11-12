@@ -14,4 +14,4 @@ A completed job includes a downloadable \`text/html\` data URL and \`result.meta
 
 ## Deliberate limits
 
-This is a deterministic template/code generator, not AI-written copy generation. Text is supplied by the user, and cards/sections are generated from the selected site type. Hosted publishing, DNS, persistent website hosting, arbitrary React/Vue projects, and automatic AI copywriting are not implemented in this release. Custom section content is user-supplied; it is not represented as AI-generated.
+This is a deterministic local prompt interpreter and template/code generator, not an LLM and not AI-written copy generation. It extracts a site name/type and supplies fixed section scaffolding around the user's prompt. The output is a single-page HTML draft, not a complete e-commerce backend or arbitrary React/Vue project. Multi-page routing, persistent revision history, automated content generation, hosted publishing, DNS and production hosting are not implemented yet. The current output can be previewed, source-edited and downloaded for manual deployment.
