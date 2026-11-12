@@ -29,6 +29,45 @@ const HeroScene = React.lazy(() => import('@/components/universe/HeroScene'));
 
 const INTRO_SEEN_KEY = 'sina-universe-intro';
 
+const WORLD_DETAILS = {
+  games: {
+    title: 'GAME WORLD',
+    tagline: 'World of playable stories',
+    summary: 'Build interactive worlds with story-driven gameplay, missions, and scene flow in one cinematic loop.',
+    features: ['Narrative quest design', 'Scene logic + win states', 'Playable prototypes'],
+  },
+  websites: {
+    title: 'WEB WORLD',
+    tagline: 'Launch digital experiences',
+    summary: 'Turn product ideas into premium websites, landing pages, portfolios, and campaign experiences quickly.',
+    features: ['AI landing pages', 'Responsive brand systems', 'Conversion-focused layouts'],
+  },
+  videos: {
+    title: 'VIDEO WORLD',
+    tagline: 'Cinematic motion stories',
+    summary: 'Create short-form campaigns, trailers, and cinematic sequences with one prompt-driven production flow.',
+    features: ['Film-grade cuts', 'Motion design', 'Storyboards to final shot'],
+  },
+  audio: {
+    title: 'AUDIO WORLD',
+    tagline: 'Sound design and voice',
+    summary: 'Compose the soundtrack, voice layer, and effect bed to bring your universe into motion.',
+    features: ['Original score', 'Voiceover + narration', 'Mix-ready sound design'],
+  },
+  characters: {
+    title: 'CHARACTER WORLD',
+    tagline: 'Identity, persona, and style',
+    summary: 'Develop hero archetypes, antagonists, and branded personas with consistent visual identity.',
+    features: ['Character sheets', 'Visual moodboards', 'Dialogue-ready personas'],
+  },
+  assets3d: {
+    title: '3D WORLD',
+    tagline: 'Assets, props, and scenes',
+    summary: 'Make 3D-ready objects, world props, and environment blocks for game, film, and product pipelines.',
+    features: ['3D asset packs', 'Environment blocks', 'Game-ready visual systems'],
+  },
+} as const;
+
 /* The six worlds, in the same birth order as the 3D orbs. */
 const WORLDS = [
   { key: 'games', icon: SportsEsportsIcon, studioType: 'game', examplePrompt: 'An epic adventure game world of floating islands, ancient ruins and a hero with a glowing blade' },
@@ -77,8 +116,6 @@ const UniverseLanding: React.FC = () => {
   const [adPlaying, setAdPlaying] = useState(false);
   const [adProgress, setAdProgress] = useState(0);
 
-
-  /* ---- Intro orchestration: HTML beats locked to the WebGL timeline ---- */
   useEffect(() => {
     const seen = sessionStorage.getItem(INTRO_SEEN_KEY) === 'seen';
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -103,7 +140,6 @@ const UniverseLanding: React.FC = () => {
     }
   }, [introDone]);
 
-  /* ---- Scroll: drive the 3D parallax + nav state ---- */
   useEffect(() => {
     let ticking = false;
     const onScroll = () => {
@@ -126,7 +162,6 @@ const UniverseLanding: React.FC = () => {
     };
   }, [setScrollProgress]);
 
-  /* ---- Scroll-reveal for section content ---- */
   useEffect(() => {
     const els = Array.from(document.querySelectorAll('.universe-landing .reveal'));
     if (!('IntersectionObserver' in window)) {
@@ -148,7 +183,6 @@ const UniverseLanding: React.FC = () => {
     return () => io.disconnect();
   }, []);
 
-  /* ---- Ads theater playback simulation ---- */
   useEffect(() => {
     if (activeAd === null || !adPlaying) return;
     const id = window.setInterval(() => {
@@ -174,7 +208,6 @@ const UniverseLanding: React.FC = () => {
     };
   }, [activeAd]);
 
-  /* ---- Helpers ---- */
   const toggleLanguage = () => {
     const next = isPersian ? 'en' : 'fa';
     void i18n.changeLanguage(next);
@@ -218,7 +251,6 @@ const UniverseLanding: React.FC = () => {
     setAdPlaying(true);
   };
 
-  // Use verifiable beta facts instead of fabricated user, asset, or generation counts.
   const stats = [
     { icon: GroupsIcon, value: isPersian ? 'بتا' : 'BETA', label: isPersian ? 'نسخهٔ آزمایشی دعوتی' : 'Invite-led testing' },
     { icon: ViewInArIcon, value: '6', label: isPersian ? 'جهان خلاق' : 'Creative worlds' },
@@ -230,9 +262,11 @@ const UniverseLanding: React.FC = () => {
     return Array.isArray(v) ? (v as string[]) : [];
   };
 
+  const activeWorldKey = WORLDS[activeWorld >= 0 ? activeWorld : 0]?.key ?? 'games';
+  const selectedWorld = WORLD_DETAILS[activeWorldKey];
+
   return (
     <main className={`universe-landing phase-${phase} ${isPersian ? 'is-persian' : ''}`}>
-      {/* Persistent cinematic universe */}
       <div className="scene-layer" aria-hidden="true">
         <Suspense fallback={<div className="hero-scene-fallback" />}>
           <HeroScene onSelectWorld={selectWorld} />
@@ -247,7 +281,6 @@ const UniverseLanding: React.FC = () => {
       )}
 
       <div className="page-content">
-        {/* ---------- Navigation ---------- */}
         <header className={`universe-nav ${navScrolled ? 'scrolled' : ''}`}>
           <div className="nav-inner">
             <button type="button" className="brand-lockup" onClick={() => scrollToId('top')} aria-label="SINA STUDIO AI">
@@ -288,7 +321,6 @@ const UniverseLanding: React.FC = () => {
           </div>
         </header>
 
-        {/* ---------- Hero: the newborn universe ---------- */}
         <section className="universe-hero" id="top">
           <div className="hero-stage" aria-hidden="true" />
           <div className="hero-content">
@@ -380,7 +412,6 @@ const UniverseLanding: React.FC = () => {
           </div>
         </section>
 
-        {/* ---------- Six Worlds ---------- */}
         <section className="landing-section" id="worlds">
           <div className="section-shade" aria-hidden="true" />
           <div className="section-inner">
@@ -389,6 +420,7 @@ const UniverseLanding: React.FC = () => {
               <h2 className="section-title">{t('landing.worlds.title')}</h2>
               <p className="section-subtitle">{t('landing.worlds.subtitle')}</p>
             </div>
+
             <div className="worlds-grid">
               {WORLDS.map((world, i) => {
                 const Icon = world.icon;
@@ -416,10 +448,32 @@ const UniverseLanding: React.FC = () => {
                 );
               })}
             </div>
+
+            <div className="world-detail-panel reveal" style={{ '--wc': WORLD_COLORS[activeWorld >= 0 ? activeWorld : 0] } as React.CSSProperties}>
+              <div className="world-detail-visual">
+                <div className="world-detail-orb">
+                  <div className="world-detail-glow" />
+                  <span>{selectedWorld.title}</span>
+                </div>
+              </div>
+              <div className="world-detail-copy">
+                <div className="world-detail-kicker">{selectedWorld.tagline}</div>
+                <h3>{selectedWorld.title}</h3>
+                <p>{selectedWorld.summary}</p>
+                <ul>
+                  {selectedWorld.features.map((feature) => (
+                    <li key={feature}><CheckIcon /> <span>{feature}</span></li>
+                  ))}
+                </ul>
+                <button type="button" className="world-detail-cta" onClick={() => goCreate(worldsSelectedPrompt(activeWorldKey), WORLDS.find((w) => w.key === activeWorldKey)?.studioType)}>
+                  Enter world
+                  <ArrowForwardIcon className="flip-rtl" />
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ---------- Featured creations ---------- */}
         <section className="landing-section" id="featured">
           <div className="section-shade" aria-hidden="true" />
           <div className="section-inner">
@@ -452,7 +506,6 @@ const UniverseLanding: React.FC = () => {
           </div>
         </section>
 
-        {/* ---------- Workflow ---------- */}
         <section className="landing-section" id="create">
           <div className="section-shade" aria-hidden="true" />
           <div className="section-inner">
@@ -472,7 +525,6 @@ const UniverseLanding: React.FC = () => {
           </div>
         </section>
 
-        {/* ---------- Global Ads Theater ---------- */}
         <section className="landing-section" id="ads">
           <div className="section-shade" aria-hidden="true" />
           <div className="section-inner">
@@ -517,7 +569,6 @@ const UniverseLanding: React.FC = () => {
           </div>
         </section>
 
-        {/* ---------- Founder pre-order ---------- */}
         <section className="landing-section" id="preorder">
           <div className="section-shade" aria-hidden="true" />
           <div className="section-inner">
@@ -556,7 +607,6 @@ const UniverseLanding: React.FC = () => {
           </div>
         </section>
 
-        {/* ---------- Final CTA ---------- */}
         <section className="final-cta">
           <div className="reveal">
             <h2>{t('landing.finalCta.title')}</h2>
@@ -568,7 +618,6 @@ const UniverseLanding: React.FC = () => {
           </div>
         </section>
 
-        {/* ---------- Footer ---------- */}
         <footer className="universe-footer">
           <div className="footer-inner">
             <div>
@@ -593,7 +642,6 @@ const UniverseLanding: React.FC = () => {
         </footer>
       </div>
 
-      {/* ---------- Ads player modal ---------- */}
       {activeAd !== null && (
         <div className="ad-modal-backdrop" onClick={() => setActiveAd(null)} role="presentation">
           <div
@@ -644,4 +692,10 @@ const UniverseLanding: React.FC = () => {
   );
 };
 
+function worldsSelectedPrompt(worldKey: string) {
+  const match = WORLDS.find((w) => w.key === worldKey);
+  return match?.examplePrompt ?? 'An epic AI studio world with cinematic motion and storytelling';
+}
+
 export default UniverseLanding;
+
