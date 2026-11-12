@@ -53,7 +53,7 @@ describe('WebsiteBuilder prompt flow', () => {
       language: 'en',
     });
     await waitFor(() => {
-      expect(screen.getAllByRole('alert').some((alert) => alert.textContent?.includes('Website draft generated successfully.'))).toBe(true);
+      expect(screen.getAllByRole('alert').some((alert) => alert.textContent?.includes('Website draft generated with the offline local template interpreter.'))).toBe(true);
     });
     expect(screen.getByTitle('Website live preview')).toHaveAttribute('srcdoc', expect.stringContaining('SINA test site'));
   });
