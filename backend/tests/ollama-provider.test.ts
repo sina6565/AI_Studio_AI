@@ -56,6 +56,12 @@ describe('OllamaProvider', () => {
     })).rejects.toThrow(/HTTPS or a loopback HTTP address/);
   });
 
+  it('accepts prompt-based game builds through its text-generation capability', async () => {
+    await expect(provider.validateInput('game_build', {
+      prompt: 'Build a 2D adventure game with a custom map and exit.',
+    })).resolves.toEqual({ valid: true });
+  });
+
   it('does not pretend to support image generation', async () => {
     await expect(provider.generateImage({ prompt: 'a test image' })).rejects.toThrow(/does not support image generation/);
   });
