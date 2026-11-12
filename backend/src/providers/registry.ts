@@ -1,6 +1,7 @@
 import logger from '../utils/logger';
 import { AgnesProvider } from './agnes/AgnesProvider';
 import { OpenRouterProvider } from './openrouter/OpenRouterProvider';
+import { BytePlusSeedanceProvider } from './byteplus/BytePlusSeedanceProvider';
 import { IProvider } from './interfaces/IProvider';
 
 class ProviderRegistry {
@@ -44,6 +45,22 @@ class ProviderRegistry {
           logger.info('[ProviderRegistry] OpenRouter multimodal provider initialized');
         } else {
           logger.warn('[ProviderRegistry] OpenRouter key validation failed; provider not registered');
+        }
+      }
+
+      if (process.env.BYTEPLUS_SEEDANCE_ENABLED === 'true' && process.env.BYTEPLUS_SEEDANCE_API_KEY) {
+        const seedance = new BytePlusSeedanceProvider();
+        await seedance.initialize({
+          name: 'byteplus-seedance',
+          apiKey: process.env.BYTEPLUS_SEEDANCE_API_KEY,
+          apiUrl: process.env.BYTEPLUS_MODELARK_API_URL || 'https://ark.ap-southeast.bytepluses.com/api/v3',
+          timeout: Number(process.env.BYTEPLUS_SEEDANCE_TIMEOUT || 180000),
+          models: { video: process.env.BYTEPLUS_SEEDANCE_MODEL || 'dreamina-seedance-2-0-260128' },
+        });
+        // No billable request is sent during startup; healthCheck only confirms key configuration.
+        if (await seedance.validateCredentials()) {
+          this.providers.set('byteplus-seedance', seedance);
+          logger.info('[ProviderRegistry] BytePlus Seedance provider configured (generation remains cost-gated)');
         }
       }
 
