@@ -58,7 +58,7 @@ export function validateEnvironment(): { ok: boolean; checks: EnvCheck[] } {
     },
     {
       name: 'OLLAMA_ENABLED',
-      present: process.env.OLLAMA_ENABLED === 'true',
+      present: has('OLLAMA_ENABLED'),
       required: false,
       note: 'optional local text-generation provider toggle',
     },
