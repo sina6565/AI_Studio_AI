@@ -25,7 +25,7 @@ export class OllamaProvider implements IProvider {
   async initialize(providerConfig: ProviderConfig): Promise<void> {
     const configuredUrl = providerConfig.apiUrl || process.env.OLLAMA_BASE_URL || this.baseUrl;
     const parsed = new URL(configuredUrl);
-    const host = parsed.hostname.replace(/^\\[|\\]$/g, '').toLowerCase();
+    const host = parsed.hostname.toLowerCase();
     const privateIpv4 = (() => {
       const octets = host.split('.').map(Number);
       if (octets.length !== 4 || octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return false;
@@ -37,6 +37,7 @@ export class OllamaProvider implements IProvider {
     const privateNetworkHost = privateIpv4
       || host === 'localhost'
       || host === '::1'
+      || host === '[::1]'
       || host === 'ollama'
       || host.endsWith('.localhost')
       || host.endsWith('.local')
