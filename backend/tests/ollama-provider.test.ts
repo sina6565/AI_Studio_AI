@@ -51,9 +51,17 @@ describe('OllamaProvider', () => {
   it('rejects insecure non-loopback HTTP endpoints', async () => {
     await expect(provider.initialize({
       name: 'ollama',
-      apiUrl: 'http://ollama.internal:11434',
+      apiUrl: 'http://public.example.com:11434',
       timeout: 5000,
-    })).rejects.toThrow(/HTTPS or a loopback HTTP address/);
+    })).rejects.toThrow(/HTTPS or a loopback\/private-network HTTP address/);
+  });
+
+  it('allows self-hosted Ollama on a private Docker/LAN address', async () => {
+    await expect(provider.initialize({
+      name: 'ollama',
+      apiUrl: 'http://192.168.1.20:11434',
+      timeout: 5000,
+    })).resolves.toBeUndefined();
   });
 
   it('accepts prompt-based game builds through its text-generation capability', async () => {
