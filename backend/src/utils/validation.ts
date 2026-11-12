@@ -85,19 +85,26 @@ export const schemas = {
   }),
 
   // Local static website builder schema
-  websiteSpec: z.object({
-    name: z.string().trim().min(1).max(70),
-    tagline: z.string().trim().min(1).max(160),
-    description: z.string().trim().min(1).max(2000),
-    kind: z.enum(['portfolio', 'business', 'product']),
-    palette: z.enum(['midnight', 'light', 'ocean']),
-    language: z.enum(['en', 'fa']),
-    contactEmail: z.string().trim().email().max(254).optional().or(z.literal('')),
-    features: z.array(z.object({
-      title: z.string().trim().min(1).max(100),
-      description: z.string().trim().min(1).max(500),
-    }).strict()).max(6).optional(),
-  }).strict(),
+  websiteSpec: z.union([
+    z.object({
+      name: z.string().trim().min(1).max(70),
+      tagline: z.string().trim().min(1).max(160),
+      description: z.string().trim().min(1).max(2000),
+      kind: z.enum(['portfolio', 'business', 'product']),
+      palette: z.enum(['midnight', 'light', 'ocean']),
+      language: z.enum(['en', 'fa']),
+      contactEmail: z.string().trim().email().max(254).optional().or(z.literal('')),
+      features: z.array(z.object({
+        title: z.string().trim().min(1).max(100),
+        description: z.string().trim().min(1).max(500),
+      }).strict()).max(6).optional(),
+    }).strict(),
+    z.object({
+      prompt: z.string().trim().min(12).max(4000),
+      language: z.enum(['en', 'fa']).optional(),
+      palette: z.enum(['midnight', 'light', 'ocean']).optional(),
+    }).strict(),
+  ]),
 
   // User registration schema
   userRegister: z.object({
