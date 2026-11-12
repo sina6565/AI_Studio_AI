@@ -232,6 +232,57 @@ describe('Orchestrator', () => {
         metadata: expect.objectContaining({ provider: 'manifest-game-builder' }),
       }));
     });
+    it('queues one-prompt Phaser game builds without an AI provider', async () => {
+      const localOrchestrator = new Orchestrator();
+      const createJob = Job.create as jest.Mock;
+      createJob.mockClear();
+
+      const response = await localOrchestrator.createJob({
+        userId: 'test-user-1',
+        jobType: JobType.GAME_BUILD,
+        input: { prompt: 'Build a 2D maze adventure where the player collects gems and reaches the exit.' },
+      });
+
+      expect(response.status).toBe(JobStatus.QUEUED);
+      expect(createJob).toHaveBeenCalledWith(expect.objectContaining({
+        type: JobType.GAME_BUILD,
+        metadata: expect.objectContaining({ provider: 'local-prompt-game-builder' }),
+      }));
+    });
+
+    it('executes a one-prompt game build into a validated playable definition', async () => {
+      const localOrchestrator = new Orchestrator();
+      const save = jest.fn(async () => undefined);
+      const job = {
+        id: 'prompt-game-job-1',
+        _id: 'prompt-game-job-1',
+        userId: 'test-user-1',
+        type: JobType.GAME_BUILD,
+        status: JobStatus.QUEUED,
+        priority: JobPriority.NORMAL,
+        input: { prompt: 'Build a 2D maze adventure where the player collects gems, avoids traps and reaches the exit.' },
+        metadata: {
+          requestedAt: new Date(),
+          retryCount: 0,
+          maxRetries: 3,
+          provider: 'local-prompt-game-builder',
+        },
+        createdAt: new Date(),
+        save,
+      };
+      (Job.findById as jest.Mock).mockResolvedValue(job);
+
+      await localOrchestrator.executeJob('prompt-game-job-1');
+
+      expect(job.status).toBe(JobStatus.COMPLETED);
+      expect((job as any).result.metadata.playableGame.engine.id).toBe('phaser');
+      expect((job as any).result.metadata.artifact.playable).toBe(true);
+      expect((job as any).result.metadata.generation).toEqual({
+        source: 'local-prompt-interpreter-v1',
+        provider: 'none',
+        paidServicesUsed: false,
+      });
+    });
   });
 
   describe('registerProvider', () => {
