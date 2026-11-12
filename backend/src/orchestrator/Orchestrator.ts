@@ -8,7 +8,7 @@ import { dispatchJobWebhook } from '../webhooks/WebhookDispatcher';
 import logger from '../utils/logger';
 import { AppError, ValidationError } from '../types/errors';
 import { GameService, isGameManifest } from '../game/GameService';
-import { buildPlayableGameFromPrompt, promptGameBuildInputSchema } from '../game/PromptGameBuilder';
+import { buildPlayableGameFromPromptWithText, promptGameBuildInputSchema } from '../game/PromptGameBuilder';
 import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
 import { buildWebsite, buildWebsiteWithPrompt, websitePromptBuildSchema } from '../website/WebsiteBuilderService';
 import { UnrealEngine5Adapter } from '../game3d/UnrealEngine5Adapter';
@@ -79,6 +79,9 @@ export class Orchestrator {
       ? providers.find((candidate) => candidate.capabilities.includes('text_generation') && typeof candidate.generateText === 'function')
       : undefined;
     const isPromptGameBuild = request.jobType === JobType.GAME_BUILD && promptGameBuildInputSchema.safeParse(request.input).success;
+    const gameTextProvider = isPromptGameBuild
+      ? providers.find((candidate) => candidate.capabilities.includes('text_generation') && typeof candidate.generateText === 'function')
+      : undefined;
     const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && (isGameManifest(request.input) || isPromptGameBuild);
     const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
     if (isUE5Build && !this.ue5Adapter.isConfigured()) {
@@ -104,7 +107,7 @@ export class Orchestrator {
       : isLocalWebsiteBuild
         ? (websiteTextProvider?.name || 'local-website-builder')
         : isPromptGameBuild
-          ? 'local-prompt-game-builder'
+          ? (gameTextProvider?.name || 'local-prompt-game-builder')
           : isReusableGameBuild
             ? 'manifest-game-builder'
           : (await this.router.route(routingCapability, providers, {
@@ -281,7 +284,11 @@ export class Orchestrator {
 
         if (job.type === JobType.GAME_BUILD && isPromptGameBuild) {
           await report(45, 'interpreting_game_prompt');
-          const build = buildPlayableGameFromPrompt(job.input);
+          const generateText = provider?.generateText
+            ? (params: { prompt: string; system: string; format: 'json'; temperature: number; maxTokens: number }) =>
+                provider.generateText!(params)
+            : undefined;
+          const build = await buildPlayableGameFromPromptWithText(job.input, generateText);
           const serialized = JSON.stringify(build.definition);
           output = {
             id: jobId,
@@ -298,7 +305,11 @@ export class Orchestrator {
                 engine: 'phaser',
                 engineVersion: build.definition.engine.version,
               },
-              generation: { source: build.source, provider: 'none', paidServicesUsed: false },
+              generation: {
+                source: build.source,
+                provider: build.source === 'ollama-local-text' ? 'ollama' : 'none',
+                paidServicesUsed: false,
+              },
               prompt: { title: build.title, genre: build.genre },
             },
           };
