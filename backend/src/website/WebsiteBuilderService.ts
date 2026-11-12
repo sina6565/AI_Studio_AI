@@ -16,6 +16,68 @@ export const websiteBuildSpecSchema = z.object({
 
 export type WebsiteBuildSpec = z.infer<typeof websiteBuildSpecSchema>;
 
+export const websitePromptBuildSchema = z.object({
+  prompt: z.string().trim().min(12).max(4000),
+  language: z.enum(['en', 'fa']).optional(),
+  palette: z.enum(['midnight', 'light', 'ocean']).optional(),
+}).strict();
+
+export type WebsitePromptBuildInput = z.infer<typeof websitePromptBuildSchema>;
+
+function inferWebsiteLanguage(prompt: string, requested?: 'en' | 'fa'): 'en' | 'fa' {
+  if (requested) return requested;
+  return /[\u0600-\u06FF]/u.test(prompt) ? 'fa' : 'en';
+}
+
+function inferWebsiteKind(prompt: string): WebsiteBuildSpec['kind'] {
+  if (/portfolio|resume|cv|نمونه.?کار|رزومه|طراح|هنرمند/u.test(prompt.toLowerCase())) return 'portfolio';
+  if (/shop|store|product|e-?commerce|فروشگاه|محصول|خرید|فروش/u.test(prompt.toLowerCase())) return 'product';
+  return 'business';
+}
+
+function inferWebsiteName(prompt: string, language: 'en' | 'fa'): string {
+  const cleaned = prompt
+    .replace(/^(please\s+)?(create|build|make|design)\s+(me\s+)?(a\s+)?(website|web site|site)\s*/i, '')
+    .replace(/^(لطفاً\s*)?(یک|یه)\s*(وب.?سایت|سایت)\s*/u, '')
+    .trim();
+  const subject = cleaned.match(language === 'fa'
+    ? /(?:برای|درباره|به نام|با نام)\s+([^،؛.!؟?\n]+)/u
+    : /(?:for|about|called|named)\s+([^,;.!?\n]+)/i);
+  const candidate = (subject?.[1] || cleaned.split(/[.!؟?\n]/u)[0] || '').trim()
+    .replace(/^(a|an|the)\s+/i, '')
+    .replace(/\s+(please|بساز|طراحی کن|ایجاد کن)$/iu, '');
+  return (candidate || (language === 'fa' ? 'وب‌سایت جدید' : 'New Website')).slice(0, 70);
+}
+
+/** Deterministic one-prompt interpreter. AI copy generation is intentionally not claimed. */
+export function createWebsiteSpecFromPrompt(input: unknown): WebsiteBuildSpec {
+  const parsed = websitePromptBuildSchema.parse(input);
+  const language = inferWebsiteLanguage(parsed.prompt, parsed.language);
+  const kind = inferWebsiteKind(parsed.prompt);
+  const name = inferWebsiteName(parsed.prompt, language);
+  const tagline = language === 'fa' ? `معرفی ${name}` : `Discover ${name}`;
+  const features = language === 'fa'
+    ? [
+        { title: 'درباره ما', description: `با ${name} و ایده اصلی این مجموعه آشنا شوید.` },
+        { title: kind === 'product' ? 'محصولات و خدمات' : 'خدمات ما', description: 'جزئیات و مزیت‌های ارائه‌شده را بررسی کنید.' },
+        { title: 'ارتباط با ما', description: 'برای دریافت اطلاعات بیشتر با ما در ارتباط باشید.' },
+      ]
+    : [
+        { title: 'About', description: `Discover the story and purpose behind ${name}.` },
+        { title: kind === 'product' ? 'Products and benefits' : 'What we offer', description: 'Explore the key details and value described in your brief.' },
+        { title: 'Get in touch', description: 'Find the next step and connect with the team.' },
+      ];
+  return {
+    name,
+    tagline,
+    description: parsed.prompt,
+    kind,
+    palette: parsed.palette || 'midnight',
+    language,
+    features,
+  };
+}
+
 const palettes = {
   midnight: { background: '#080b18', panel: '#111a31', accent: '#66e7ff', text: '#f6f8ff', colorScheme: 'dark' },
   light: { background: '#f6f7fb', panel: '#ffffff', accent: '#5b5ce2', text: '#17182b', colorScheme: 'light' },
@@ -148,7 +210,11 @@ export function renderWebsiteHtml(input: WebsiteBuildSpec): string {
 }
 
 export function buildWebsite(input: unknown) {
-  const spec = websiteBuildSpecSchema.parse(input);
+  const promptInput = websitePromptBuildSchema.safeParse(input);
+  const isPromptBuild = promptInput.success;
+  const spec = isPromptBuild
+    ? createWebsiteSpecFromPrompt(promptInput.data)
+    : websiteBuildSpecSchema.parse(input);
   const html = renderWebsiteHtml(spec);
   const filename = makeFilename(spec.name);
   const size = Buffer.byteLength(html, 'utf8');
@@ -166,6 +232,8 @@ export function buildWebsite(input: unknown) {
       generator: 'sina-local-website-builder',
       version: 1,
       hostedPublishing: false,
+      buildMode: isPromptBuild ? 'single-prompt-local-interpreter' : 'structured-brief',
+      aiCopyGeneration: false,
     },
   };
 }
