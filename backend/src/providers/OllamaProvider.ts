@@ -25,10 +25,25 @@ export class OllamaProvider implements IProvider {
   async initialize(providerConfig: ProviderConfig): Promise<void> {
     const configuredUrl = providerConfig.apiUrl || process.env.OLLAMA_BASE_URL || this.baseUrl;
     const parsed = new URL(configuredUrl);
-    const localHttp = parsed.protocol === 'http:' &&
-      ['localhost', '127.0.0.1', '::1'].includes(parsed.hostname);
+    const host = parsed.hostname.replace(/^\\[|\\]$/g, '').toLowerCase();
+    const privateIpv4 = (() => {
+      const octets = host.split('.').map(Number);
+      if (octets.length !== 4 || octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return false;
+      return octets[0] === 10
+        || octets[0] === 192 && octets[1] === 168
+        || octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31
+        || octets[0] === 127;
+    })();
+    const privateNetworkHost = privateIpv4
+      || host === 'localhost'
+      || host === '::1'
+      || host === 'ollama'
+      || host.endsWith('.localhost')
+      || host.endsWith('.local')
+      || host.endsWith('.internal');
+    const localHttp = parsed.protocol === 'http:' && privateNetworkHost;
     if (parsed.protocol !== 'https:' && !localHttp) {
-      throw new Error('Ollama must use HTTPS or a loopback HTTP address.');
+      throw new Error('Ollama must use HTTPS or a loopback/private-network HTTP address.');
     }
     this.baseUrl = configuredUrl.replace(/\/$/, '');
     this.model = providerConfig.models?.text_generation || process.env.OLLAMA_MODEL || this.model;
