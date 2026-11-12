@@ -30,7 +30,7 @@ const copy = {
     completed: 'Website draft generated successfully.',
     timeout: 'The build is taking longer than expected. Check the Jobs page for its status.',
     job: 'Job',
-    honest: 'Prompt interpretation and page layout run locally without paid APIs. This first release creates a responsive single-page HTML draft; AI-written copy, multi-page routing, persistent revisions and hosted publishing are not connected yet.',
+    honest: 'With your own Ollama server enabled, SINA can write the page content locally; if it is unavailable, a deterministic offline interpreter is used. No paid API is required. This release creates a responsive single-page HTML draft; multi-page routing, saved revisions and hosted publishing are not connected yet.',
   },
   fa: {
     eyebrow: 'سایت‌ساز SINA',
@@ -52,7 +52,7 @@ const copy = {
     completed: 'پیش‌نویس وب‌سایت با موفقیت ساخته شد.',
     timeout: 'ساخت بیش از حد معمول طول کشید؛ وضعیت را در صفحه وظایف بررسی کن.',
     job: 'شناسه کار',
-    honest: 'تفسیر پرامپت و چیدمان صفحه به‌صورت محلی و بدون API پولی انجام می‌شود. نسخه نخست یک صفحه HTML واکنش‌گرا می‌سازد؛ تولید متن با مدل هوش مصنوعی، چندصفحه‌ای، تاریخچه نسخه‌ها و انتشار میزبانی‌شده هنوز متصل نیست.',
+    honest: 'اگر سرور Ollama خودت را فعال کنی، سینا متن صفحه را با مدل محلی تولید می‌کند؛ در غیر این صورت از تفسیرگر آفلاین استفاده می‌شود. API پولی لازم نیست. نسخه فعلی یک صفحه HTML واکنش‌گرا می‌سازد؛ چندصفحه‌ای، تاریخچه نسخه‌ها و انتشار میزبانی‌شده هنوز متصل نیست.',
   },
 };
 
