@@ -10,7 +10,8 @@ This checklist defines the release boundary for the prompt-first website and bro
 - [x] English and Persian language detection/selection and RTL output.
 - [x] SEO title, meta description, robots directive, Open Graph/Twitter tags and Schema.org WebSite JSON-LD.
 - [x] Sandboxed preview, editable HTML source and standalone HTML download.
-- [x] Optional LLM-quality content specification through the owner-enabled local Ollama provider, with strict JSON validation and deterministic fallback when unavailable.
+- [x] Optional local Ollama content specification for website prompts, with strict JSON validation and deterministic fallback when unavailable.
+- [x] Optional local Ollama map generation for 2D game prompts, with strict map/reachability validation and deterministic fallback when unavailable.
 - [ ] Multi-page routing, navigation editor and page-level content editing.
 - [ ] Persistent project revisions and restore/rollback.
 - [ ] Public publishing, domain binding, HTTPS, sitemap and canonical URL generation after a real domain is configured.
@@ -20,6 +21,7 @@ This checklist defines the release boundary for the prompt-first website and bro
 
 - [x] One natural-language prompt is the primary input for the 2D playable prototype.
 - [x] Strict prompt validation and deterministic local game-definition generation.
+- [x] Optional Ollama-generated custom 20×15 map validated for tile syntax, solid boundaries, required markers and reachable objectives.
 - [x] Versioned Phaser definition with validated map bounds, reachable objectives and allow-listed rules.
 - [x] Authenticated job lifecycle and optional project association.
 - [x] Play route at `/play/:jobId` after job completion.
