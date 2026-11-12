@@ -312,7 +312,7 @@ const Studio: React.FC = () => {
 
   const isGame = contentType === 'game';
   const canSubmit = isGame
-    ? (gameMode === 'build' ? Boolean(gamePrompt.trim()) : Boolean(gameTitle.trim() && gameDescription.trim()))
+    ? (gameMode === 'build' ? gamePrompt.trim().length >= 12 : Boolean(gameTitle.trim() && gameDescription.trim()))
     : Boolean(prompt.trim());
 
   return (
@@ -374,6 +374,21 @@ const Studio: React.FC = () => {
                 <Button component={RouterLink} to="/studio/3d" variant="outlined" color="secondary" fullWidth>
                   {t('creation.open3DBuilder')}
                 </Button>
+                <FormControl fullWidth disabled={loading}>
+                  <InputLabel id="game-project-label">{t('creation.attachProject')}</InputLabel>
+                  <Select
+                    labelId="game-project-label"
+                    value={selectedProjectId}
+                    label={t('creation.attachProject')}
+                    onChange={(event) => setSelectedProjectId(event.target.value)}
+                  >
+                    <MenuItem value=""><em>{t('creation.noProject')}</em></MenuItem>
+                    {availableProjects.map((project) => {
+                      const projectId = project.id || project._id;
+                      return projectId ? <MenuItem key={projectId} value={projectId}>{project.name}</MenuItem> : null;
+                    })}
+                  </Select>
+                </FormControl>
                 {gameMode === 'build' ? (
                   <>
                     <TextField
@@ -501,7 +516,7 @@ const Studio: React.FC = () => {
               onClick={handleGenerate}
               disabled={loading || !canSubmit}
             >
-              {loading ? t('common.loading') : t('creation.generate')}
+              {loading ? t('common.loading') : (isGame && gameMode === 'build' ? (i18n.language.startsWith('fa') ? 'ساخت بازی قابل اجرا' : 'Build playable game') : t('creation.generate'))}
             </Button>
 
             {loading && <LinearProgress sx={{ mt: 2 }} />}
