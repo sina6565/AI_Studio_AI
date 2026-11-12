@@ -21,10 +21,10 @@ export interface PromptGameBuildResult {
 
 function cleanTitle(value: string): string {
   return value
-    .replace(/^(please\\s+)?(create|build|make|design)\\s+(me\\s+)?(a\\s+)?(2d\\s+)?/i, '')
-    .replace(/^(یک|یه)\\s*(بازی|گیم)\\s*(دوبعدی\\s*)?/u, '')
-    .split(/\\bwhere\\b|\\bthat\\b|\\bwith\\b|که|تا/u)[0]
-    .replace(/\\s+(please|بساز|طراحی کن|ایجاد کن)$/iu, '')
+    .replace(/^(please\s+)?(create|build|make|design)\s+(me\s+)?(a\s+)?(2d\s+)?/i, '')
+    .replace(/^(یک|یه)\s*(بازی|گیم)\s*(دوبعدی\s*)?/u, '')
+    .split(/\bwhere\b|\bthat\b|\bwith\b|که|تا/u)[0]
+    .replace(/\s+(please|بساز|طراحی کن|ایجاد کن)$/iu, '')
     .replace(/[.!؟?؛;]+$/u, '')
     .trim();
 }
