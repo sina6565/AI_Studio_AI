@@ -19,7 +19,7 @@ vi.mock('../services/api', () => ({
 
 afterEach(() => cleanup());
 
-describe('WebsiteBuilder', () => {
+describe('WebsiteBuilder prompt flow', () => {
   beforeEach(() => {
     localStorage.setItem('language', 'en');
     createWebsiteJobMock.mockReset().mockResolvedValue({
@@ -40,53 +40,28 @@ describe('WebsiteBuilder', () => {
     });
   });
 
-  it('submits a website job and renders the returned HTML preview', async () => {
+  it('submits one prompt and renders the returned HTML preview', async () => {
     render(<MemoryRouter><WebsiteBuilder /></MemoryRouter>);
-
-    fireEvent.change(screen.getByLabelText('Website / brand name'), { target: { value: 'SINA Studio' } });
-    fireEvent.change(screen.getByLabelText('Main headline'), { target: { value: 'Build a universe' } });
-    fireEvent.change(screen.getByLabelText('What is this website about?'), { target: { value: 'A creative studio' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Generate website' }));
+    fireEvent.change(screen.getByLabelText('Describe the website you want'), {
+      target: { value: 'Create a bilingual website for a handmade ceramics studio with products and contact details.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Build my website' }));
 
     await waitFor(() => expect(createWebsiteJobMock).toHaveBeenCalledTimes(1));
-    expect(createWebsiteJobMock).toHaveBeenCalledWith(expect.objectContaining({
-      name: 'SINA Studio',
-      tagline: 'Build a universe',
-      description: 'A creative studio',
-      kind: 'business',
-      palette: 'midnight',
+    expect(createWebsiteJobMock).toHaveBeenCalledWith({
+      prompt: 'Create a bilingual website for a handmade ceramics studio with products and contact details.',
       language: 'en',
-    }));
+    });
     await waitFor(() => {
-      expect(screen.getAllByRole('alert').some((alert) => alert.textContent?.includes('Website generated successfully.'))).toBe(true);
+      expect(screen.getAllByRole('alert').some((alert) => alert.textContent?.includes('Website draft generated successfully.'))).toBe(true);
     });
     expect(screen.getByTitle('Website live preview')).toHaveAttribute('srcdoc', expect.stringContaining('SINA test site'));
   });
 
-  it('submits custom website sections from the brief editor', async () => {
+  it('requires a meaningful prompt before creating a job', async () => {
     render(<MemoryRouter><WebsiteBuilder /></MemoryRouter>);
-    fireEvent.change(screen.getByLabelText('Website / brand name'), { target: { value: 'SINA Studio' } });
-    fireEvent.change(screen.getByLabelText('Main headline'), { target: { value: 'Build a universe' } });
-    fireEvent.change(screen.getByLabelText('What is this website about?'), { target: { value: 'A creative studio' } });
-    fireEvent.change(screen.getByLabelText('Sections (one per line: title | description, up to 6)'), {
-      target: { value: 'Websites | Build responsive websites\nGames | Create playable worlds' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Generate website' }));
-    await waitFor(() => expect(createWebsiteJobMock).toHaveBeenCalledTimes(1));
-    expect(createWebsiteJobMock).toHaveBeenCalledWith(expect.objectContaining({
-      features: [
-        { title: 'Websites', description: 'Build responsive websites' },
-        { title: 'Games', description: 'Create playable worlds' },
-      ],
-    }));
-  });
-
-  it('requires a headline before creating a job', async () => {
-    render(<MemoryRouter><WebsiteBuilder /></MemoryRouter>);
-    fireEvent.change(screen.getByLabelText('Website / brand name'), { target: { value: 'SINA Studio' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Generate website' }));
-
-    expect(await screen.findByText('Enter a headline.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Describe the website you want'), { target: { value: 'short' } });
+    expect(screen.getByRole('button', { name: 'Build my website' })).toBeDisabled();
     expect(createWebsiteJobMock).not.toHaveBeenCalled();
   });
 });
