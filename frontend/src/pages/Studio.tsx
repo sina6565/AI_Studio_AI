@@ -371,6 +371,9 @@ const Studio: React.FC = () => {
                   <ToggleButton value="create">{t('creation.gameModeCreate')}</ToggleButton>
                   <ToggleButton value="build">{t('creation.gameModeBuild')}</ToggleButton>
                 </ToggleButtonGroup>
+                <Button component={RouterLink} to="/studio/3d" variant="outlined" color="secondary" fullWidth>
+                  {t('creation.open3DBuilder')}
+                </Button>
                 {gameMode === 'build' ? (
                   <>
                     <TextField
