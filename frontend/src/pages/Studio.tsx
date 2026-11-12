@@ -149,7 +149,10 @@ const Studio: React.FC = () => {
           if (polled.data.status === 'completed') {
             if (!polled.data.result?.metadata?.playableGame) throw new Error('The game job completed without a playable game definition.');
             setPlayableGameReady(true);
-            setSuccess(i18n.language.startsWith('fa') ? 'بازی قابل اجرا ساخته شد.' : 'Your playable browser game is ready.');
+            const generation = polled.data.result?.metadata?.generation;
+            setSuccess(generation?.source === 'ollama-local-text'
+              ? (i18n.language.startsWith('fa') ? 'بازی با مدل محلی Ollama ساخته شد.' : 'Your game was generated with the local Ollama model.')
+              : (i18n.language.startsWith('fa') ? 'بازی با سازنده محلی آفلاین آماده شد.' : 'Your game is ready from the offline local builder.'));
             return;
           }
           if (polled.data.status === 'failed' || polled.data.status === 'cancelled') {
@@ -407,8 +410,8 @@ const Studio: React.FC = () => {
                     />
                     <Alert severity="info">
                       {i18n.language.startsWith('fa')
-                        ? 'این مسیر یک بازی دوبعدی قابل اجرا در مرورگر با موتور Phaser می‌سازد؛ تولید محلی است و به API پولی نیاز ندارد. ساخت بازی سه‌بعدی UE5 مسیر جداگانه‌ای دارد.'
-                        : 'This creates a playable browser-based 2D Phaser prototype locally, without paid APIs. Unreal Engine 5 builds use the separate 3D workflow.'}
+                        ? 'اگر مدل Ollama روی سرور خودت فعال باشد، نقشه متناسب با پرامپت می‌سازد؛ در غیر این صورت مسیر آفلاین قطعی اجرا می‌شود. API پولی لازم نیست. این نسخه بازی دوبعدی مرورگری است و UE5 مسیر سه‌بعدی جداگانه دارد.'
+                        : 'If your self-hosted Ollama model is enabled, it can generate a prompt-specific map; otherwise SINA uses a deterministic offline fallback. No paid API is required. This is a 2D browser prototype; Unreal Engine 5 uses the separate 3D workflow.'}
                     </Alert>
                   </>
                 ) : (
