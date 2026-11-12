@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { createPlayableGameDefinition, playableGameDefinitionSchema, type PlayableGameDefinition } from './PlayableGameDefinition';
 
 /**
- * Prompt-to-playable-game v1 is deliberately local and deterministic. It creates
- * a safe Phaser 2D collect-and-escape prototype from a natural-language brief;
- * it does not evaluate generated code or claim to compile a native UE5 project.
+ * Prompt-to-playable-game v1 optionally uses an owner-enabled local text model
+ * for a data-only map. Every model result is schema/reachability validated and
+ * falls back to a deterministic safe Phaser 2D prototype. No generated code is evaluated.
  */
 export const promptGameBuildInputSchema = z.object({
   prompt: z.string().trim().min(12).max(4000),
