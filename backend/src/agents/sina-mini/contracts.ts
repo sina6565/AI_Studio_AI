@@ -54,7 +54,7 @@ export interface AgentSkill {
 
 export interface SkillRegistry {
   register(skill: AgentSkill): Promise<void>;
-  get(skillId: string): Promise<AgentSkill | undefined>;
+  get(ownerId: string, skillId: string): Promise<AgentSkill | undefined>;
   list(ownerId: string): Promise<AgentSkill[]>;
   setEnabled(ownerId: string, skillId: string, enabled: boolean): Promise<boolean>;
 }
