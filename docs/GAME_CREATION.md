@@ -10,7 +10,7 @@ The workflow accepts an original title, description, genre, art style and one or
 
 ## 2. Browser-playable 2D game
 
-The authenticated `game_build` workflow can create a deterministic, schema-validated Phaser 4.2.1 game definition from a game spec or reuse an existing scene manifest. The current playable definition includes:
+The authenticated `game_build` workflow supports three inputs: a single natural-language prompt, a structured game spec, or an existing scene manifest. Prompt mode uses the local deterministic interpreter and creates a schema-validated Phaser 4.2.1 browser-playable prototype without an image provider or paid API. Structured specs/manifests retain the existing asset and scene-viewer workflow. The current playable definition includes:
 - A 20 × 15 tile map with validated outer walls and reachable objectives.
 - Player start, exit, collectibles and hazards.
 - Allow-listed movement, score, lives, timer, win and loss rules.
@@ -25,7 +25,7 @@ Relevant implementation:
 - `frontend/src/components/games/PhaserPlayableGameCanvas.tsx`
 - `frontend/src/pages/PlayableGamePage.tsx`
 
-The current 2D game is a deterministic collection-game prototype, not yet a general-purpose authoring system for arbitrary mechanics, multiplayer or native packaged games. User-editable mechanics, level editor, broader genre templates and mobile touch-control acceptance remain follow-up work.
+The prompt-generated 2D game is currently a deterministic collect-and-escape prototype. The prompt changes the game title, description, genre metadata and seeded objective placement; it does not yet create arbitrary mechanics, platformer/racing/shooter systems, custom level geometry, multiplayer or native packaged games. The runtime supports keyboard and on-screen directional touch input. A visual level editor, editable mechanics, broader gameplay templates, automated playtesting and device acceptance remain follow-up work.
 
 ## 3. Native 3D room authoring and UE5 project export
 
