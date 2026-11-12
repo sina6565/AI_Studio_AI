@@ -33,7 +33,7 @@ interface SceneDraft {
 const MAX_SCENES = 12;
 
 const Studio: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [contentType, setContentType] = useState<ContentType>('image');
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,6 +42,8 @@ const Studio: React.FC = () => {
   const [result, setResult] = useState<any>(null);
 
   // Game creation state
+  const [gamePrompt, setGamePrompt] = useState('');
+  const [playableGameReady, setPlayableGameReady] = useState(false);
   const [gameTitle, setGameTitle] = useState('');
   const [gameDescription, setGameDescription] = useState('');
   const [genre, setGenre] = useState('');
@@ -63,7 +65,10 @@ const Studio: React.FC = () => {
     }
     if (promptParam) {
       setPrompt(promptParam);
-      if (typeParam === 'game') setGameDescription(promptParam);
+      if (typeParam === 'game') {
+        setGamePrompt(promptParam);
+        setGameDescription(promptParam);
+      }
     }
   }, [searchParams]);
 
@@ -118,6 +123,50 @@ const Studio: React.FC = () => {
     setError(null);
     setSuccess(null);
     setQueuedJobId(null);
+    setPlayableGameReady(false);
+
+    if (gameMode === 'build') {
+      if (gamePrompt.trim().length < 12) {
+        setError(i18n.language.startsWith('fa')
+          ? 'توضیح بازی باید حداقل ۱۲ نویسه باشد.'
+          : 'Describe your game in at least 12 characters.');
+        return;
+      }
+      setLoading(true);
+      setGenerationStatus('submitting');
+      try {
+        const res = await apiClient.createPromptGameJob(gamePrompt.trim(), selectedProjectId || undefined);
+        const nextJobId = res?.data?.jobId;
+        if (!res?.success || !nextJobId) throw new Error(res?.error?.message || t('creation.gameQueuedFailed'));
+        setQueuedJobId(nextJobId);
+        setGenerationStatus('queued');
+        const deadline = Date.now() + 120000;
+        while (Date.now() < deadline) {
+          await new Promise((resolve) => window.setTimeout(resolve, 1200));
+          const polled = await apiClient.getJobStatus(nextJobId);
+          if (!polled.success || !polled.data) throw new Error(polled.error?.message || 'Could not check game build status.');
+          setGenerationStatus(polled.data.status);
+          if (polled.data.status === 'completed') {
+            if (!polled.data.result?.metadata?.playableGame) throw new Error('The game job completed without a playable game definition.');
+            setPlayableGameReady(true);
+            setSuccess(i18n.language.startsWith('fa') ? 'بازی قابل اجرا ساخته شد.' : 'Your playable browser game is ready.');
+            return;
+          }
+          if (polled.data.status === 'failed' || polled.data.status === 'cancelled') {
+            throw new Error(polled.data.error?.message || 'The game build did not complete.');
+          }
+        }
+        setSuccess(i18n.language.startsWith('fa')
+          ? 'ساخت ادامه دارد؛ وضعیت را در صفحه وظایف دنبال کن.'
+          : 'The build is still running. Track it on the Jobs page.');
+      } catch (err: any) {
+        setGenerationStatus(null);
+        setError(err.response?.data?.error?.message || err.message || t('creation.gameQueuedFailed'));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     const validationError = validateGame();
     if (validationError) {
@@ -138,15 +187,13 @@ const Studio: React.FC = () => {
             description: scene.description.trim(),
           })),
         },
-        gameMode,
+        'create',
         selectedProjectId || undefined,
       );
 
       if (res?.success && res.data) {
         setQueuedJobId(res.data.jobId);
-        setSuccess(
-          t(gameMode === 'build' ? 'creation.gameBuildQueued' : 'creation.gameQueued'),
-        );
+        setSuccess(t('creation.gameQueued'));
       } else {
         setError(t('creation.gameQueuedFailed'));
       }
@@ -265,7 +312,7 @@ const Studio: React.FC = () => {
 
   const isGame = contentType === 'game';
   const canSubmit = isGame
-    ? Boolean(gameTitle.trim() && gameDescription.trim())
+    ? (gameMode === 'build' ? Boolean(gamePrompt.trim()) : Boolean(gameTitle.trim() && gameDescription.trim()))
     : Boolean(prompt.trim());
 
   return (
@@ -302,9 +349,13 @@ const Studio: React.FC = () => {
               </Alert>
             )}
             {queuedJobId && (
-              <Alert severity="info" sx={{ mb: 2 }}>
+              <Alert severity={playableGameReady ? 'success' : 'info'} sx={{ mb: 2 }}>
                 {t('creation.jobId')}: <strong>{queuedJobId}</strong>.{' '}
-                {t('creation.viewJobs')}
+                {playableGameReady ? (
+                  <Button component={RouterLink} to={`/play/${queuedJobId}`} size="small" color="inherit">
+                    {i18n.language.startsWith('fa') ? 'اجرای بازی' : 'Play game'}
+                  </Button>
+                ) : <Button component={RouterLink} to="/jobs" size="small" color="inherit">{t('creation.viewJobs')}</Button>}
               </Alert>
             )}
 
@@ -320,117 +371,110 @@ const Studio: React.FC = () => {
                   <ToggleButton value="create">{t('creation.gameModeCreate')}</ToggleButton>
                   <ToggleButton value="build">{t('creation.gameModeBuild')}</ToggleButton>
                 </ToggleButtonGroup>
-                <Typography variant="caption" color="text.secondary">
-                  {t(gameMode === 'build' ? 'creation.gameModeBuildHint' : 'creation.gameModeCreateHint')}
-                </Typography>
-                <Button component={RouterLink} to="/studio/3d" variant="outlined" color="secondary" fullWidth>
-                  {t('creation.open3DBuilder')}
-                </Button>
-                <Typography variant="caption" color="text.secondary">
-                  {t('creation.gameModeCreateHint')}
-                </Typography>
-                <TextField
-                  label={t('creation.gameTitle')}
-                  value={gameTitle}
-                  onChange={(e) => setGameTitle(e.target.value)}
-                  fullWidth
-                  disabled={loading}
-                  inputProps={{ maxLength: 120 }}
-                />
-                <TextField
-                  label={t('creation.gameDescription')}
-                  value={gameDescription}
-                  onChange={(e) => setGameDescription(e.target.value)}
-                  multiline
-                  rows={3}
-                  fullWidth
-                  disabled={loading}
-                  inputProps={{ maxLength: 4000 }}
-                />
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <TextField
-                    label={t('creation.genre')}
-                    value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
-                    fullWidth
-                    disabled={loading}
-                    inputProps={{ maxLength: 60 }}
-                  />
-                  <TextField
-                    label={t('creation.artStyle')}
-                    value={artStyle}
-                    onChange={(e) => setArtStyle(e.target.value)}
-                    fullWidth
-                    disabled={loading}
-                    inputProps={{ maxLength: 200 }}
-                  />
-                </Stack>
-                <FormControl fullWidth disabled={loading}>
-                  <InputLabel id="game-project-label">{t('creation.attachProject')}</InputLabel>
-                  <Select
-                    labelId="game-project-label"
-                    value={selectedProjectId}
-                    label={t('creation.attachProject')}
-                    onChange={(event) => setSelectedProjectId(event.target.value)}
-                  >
-                    <MenuItem value=""><em>{t('creation.noProject')}</em></MenuItem>
-                    {availableProjects.map((project) => {
-                      const projectId = project.id || project._id;
-                      return projectId ? (
-                        <MenuItem key={projectId} value={projectId}>{project.name}</MenuItem>
-                      ) : null;
-                    })}
-                  </Select>
-                </FormControl>
-
-                <Typography variant="h6">
-                  {t('creation.scenes')} ({scenes.length}/{MAX_SCENES})
-                </Typography>
-
-                {scenes.map((scene, index) => (
-                  <Paper key={index} variant="outlined" sx={{ p: 2 }}>
-                    <Stack spacing={2}>
+                {gameMode === 'build' ? (
+                  <>
+                    <TextField
+                      label={i18n.language.startsWith('fa') ? 'پرامپت ساخت بازی' : 'Describe your game in one prompt'}
+                      placeholder={i18n.language.startsWith('fa')
+                        ? 'مثلاً: یک بازی ماجراجویی دوبعدی در خرابه‌های باستانی بساز؛ بازیکن جواهرها را جمع کند، از تله‌ها دوری کند و به دروازه خروج برسد.'
+                        : 'Example: Build a 2D adventure in ancient ruins. The player collects gems, avoids traps and reaches an exit portal.'}
+                      value={gamePrompt}
+                      onChange={(event) => setGamePrompt(event.target.value)}
+                      multiline
+                      minRows={5}
+                      maxRows={10}
+                      fullWidth
+                      disabled={loading}
+                      inputProps={{ maxLength: 4000 }}
+                    />
+                    <Alert severity="info">
+                      {i18n.language.startsWith('fa')
+                        ? 'این مسیر یک بازی دوبعدی قابل اجرا در مرورگر با موتور Phaser می‌سازد؛ تولید محلی است و به API پولی نیاز ندارد. ساخت بازی سه‌بعدی UE5 مسیر جداگانه‌ای دارد.'
+                        : 'This creates a playable browser-based 2D Phaser prototype locally, without paid APIs. Unreal Engine 5 builds use the separate 3D workflow.'}
+                    </Alert>
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="caption" color="text.secondary">
+                      {t('creation.gameModeCreateHint')}
+                    </Typography>
+                    <TextField
+                      label={t('creation.gameTitle')}
+                      value={gameTitle}
+                      onChange={(e) => setGameTitle(e.target.value)}
+                      fullWidth
+                      disabled={loading}
+                      inputProps={{ maxLength: 120 }}
+                    />
+                    <TextField
+                      label={t('creation.gameDescription')}
+                      value={gameDescription}
+                      onChange={(e) => setGameDescription(e.target.value)}
+                      multiline
+                      rows={3}
+                      fullWidth
+                      disabled={loading}
+                      inputProps={{ maxLength: 4000 }}
+                    />
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                       <TextField
-                        label={`${t('creation.sceneName')} ${index + 1}`}
-                        value={scene.name}
-                        onChange={(e) => updateScene(index, { name: e.target.value })}
+                        label={t('creation.genre')}
+                        value={genre}
+                        onChange={(e) => setGenre(e.target.value)}
                         fullWidth
                         disabled={loading}
-                        inputProps={{ maxLength: 120 }}
+                        inputProps={{ maxLength: 60 }}
                       />
                       <TextField
-                        label={`${t('creation.sceneDescription')} ${index + 1}`}
-                        value={scene.description}
-                        onChange={(e) =>
-                          updateScene(index, { description: e.target.value })
-                        }
-                        multiline
-                        rows={2}
+                        label={t('creation.artStyle')}
+                        value={artStyle}
+                        onChange={(e) => setArtStyle(e.target.value)}
                         fullWidth
                         disabled={loading}
-                        inputProps={{ maxLength: 2000 }}
+                        inputProps={{ maxLength: 200 }}
                       />
-                      {scenes.length > 1 && (
-                        <div>
-                          <Button
-                            size="small"
-                            color="error"
-                            onClick={() => removeScene(index)}
-                            disabled={loading}
-                          >
-                            {t('creation.removeScene')}
-                          </Button>
-                        </div>
-                      )}
                     </Stack>
-                  </Paper>
-                ))}
-
-                <div>
-                  <Button onClick={addScene} disabled={loading || scenes.length >= MAX_SCENES}>
-                    {t('creation.addScene')}
-                  </Button>
-                </div>
+                    <Typography variant="h6">
+                      {t('creation.scenes')} ({scenes.length}/{MAX_SCENES})
+                    </Typography>
+                    {scenes.map((scene, index) => (
+                      <Paper key={index} variant="outlined" sx={{ p: 2 }}>
+                        <Stack spacing={2}>
+                          <TextField
+                            label={`${t('creation.sceneName')} ${index + 1}`}
+                            value={scene.name}
+                            onChange={(e) => updateScene(index, { name: e.target.value })}
+                            fullWidth
+                            disabled={loading}
+                            inputProps={{ maxLength: 120 }}
+                          />
+                          <TextField
+                            label={`${t('creation.sceneDescription')} ${index + 1}`}
+                            value={scene.description}
+                            onChange={(e) => updateScene(index, { description: e.target.value })}
+                            multiline
+                            rows={2}
+                            fullWidth
+                            disabled={loading}
+                            inputProps={{ maxLength: 2000 }}
+                          />
+                          {scenes.length > 1 && (
+                            <div>
+                              <Button size="small" color="error" onClick={() => removeScene(index)} disabled={loading}>
+                                {t('creation.removeScene')}
+                              </Button>
+                            </div>
+                          )}
+                        </Stack>
+                      </Paper>
+                    ))}
+                    <div>
+                      <Button onClick={addScene} disabled={loading || scenes.length >= MAX_SCENES}>
+                        {t('creation.addScene')}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </Stack>
             ) : (
               <TextField
