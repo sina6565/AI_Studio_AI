@@ -106,10 +106,10 @@ export class OllamaProvider implements IProvider {
     if (type === 'text_generation') {
       return { valid: typeof input?.prompt === 'string' && input.prompt.trim().length > 0 };
     }
-    if (type === 'website_build') {
+    if (type === 'website_build' || type === 'game_build') {
       return { valid: typeof input?.prompt === 'string' && input.prompt.trim().length >= 12 };
     }
-    return { valid: false, errors: ['Ollama text adapter only supports text generation and prompt-based website builds.'] };
+    return { valid: false, errors: ['Ollama text adapter only supports text generation and validated prompt-based website/game builds.'] };
   }
 
   async validateCredentials(): Promise<boolean> {
