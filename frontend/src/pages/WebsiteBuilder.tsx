@@ -27,7 +27,8 @@ const copy = {
     submitting: 'Submitting website build...',
     queued: 'Website build queued...',
     processing: 'Building your website...',
-    completed: 'Website draft generated successfully.',
+    completedOllama: 'Website generated with your local Ollama model.',
+    completedFallback: 'Website draft generated with the offline local template interpreter.',
     timeout: 'The build is taking longer than expected. Check the Jobs page for its status.',
     job: 'Job',
     honest: 'With your own Ollama server enabled, SINA can write the page content locally; if it is unavailable, a deterministic offline interpreter is used. No paid API is required. This release creates a responsive single-page HTML draft; multi-page routing, saved revisions and hosted publishing are not connected yet.',
@@ -49,7 +50,8 @@ const copy = {
     submitting: 'در حال ثبت درخواست ساخت وب‌سایت...',
     queued: 'درخواست ساخت وب‌سایت در صف قرار گرفت...',
     processing: 'در حال ساخت وب‌سایت...',
-    completed: 'پیش‌نویس وب‌سایت با موفقیت ساخته شد.',
+    completedOllama: 'وب‌سایت با مدل محلی Ollama ساخته شد.',
+    completedFallback: 'پیش‌نویس وب‌سایت با قالب‌ساز محلی آفلاین ساخته شد.',
     timeout: 'ساخت بیش از حد معمول طول کشید؛ وضعیت را در صفحه وظایف بررسی کن.',
     job: 'شناسه کار',
     honest: 'اگر سرور Ollama خودت را فعال کنی، سینا متن صفحه را با مدل محلی تولید می‌کند؛ در غیر این صورت از تفسیرگر آفلاین استفاده می‌شود. API پولی لازم نیست. نسخه فعلی یک صفحه HTML واکنش‌گرا می‌سازد؛ چندصفحه‌ای، تاریخچه نسخه‌ها و انتشار میزبانی‌شده هنوز متصل نیست.',
@@ -123,7 +125,8 @@ const WebsiteBuilder: React.FC = () => {
           }
           setHtml(generatedHtml);
           setTab('preview');
-          setStatus(t.completed);
+          const metadata = job.result?.metadata || job.output?.metadata || {};
+          setStatus(metadata.buildMode === 'ollama-local-text' ? t.completedOllama : t.completedFallback);
           return;
         }
         if (job.status === 'failed' || job.status === 'cancelled') {
@@ -163,7 +166,7 @@ const WebsiteBuilder: React.FC = () => {
       <Alert severity="info" sx={{ mb: 3 }}>{t.honest}</Alert>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {status && (
-        <Alert severity={status === t.completed ? 'success' : 'info'} sx={{ mb: 2 }}>
+        <Alert severity={status === t.completedOllama || status === t.completedFallback ? 'success' : 'info'} sx={{ mb: 2 }}>
           {status}{jobId ? ' · ' + t.job + ': ' + jobId : ''}
         </Alert>
       )}
