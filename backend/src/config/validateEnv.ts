@@ -56,6 +56,24 @@ export function validateEnvironment(): { ok: boolean; checks: EnvCheck[] } {
       required: false,
       note: 'Agnes provider credentials',
     },
+    {
+      name: 'OLLAMA_ENABLED',
+      present: process.env.OLLAMA_ENABLED === 'true',
+      required: false,
+      note: 'optional local text-generation provider toggle',
+    },
+    {
+      name: 'OLLAMA_BASE_URL',
+      present: has('OLLAMA_BASE_URL'),
+      required: false,
+      note: 'optional self-hosted Ollama endpoint; loopback is used by default',
+    },
+    {
+      name: 'OLLAMA_MODEL',
+      present: has('OLLAMA_MODEL'),
+      required: false,
+      note: 'locally installed Ollama text model name',
+    },
   ];
 
   logger.info(
