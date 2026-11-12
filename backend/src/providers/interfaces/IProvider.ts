@@ -41,6 +41,14 @@ export interface TTSParams {
   model?: string;
 }
 
+export interface TextGenParams {
+  prompt: string;
+  system?: string;
+  format?: 'text' | 'json';
+  temperature?: number;
+  maxTokens?: number;
+}
+
 export interface GeneratedContent {
   id: string;
   url: string;
@@ -71,6 +79,8 @@ export interface IProvider {
   generateVideo(params: VideoGenParams): Promise<GeneratedContent>;
   generateAudio(params: AudioGenParams): Promise<GeneratedContent>;
   synthesizeSpeech(params: TTSParams): Promise<GeneratedContent>;
+  /** Optional text-generation capability. Providers that do not support text may omit it. */
+  generateText?(params: TextGenParams): Promise<string>;
 
   healthCheck(): Promise<boolean>;
   getRateLimit(): Promise<RateLimitStatus>;
