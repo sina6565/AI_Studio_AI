@@ -24,6 +24,14 @@ export interface VideoGenParams {
   duration?: number;
   fps?: number;
   resolution?: string;
+  ratio?: string;
+  inputReferences?: Array<Record<string, any>>;
+  generateAudio?: boolean;
+  watermark?: boolean;
+  seed?: number;
+  rightsConfirmed?: boolean;
+  inputRightsConfirmed?: boolean;
+  authorizedPortraitsConfirmed?: boolean;
 }
 
 export interface AudioGenParams {
