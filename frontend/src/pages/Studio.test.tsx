@@ -95,6 +95,17 @@ describe('Studio playable game creation', () => {
     expect(await screen.findByRole('link', { name: 'Play game' }, { timeout: 5000 })).toHaveAttribute('href', '/play/job-1');
   });
 
+  it('requires a meaningful prompt before enabling the playable game build', async () => {
+    render(<MemoryRouter><Studio /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: 'Game' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Build playable 2D game' }));
+    fireEvent.change(screen.getByLabelText('Describe your game in one prompt'), {
+      target: { value: 'short' },
+    });
+    expect(screen.getByRole('button', { name: 'Build playable game' })).toBeDisabled();
+    expect(createPromptGameJobMock).not.toHaveBeenCalled();
+  });
+
   it('keeps the original scene-concept creation path available', async () => {
     render(<MemoryRouter><Studio /></MemoryRouter>);
     fireEvent.click(screen.getByRole('button', { name: 'Game' }));
