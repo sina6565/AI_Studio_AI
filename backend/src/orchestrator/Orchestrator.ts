@@ -330,6 +330,15 @@ export class Orchestrator {
           output = await provider.synthesizeSpeech(job.input as any);
           break;
 
+        case JobType.TEXT_GENERATION:
+          if (!provider.generateText) {
+            throw new AppError('CAPABILITY_NOT_SUPPORTED', 'Selected provider does not support text generation', 400);
+          }
+          job.progress = { percentage: 30, stage: 'generating_text' };
+          await job.save();
+          output = await provider.generateText(job.input as any);
+          break;
+
         default:
           throw new Error(`Unsupported job type: ${job.type}`);
         }

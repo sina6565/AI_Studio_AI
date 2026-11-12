@@ -77,6 +77,13 @@ interface ProviderConfig {
     enabled: boolean;
     apiKey: string;
   };
+  openrouter?: {
+    enabled: boolean;
+    apiKey: string;
+    apiUrl: string;
+    model: string;
+    timeout: number;
+  };
 }
 
 interface LoggingConfig {
@@ -217,6 +224,13 @@ const config_: AppConfig = {
     stability: {
       enabled: process.env.STABILITY_ENABLED === 'true',
       apiKey: process.env.STABILITY_API_KEY || '',
+    },
+    openrouter: {
+      enabled: Boolean(process.env.OPENROUTER_API_KEY) && process.env.OPENROUTER_ENABLED !== 'false',
+      apiKey: process.env.OPENROUTER_API_KEY || '',
+      apiUrl: process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1',
+      model: process.env.OPENROUTER_MODEL || 'openrouter/free',
+      timeout: parseInt(process.env.OPENROUTER_TIMEOUT || '120000', 10),
     },
   },
 

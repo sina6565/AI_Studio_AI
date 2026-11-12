@@ -71,6 +71,14 @@ export interface IProvider {
   generateVideo(params: VideoGenParams): Promise<GeneratedContent>;
   generateAudio(params: AudioGenParams): Promise<GeneratedContent>;
   synthesizeSpeech(params: TTSParams): Promise<GeneratedContent>;
+  /** Optional text-generation capability; implemented by providers that support it. */
+  generateText?(params: {
+    prompt: string;
+    model?: string;
+    systemPrompt?: string;
+    temperature?: number;
+    maxTokens?: number;
+  }): Promise<GeneratedContent>;
 
   healthCheck(): Promise<boolean>;
   getRateLimit(): Promise<RateLimitStatus>;

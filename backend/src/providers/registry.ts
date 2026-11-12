@@ -1,5 +1,6 @@
 import logger from '../utils/logger';
 import { AgnesProvider } from './agnes/AgnesProvider';
+import { OpenRouterProvider } from './openrouter/OpenRouterProvider';
 import { IProvider } from './interfaces/IProvider';
 
 class ProviderRegistry {
@@ -26,6 +27,25 @@ class ProviderRegistry {
           logger.info('[ProviderRegistry] Agnes provider initialized successfully');
         } else {
           logger.warn('[ProviderRegistry] Agnes provider credentials validation failed');
+        }
+      }
+
+      // OpenRouter is optional and enabled by adding OPENROUTER_API_KEY.
+      // It can be disabled explicitly with OPENROUTER_ENABLED=false.
+      if (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_ENABLED !== 'false') {
+        const openRouter = new OpenRouterProvider();
+        await openRouter.initialize({
+          name: 'openrouter',
+          apiKey: process.env.OPENROUTER_API_KEY,
+          apiUrl: process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1',
+          timeout: Number(process.env.OPENROUTER_TIMEOUT || 120000),
+          models: { text: process.env.OPENROUTER_MODEL || 'openrouter/free' },
+        });
+        if (await openRouter.validateCredentials()) {
+          this.providers.set('openrouter', openRouter);
+          logger.info('[ProviderRegistry] OpenRouter provider initialized successfully');
+        } else {
+          logger.warn('[ProviderRegistry] OpenRouter credentials validation failed; provider not registered');
         }
       }
 
