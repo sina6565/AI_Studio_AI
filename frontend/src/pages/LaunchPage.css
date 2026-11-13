@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700;800&display=swap');
-
 .sina-launch {
   --sl-bg: #050711; --sl-panel: rgba(14, 20, 42, .68); --sl-line: rgba(148, 163, 224, .18);
   --sl-text: #f5f7ff; --sl-muted: #a2acc7; --sl-cyan: #45d9ef; --sl-gold: #f6bd70;
