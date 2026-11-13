@@ -45,6 +45,7 @@ const copy: Record<'en' | 'fa', Copy> = {
       { title: 'Game Concepts & Scene Viewer', body: 'Create a game brief, scene manifest and provider-generated scene artwork, then inspect or download a standalone visual scene viewer. This is not a playable game runtime.', status: 'Implemented workflow', kind: 'ready' },
       { title: '3D Game Lab · Unreal Engine 5', body: 'Configure a procedural room, inspect the browser concept and playtest prototype, then request a UE5 source-project handoff. A real Blender/UE5 worker and engine runtime must be configured; packaged gameplay is not verified.', status: 'Worker-dependent', kind: 'conditional' },
       { title: 'Projects & Job Tracking', body: 'Keep creation projects and asynchronous job status in the existing application workflow, subject to the configured backend and storage services.', status: 'Implemented', kind: 'ready' },
+      { title: 'Web & Mobile Clients', body: 'The React web client and React Native mobile client are present in the repository. Public web access and native Android/iOS store-build readiness must be verified separately for each deployment.', status: 'Deployment-dependent', kind: 'conditional' },
     ],
     future: [
       { title: 'Computer Use & Desktop Agents', body: 'Researching agents that can understand screens, plan actions and operate browser or desktop software under user approval.' },
@@ -83,6 +84,7 @@ const copy: Record<'en' | 'fa', Copy> = {
       { title: 'کانسپت بازی و نمایشگر صحنه', body: 'تعریف بازی، ساخت مانیفست صحنه و دریافت تصویر صحنه از ارائه‌دهنده، سپس مشاهده یا دانلود نمایشگر بصری مستقل. این مسیر موتور بازی قابل‌بازی نیست.', status: 'گردش‌کار پیاده‌سازی‌شده', kind: 'ready' },
       { title: 'آزمایشگاه بازی سه‌بعدی · Unreal Engine 5', body: 'تنظیم اتاق رویه‌ای، مشاهده کانسپت مرورگر و نمونه آزمایشی قابل‌بازی، سپس درخواست تحویل پروژه منبع UE5. اجرای واقعی به Worker پیکربندی‌شده Blender/UE5 نیاز دارد و خروجی نهایی بازی تأیید نشده است.', status: 'وابسته به Worker', kind: 'conditional' },
       { title: 'پروژه‌ها و پیگیری وظایف', body: 'مدیریت پروژه‌های آفرینش و وضعیت کارهای غیرهم‌زمان در گردش‌کار فعلی، با وابستگی به سرویس‌های Backend و ذخیره‌سازی پیکربندی‌شده.', status: 'پیاده‌سازی‌شده', kind: 'ready' },
+      { title: 'نسخه‌های وب و موبایل', body: 'کلاینت وب React و کلاینت موبایل React Native در مخزن وجود دارند. دسترسی عمومی وب و آمادگی ساخت بومی Android/iOS برای انتشار فروشگاهی باید جداگانه در هر محیط تأیید شوند.', status: 'وابسته به استقرار', kind: 'conditional' },
     ],
     future: [
       { title: 'Computer Use و دستیارهای دسکتاپ', body: 'تحقیق روی عامل‌هایی که صفحه را درک کنند، اقدام برنامه‌ریزی کنند و با تأیید کاربر در مرورگر یا نرم‌افزار دسکتاپ کار کنند.' },
