@@ -69,7 +69,7 @@ A new SINA-owned Orchestrator may and should be developed alongside the existing
 4. Run the new runtime in tests and, where safe, shadow mode. Compare routing decisions, execution traces, failure handling, and verified outputs with the baseline.
 5. Switch traffic gradually behind a feature flag only after build, regression, security, and end-to-end acceptance checks pass. Keep rollback to the existing Orchestrator available until the migration is accepted.
 
-The same parallel-work rule applies to Website Builder, 2D/3D Game Builder, vision, speech, MCP, and local-provider tracks. Independent work is encouraged; uncontrolled duplicate production services and unverified claims are not.
+The same parallel-work rule applies to Website Builder, 2D/3D Game Builder, vision, speech, MCP, and local-provider tracks. Independent work is encouraged; uncontrolled duplicate production services and unverified claims are not. React + Vite is the current web-client baseline, not an immutable prohibition: evaluate alternatives (including a different frontend framework) in a separate workstream when there is a measurable product or engineering benefit, then migrate only after compatibility, accessibility, performance, mobile/API integration, and regression checks pass. Keep the current client available until the replacement is accepted.
 
 ## Architecture options and decisions
 
