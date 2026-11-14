@@ -36,6 +36,16 @@ describe('SINA MCP endpoint', () => {
     expect(response.status).toBe(401);
   });
 
+  it('rejects malformed Bearer headers with long whitespace without regex backtracking', async () => {
+    process.env.SINA_MCP_API_KEY = 'expected-secret';
+    const response = await request(app)
+      .post('/mcp')
+      .set('Authorization', `Bearer ${' '.repeat(10000)}incorrect-secret`)
+      .send({ jsonrpc: '2.0', id: 9, method: 'initialize', params: {} });
+
+    expect(response.status).toBe(401);
+  });
+
   it('negotiates MCP and lists only read-only tools', async () => {
     process.env.SINA_MCP_API_KEY = 'expected-secret';
     const response = await request(app)
