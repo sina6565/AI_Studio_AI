@@ -1,14 +1,20 @@
 /**
  * Mobile App Entry Point
  */
-
-import React from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  I18nManager,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
-import './i18n/config';
+import i18n from './i18n/config';
+import LanguageToggle from './components/LanguageToggle';
+import { loadLanguage } from './services/storage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import {
   AuthScreen,
@@ -26,7 +32,11 @@ const screenOptions = {
   headerStyle: { backgroundColor: colors.surface },
   headerTintColor: colors.text,
   headerTitleStyle: { color: colors.text },
-  tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+  headerRight: () => <LanguageToggle />,
+  tabBarStyle: {
+    backgroundColor: colors.surface,
+    borderTopColor: colors.border,
+  },
   tabBarActiveTintColor: colors.primary,
   tabBarInactiveTintColor: colors.muted,
 };
@@ -63,7 +73,6 @@ function MainTabs() {
 function RootNavigator() {
   const { authenticated, ready } = useAuth();
 
-  // Avoid flashing the login screen before the secure-storage session check.
   if (!ready) {
     return (
       <View style={styles.loading}>
@@ -84,6 +93,40 @@ function RootNavigator() {
 }
 
 function App() {
+  const [localeReady, setLocaleReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      const savedLanguage = await loadLanguage();
+      const language = savedLanguage ?? 'en';
+      await i18n.changeLanguage(language);
+
+      const shouldUseRtl = language === 'fa';
+      if (I18nManager.isRTL !== shouldUseRtl) {
+        I18nManager.allowRTL(true);
+        I18nManager.forceRTL(shouldUseRtl);
+      }
+
+      if (mounted) setLocaleReady(true);
+    })().catch(() => {
+      if (mounted) setLocaleReady(true);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!localeReady) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <AuthProvider>
       <NavigationContainer>
