@@ -57,6 +57,38 @@ describe('Native agent foundation', () => {
     expect(execute).not.toHaveBeenCalled();
   });
 
+  it('propagates cancellation signals and skips tasks already aborted', async () => {
+    const controller = new AbortController();
+    const execute = jest.fn(async (_input: Record<string, unknown>, context: { signal?: AbortSignal }) => ({
+      content: { cancelled: context.signal?.aborted ?? false },
+    }));
+    const registry = new AgentRegistry();
+    registry.register(makeAgent({ execute }));
+    const runner = new AgentRunner(registry);
+
+    const completed = await runner.run({
+      id: 'task-cancel-propagation',
+      agentId: 'test-agent',
+      capability: 'test',
+      input: {},
+      signal: controller.signal,
+    });
+    expect(completed.ok).toBe(true);
+    expect(execute).toHaveBeenCalledWith({}, expect.objectContaining({ signal: controller.signal }));
+
+    controller.abort();
+    const aborted = await runner.run({
+      id: 'task-already-aborted',
+      agentId: 'test-agent',
+      capability: 'test',
+      input: {},
+      signal: controller.signal,
+    });
+    expect(aborted.ok).toBe(false);
+    if (!aborted.ok) expect(aborted.error.code).toBe('AGENT_ABORTED');
+    expect(execute).toHaveBeenCalledTimes(1);
+  });
+
   it('publishes events to subscribers and supports unsubscribe', async () => {
     const bus = new InMemoryMessageBus();
     const handler = jest.fn();
