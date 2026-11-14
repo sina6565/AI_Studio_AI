@@ -34,8 +34,13 @@ function sendRpcError(res: Response, req: Request, id: JsonRpcId, code: number, 
   });
 }
 
-function hasValidApiKey(req: Request): boolean {
+function configuredApiKey(): string | undefined {
   const expected = process.env.SINA_MCP_API_KEY;
+  return expected && Buffer.byteLength(expected, 'utf8') >= 32 ? expected : undefined;
+}
+
+function hasValidApiKey(req: Request): boolean {
+  const expected = configuredApiKey();
   if (!expected) return false;
   const authorization = req.header('authorization') || '';
   const separator = authorization.indexOf(' ');
@@ -92,9 +97,11 @@ async function callTool(name: string): Promise<unknown> {
 
 router.post('/', async (req: Request, res: Response) => {
   if (!hasValidApiKey(req)) {
-    const configured = Boolean(process.env.SINA_MCP_API_KEY);
+    const configured = Boolean(configuredApiKey());
     res.status(configured ? 401 : 503).json({
-      error: configured ? 'Unauthorized' : 'MCP authentication is not configured',
+      error: configured
+        ? 'Unauthorized'
+        : 'MCP authentication requires SINA_MCP_API_KEY with at least 32 bytes',
     });
     return;
   }
