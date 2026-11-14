@@ -177,6 +177,7 @@ Do not infer that an optional service, tool, provider, or framework is installed
 - [Deployment](./docs/DEPLOYMENT.md)
 - [Development](./docs/DEVELOPMENT.md)
 - [Security](./docs/SECURITY.md)
+- [SINA MCP Server](./docs/MCP_SERVER.md)
 
 ## Contribution rules
 
