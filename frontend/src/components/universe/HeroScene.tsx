@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import NebulaSky from './NebulaSky';
 import ParticleField from './ParticleField';
 import Planet from './Planet';
+import SaturnRing from './SaturnRing';
 import LogoReveal from './LogoReveal';
 import WorldOrbs from './WorldOrbs';
 import Shockwave from './Shockwave';
@@ -122,6 +123,7 @@ export default function HeroScene({ onSelectWorld }: HeroSceneProps) {
         <UniverseGroup>
           <ParticleField count={quality.particles} />
           <Planet />
+          <SaturnRing />
           <LogoReveal />
           <WorldOrbs onSelectWorld={onSelectWorld} />
           <Shockwave />
