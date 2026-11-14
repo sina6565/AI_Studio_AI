@@ -42,6 +42,7 @@ describe('WebsiteBuilder prompt flow', () => {
 
   it('submits one prompt and renders the returned HTML preview', async () => {
     render(<MemoryRouter><WebsiteBuilder /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: 'Continue in 3D Game Lab' })).toHaveAttribute('href', '/studio/3d');
     fireEvent.change(screen.getByLabelText('Describe the website you want'), {
       target: { value: 'Create a bilingual website for a handmade ceramics studio with products and contact details.' },
     });
