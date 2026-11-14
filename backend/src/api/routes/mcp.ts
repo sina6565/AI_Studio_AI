@@ -38,7 +38,11 @@ function hasValidApiKey(req: Request): boolean {
   const expected = process.env.SINA_MCP_API_KEY;
   if (!expected) return false;
   const authorization = req.header('authorization') || '';
-  const bearer = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
+  const separator = authorization.indexOf(' ');
+  const scheme = separator > 0 ? authorization.slice(0, separator) : '';
+  const credential = separator > 0 ? authorization.slice(separator + 1).trim() : '';
+  const bearer = scheme.toLowerCase() === 'bearer' ? credential : '';
+  const supplied = bearer || req.header('x-sina-mcp-key') || '';
   const supplied = bearer || req.header('x-sina-mcp-key') || '';
   const expectedBuffer = Buffer.from(expected);
   const suppliedBuffer = Buffer.from(supplied);
