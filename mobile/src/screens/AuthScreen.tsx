@@ -15,6 +15,7 @@ import { extractErrorMessage } from '../utils/errors';
 import { colors, spacing } from '../theme';
 import { useAuth } from '../context/AuthContext';
 import LanguageToggle from '../components/LanguageToggle';
+import CinematicBrandMark from '../components/CinematicBrandMark';
 
 export default function AuthScreen() {
   const { t } = useTranslation();
@@ -58,6 +59,7 @@ export default function AuthScreen() {
       <View style={styles.languageRow}>
         <LanguageToggle />
       </View>
+      <CinematicBrandMark />
       <Text style={styles.title}>{t('app.title')}</Text>
       <Text style={styles.subtitle}>{t('app.subtitle')}</Text>
 
@@ -102,7 +104,7 @@ export default function AuthScreen() {
         disabled={!canSubmit}
       >
         {busy ? (
-          <ActivityIndicator color={colors.text} />
+          <ActivityIndicator color="#07101D" />
         ) : (
           <Text style={styles.buttonText}>
             {isRegister ? t('auth.register') : t('auth.login')}
@@ -133,12 +135,13 @@ const styles = StyleSheet.create({
   },
   languageRow: {
     alignItems: 'flex-end',
-    marginBottom: spacing.l,
+    marginBottom: spacing.s,
   },
   title: {
     color: colors.text,
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.5,
     textAlign: 'center',
   },
   subtitle: {
@@ -151,7 +154,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 12,
     color: colors.text,
     marginBottom: spacing.m,
     paddingHorizontal: spacing.m,
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     backgroundColor: colors.primary,
-    borderRadius: 10,
+    borderRadius: 12,
     paddingVertical: spacing.m,
   },
   buttonDisabled: {
