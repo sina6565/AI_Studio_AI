@@ -75,9 +75,13 @@ export class SkillRegistry {
   list(options: { enabledOnly?: boolean } = {}): AgentSkillSummary[] {
     return Array.from(this.skills.values())
       .filter((skill) => !options.enabledOnly || skill.enabled)
-      .map(({ instructions: _instructions, ...summary }) => ({
-        ...summary,
-        capabilities: [...summary.capabilities],
+      .map((skill) => ({
+        id: skill.id,
+        name: skill.name,
+        version: skill.version,
+        description: skill.description,
+        capabilities: [...skill.capabilities],
+        enabled: skill.enabled,
       }));
   }
 
