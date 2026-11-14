@@ -86,3 +86,5 @@ jobs:
         run: npm ci --legacy-peer-deps --no-audit --no-fund
       - name: Type-check
         run: npm run type-check
+      - name: ESLint
+        run: npm run lint
