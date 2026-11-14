@@ -20,7 +20,6 @@ android/app/build/
 android/build/
 android/local.properties
 *.keystore
-!android/app/debug.keystore
 
 # Metro
 .metro-health-check*
