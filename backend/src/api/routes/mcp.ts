@@ -15,7 +15,8 @@ interface JsonRpcRequest {
   params?: Record<string, any>;
 }
 
-function sendRpc(res: Response, id: JsonRpcId, result: unknown): void {
+function sendRpc(res: Response, id: JsonRpcId, result: unknown, protocolVersion = PROTOCOL_VERSION): void {
+  res.setHeader('MCP-Protocol-Version', protocolVersion);
   res.status(200).type('application/json').json({ jsonrpc: '2.0', id, result });
 }
 
@@ -149,7 +150,7 @@ router.post('/', async (req: Request, res: Response) => {
       }
       default:
         if (isNotification) {
-          res.status(202).end();
+          res.setHeader('MCP-Protocol-Version', requestVersion || PROTOCOL_VERSION);\n          res.status(202).end();
           return;
         }
         sendRpcError(res, id ?? null, -32601, 'Method not found');
