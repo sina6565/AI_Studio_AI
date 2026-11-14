@@ -2,11 +2,20 @@ import React, { useEffect, useRef } from 'react';
 import type PhaserTypes from 'phaser';
 import { GameSession, PlayableGameDefinition } from '../../games/playableGame';
 
+type Direction = 'left' | 'right' | 'up' | 'down';
+
 interface PhaserPlayableGameCanvasProps {
   definition: PlayableGameDefinition;
   onSnapshot: (snapshot: ReturnType<GameSession['snapshot']>) => void;
   onError: (message: string) => void;
 }
+
+const directions: Array<{ direction: Direction; label: string; glyph: string; gridArea: string }> = [
+  { direction: 'up', label: 'Move up', glyph: '↑', gridArea: 'up' },
+  { direction: 'left', label: 'Move left', glyph: '←', gridArea: 'left' },
+  { direction: 'down', label: 'Move down', glyph: '↓', gridArea: 'down' },
+  { direction: 'right', label: 'Move right', glyph: '→', gridArea: 'right' },
+];
 
 const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
   definition,
@@ -14,6 +23,16 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
   onError,
 }) => {
   const parentRef = useRef<HTMLDivElement | null>(null);
+  const touchInputRef = useRef<Record<Direction, boolean>>({
+    left: false,
+    right: false,
+    up: false,
+    down: false,
+  });
+
+  const setTouchDirection = (direction: Direction, pressed: boolean) => {
+    touchInputRef.current[direction] = pressed;
+  };
 
   useEffect(() => {
     let disposed = false;
@@ -30,7 +49,7 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
           private player!: PhaserTypes.GameObjects.Arc;
           private playerCore!: PhaserTypes.GameObjects.Arc;
           private cursorKeys!: PhaserTypes.Types.Input.Keyboard.CursorKeys;
-          private wasdKeys!: Record<'left' | 'right' | 'up' | 'down', PhaserTypes.Input.Keyboard.Key>;
+          private wasdKeys!: Record<Direction, PhaserTypes.Input.Keyboard.Key>;
           private crystalViews: PhaserTypes.GameObjects.Arc[] = [];
           private lastSnapshotKey = '';
 
@@ -102,7 +121,7 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
                 right: 'D',
                 up: 'W',
                 down: 'S',
-              }) as Record<'left' | 'right' | 'up' | 'down', PhaserTypes.Input.Keyboard.Key>;
+              }) as Record<Direction, PhaserTypes.Input.Keyboard.Key>;
             }
 
             this.add.text(8, 8, 'CRYSTALS', {
@@ -117,11 +136,12 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
 
           update(_time: number, delta: number) {
             const isDown = (key?: PhaserTypes.Input.Keyboard.Key) => Boolean(key?.isDown);
+            const touch = touchInputRef.current;
             const input = {
-              left: isDown(this.cursorKeys?.left) || isDown(this.wasdKeys?.left),
-              right: isDown(this.cursorKeys?.right) || isDown(this.wasdKeys?.right),
-              up: isDown(this.cursorKeys?.up) || isDown(this.wasdKeys?.up),
-              down: isDown(this.cursorKeys?.down) || isDown(this.wasdKeys?.down),
+              left: isDown(this.cursorKeys?.left) || isDown(this.wasdKeys?.left) || touch.left,
+              right: isDown(this.cursorKeys?.right) || isDown(this.wasdKeys?.right) || touch.right,
+              up: isDown(this.cursorKeys?.up) || isDown(this.wasdKeys?.up) || touch.up,
+              down: isDown(this.cursorKeys?.down) || isDown(this.wasdKeys?.down) || touch.down,
             };
             const snapshot = session.update(input, delta);
             this.player.setPosition(snapshot.x, snapshot.y);
@@ -172,16 +192,67 @@ const PhaserPlayableGameCanvas: React.FC<PhaserPlayableGameCanvasProps> = ({
     void startGame();
     return () => {
       disposed = true;
+      touchInputRef.current = { left: false, right: false, up: false, down: false };
       game?.destroy(true);
     };
   }, [definition, onError, onSnapshot]);
 
+  const controlStyle: React.CSSProperties = {
+    width: 52,
+    height: 48,
+    border: '1px solid rgba(103, 232, 249, 0.55)',
+    borderRadius: 12,
+    background: 'rgba(8, 17, 31, 0.88)',
+    color: '#e0f2fe',
+    fontSize: 24,
+    fontWeight: 700,
+    touchAction: 'none',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+  };
+
   return (
-    <div
-      ref={parentRef}
-      aria-label={`${definition.title} playable 2D game`}
-      style={{ width: '100%', height: 'min(72vh, 480px)', minHeight: 320, display: 'flex', justifyContent: 'center' }}
-    />
+    <div style={{ position: 'relative', width: '100%', minHeight: 320 }}>
+      <div
+        ref={parentRef}
+        aria-label={`${definition.title} playable 2D game`}
+        style={{ width: '100%', height: 'min(72vh, 480px)', minHeight: 320, display: 'flex', justifyContent: 'center' }}
+      />
+      <div
+        role="group"
+        aria-label="Touch game controls"
+        style={{
+          position: 'absolute',
+          right: 12,
+          bottom: 12,
+          display: 'grid',
+          gridTemplateAreas: '". up ." "left down right"',
+          gridTemplateColumns: 'repeat(3, 52px)',
+          gridTemplateRows: 'repeat(2, 48px)',
+          gap: 6,
+        }}
+      >
+        {directions.map(({ direction, label, glyph, gridArea }) => (
+          <button
+            key={direction}
+            type="button"
+            aria-label={label}
+            style={{ ...controlStyle, gridArea }}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setTouchDirection(direction, true);
+            }}
+            onPointerUp={() => setTouchDirection(direction, false)}
+            onPointerCancel={() => setTouchDirection(direction, false)}
+            onLostPointerCapture={() => setTouchDirection(direction, false)}
+            onContextMenu={(event) => event.preventDefault()}
+          >
+            {glyph}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 };
 

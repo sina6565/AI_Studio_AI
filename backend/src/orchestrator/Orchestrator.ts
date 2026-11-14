@@ -8,8 +8,9 @@ import { dispatchJobWebhook } from '../webhooks/WebhookDispatcher';
 import logger from '../utils/logger';
 import { AppError, ValidationError } from '../types/errors';
 import { GameService, isGameManifest } from '../game/GameService';
+import { buildPlayableGameFromPromptWithText, promptGameBuildInputSchema } from '../game/PromptGameBuilder';
 import { gameJobCapability, isGameJobType, GameSpec } from '../game/types';
-import { buildWebsite } from '../website/WebsiteBuilderService';
+import { buildWebsite, buildWebsiteWithPrompt, websitePromptBuildSchema } from '../website/WebsiteBuilderService';
 import { UnrealEngine5Adapter } from '../game3d/UnrealEngine5Adapter';
 
 export interface OrchestratorRequest {
@@ -74,7 +75,14 @@ export class Orchestrator {
     const providers = this.getAvailableProviders();
     const isUE5Build = request.jobType === JobType.GAME_3D_BUILD || request.jobType === JobType.GAME_3D_PREVIEW;
     const isLocalWebsiteBuild = request.jobType === JobType.WEBSITE_BUILD;
-    const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && isGameManifest(request.input);
+    const websiteTextProvider = isLocalWebsiteBuild && websitePromptBuildSchema.safeParse(request.input).success
+      ? providers.find((candidate) => candidate.capabilities.includes('text_generation') && typeof candidate.generateText === 'function')
+      : undefined;
+    const isPromptGameBuild = request.jobType === JobType.GAME_BUILD && promptGameBuildInputSchema.safeParse(request.input).success;
+    const gameTextProvider = isPromptGameBuild
+      ? providers.find((candidate) => candidate.capabilities.includes('text_generation') && typeof candidate.generateText === 'function')
+      : undefined;
+    const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && (isGameManifest(request.input) || isPromptGameBuild);
     const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
     if (isUE5Build && !this.ue5Adapter.isConfigured()) {
       throw new AppError(
@@ -97,9 +105,11 @@ export class Orchestrator {
     const providerName = isUE5Build
       ? 'unreal-engine-5-worker'
       : isLocalWebsiteBuild
-        ? 'local-website-builder'
-        : isReusableGameBuild
-          ? 'manifest-game-builder'
+        ? (websiteTextProvider?.name || 'local-website-builder')
+        : isPromptGameBuild
+          ? (gameTextProvider?.name || 'local-prompt-game-builder')
+          : isReusableGameBuild
+            ? 'manifest-game-builder'
           : (await this.router.route(routingCapability, providers, {
               jobType: request.jobType,
               capabilities: [routingCapability as any],
@@ -189,7 +199,8 @@ export class Orchestrator {
       const isUE5Build = job.type === JobType.GAME_3D_BUILD;
       const isUE5Job = isUE5Preview || isUE5Build;
       const isLocalWebsiteBuild = job.type === JobType.WEBSITE_BUILD;
-      const isReusableGameBuild = job.type === JobType.GAME_BUILD && isGameManifest(job.input);
+      const isPromptGameBuild = job.type === JobType.GAME_BUILD && promptGameBuildInputSchema.safeParse(job.input).success;
+      const isReusableGameBuild = job.type === JobType.GAME_BUILD && (isGameManifest(job.input) || isPromptGameBuild);
       const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
       const providerName = String(job.metadata?.provider || '').toLowerCase();
       const provider = this.providers.get(providerName);
@@ -223,7 +234,15 @@ export class Orchestrator {
       if (isLocalWebsiteBuild) {
         job.progress = { percentage: 35, stage: 'building_website' };
         await job.save();
-        output = buildWebsite(job.input);
+        if (websitePromptBuildSchema.safeParse(job.input).success) {
+          const generateText = provider?.generateText
+            ? (params: { prompt: string; system: string; format: 'json'; temperature: number; maxTokens: number }) =>
+                provider.generateText!(params)
+            : undefined;
+          output = await buildWebsiteWithPrompt(job.input, generateText);
+        } else {
+          output = buildWebsite(job.input);
+        }
       } else if (isUE5Job) {
         job.progress = {
           percentage: 30,
@@ -263,8 +282,39 @@ export class Orchestrator {
           await job.save();
         };
 
-        if (job.type === JobType.GAME_BUILD) {
-          // Build only the neutral, non-interactive scene viewer from a spec
+        if (job.type === JobType.GAME_BUILD && isPromptGameBuild) {
+          await report(45, 'interpreting_game_prompt');
+          const generateText = provider?.generateText
+            ? (params: { prompt: string; system: string; format: 'json'; temperature: number; maxTokens: number }) =>
+                provider.generateText!(params)
+            : undefined;
+          const build = await buildPlayableGameFromPromptWithText(job.input, generateText);
+          const serialized = JSON.stringify(build.definition);
+          output = {
+            id: jobId,
+            url: '',
+            format: 'application/json',
+            size: Buffer.byteLength(serialized, 'utf8'),
+            metadata: {
+              playableGame: build.definition,
+              artifact: {
+                filename: `${build.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'sina-game'}.game.json`,
+                format: 'application/json',
+                runtime: 'phaser-web',
+                playable: true,
+                engine: 'phaser',
+                engineVersion: build.definition.engine.version,
+              },
+              generation: {
+                source: build.source,
+                provider: build.source === 'ollama-local-text' ? 'ollama' : 'none',
+                paidServicesUsed: false,
+              },
+              prompt: { title: build.title, genre: build.genre },
+            },
+          };
+        } else if (job.type === JobType.GAME_BUILD) {
+          // Build the existing scene viewer and playable data from a spec
           // or a manifest produced by an earlier game_creation job.
           const build = await this.gameService.buildGame(
             job.input as unknown as GameSpec,

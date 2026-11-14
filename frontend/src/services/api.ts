@@ -108,6 +108,19 @@ class APIClient {
     return response.data;
   }
 
+  /** Create a playable Phaser prototype directly from one natural-language prompt. */
+  async createPromptGameJob(
+    prompt: string,
+    projectId?: string,
+  ): Promise<APIResponse<{ jobId: string; status: string; createdAt: string }>> {
+    const response = await this.client.post('/v1/jobs', {
+      type: 'game_build',
+      input: { prompt },
+      ...(projectId ? { projectId } : {}),
+    });
+    return response.data;
+  }
+
   /** Build a validated Phaser 2D game definition from an existing scene manifest. */
   async buildGameJob(
     input: object,
@@ -121,15 +134,19 @@ class APIClient {
     return response.data;
   }
 
-  async createWebsiteJob(spec: {
-    name: string;
-    tagline: string;
-    description: string;
-    kind: 'portfolio' | 'business' | 'product';
-    palette: 'midnight' | 'light' | 'ocean';
-    language: 'en' | 'fa';
-    contactEmail?: string;
-  }): Promise<APIResponse<{ jobId: string; status: string; createdAt: string }>> {
+  async createWebsiteJob(spec:
+    | { prompt: string; language?: 'en' | 'fa'; palette?: 'midnight' | 'light' | 'ocean' }
+    | {
+        name: string;
+        tagline: string;
+        description: string;
+        kind: 'portfolio' | 'business' | 'product';
+        palette: 'midnight' | 'light' | 'ocean';
+        language: 'en' | 'fa';
+        contactEmail?: string;
+        features?: Array<{ title: string; description: string }>;
+      }
+  ): Promise<APIResponse<{ jobId: string; status: string; createdAt: string }>> {
     const response = await this.client.post('/v1/jobs', {
       type: 'website_build',
       input: spec,

@@ -190,7 +190,7 @@ async function waitForJob(jobId: string, timeoutMs: number, onStatus: (status: s
 }
 
 const Game3DBuilder: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [title, setTitle] = useState('Ancient Gateway');
   const [description, setDescription] = useState('A third-person exploration room with a central energy portal, an open 3.2 meter entrance, and a clear traversal path.');
   const [genre, setGenre] = useState('adventure');
@@ -295,12 +295,25 @@ const Game3DBuilder: React.FC = () => {
     } finally { setBusy(false); }
   };
 
+  const companionWebsitePrompt = i18n.language.startsWith('fa')
+    ? `یک وب‌سایت معرفی حرفه‌ای برای بازی «${title}» بساز. سبک بازی ${genre} است. فضای بازی و تجربه بازیکن: ${description}. طراحی سینمایی با رنگ‌های سرمه‌ای، طلایی و فیروزه‌ای داشته باشد.`
+    : `Create a polished landing page for the game "${title}". Genre: ${genre}. Describe its world and player experience: ${description}. Use a cinematic midnight, gold and cyan visual direction.`;
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Stack spacing={1} sx={{ mb: 3 }}>
         <Typography variant="h3" fontWeight={800}>{t('game3d.title')}</Typography>
         <Typography color="text.secondary">{t('game3d.subtitle')}</Typography>
         <Alert severity="info">{t('game3d.freeNotice')}</Alert>
+        <Button
+          component={RouterLink}
+          to={{ pathname: '/website-builder', search: `?prompt=${encodeURIComponent(companionWebsitePrompt)}` }}
+          variant="outlined"
+          color="secondary"
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          {i18n.language.startsWith('fa') ? 'ساخت وب‌سایت معرفی این بازی' : 'Create a website for this game'}
+        </Button>
       </Stack>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {status && <Alert severity="info" sx={{ mb: 2 }}>{t('game3d.status')}: {status}</Alert>}

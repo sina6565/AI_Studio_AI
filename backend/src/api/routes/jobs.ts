@@ -7,6 +7,7 @@ import { AppError } from '../../types/errors';
 import logger from '../../utils/logger';
 import { JobPriority } from '../../types';
 import { isGameJobType } from '../../game/types';
+import { promptGameBuildInputSchema } from '../../game/PromptGameBuilder';
 import { game3DBuildInputSchema } from '../../game3d/types';
 
 interface CreateJobInput {
@@ -24,6 +25,9 @@ router.post('/', async (req: AuthenticatedRequest, res, next) => {
     const input = validateWithSchema<CreateJobInput>(req.body, schemas.createJob);
     if (input.type === 'game_3d_preview' || input.type === 'game_3d_build') {
       validateWithSchema(input.input, game3DBuildInputSchema, 'Invalid UE5 room build');
+    } else if (input.type === 'game_build' && promptGameBuildInputSchema.safeParse(input.input).success) {
+      // Prompt-driven Phaser builds are validated by their strict, provider-free schema.
+      validateWithSchema(input.input, promptGameBuildInputSchema, 'Invalid game prompt');
     } else if (isGameJobType(input.type)) {
       // Fail fast with a field-level message instead of a provider error later.
       validateWithSchema(input.input, schemas.gameSpec);

@@ -12,6 +12,17 @@ jest.mock('../src/jobs/JobQueueProcessor', () => ({
   },
 }));
 
+jest.mock('../src/orchestrator/Orchestrator', () => ({
+  __esModule: true,
+  default: {
+    createJob: jest.fn(async () => ({
+      jobId: 'created-job-1',
+      status: 'queued',
+      createdAt: new Date('2026-11-12T00:00:00.000Z'),
+    })),
+  },
+}));
+
 jest.mock('../src/database/models', () => ({
   Job: {
     updateMany: jest.fn(),
@@ -26,12 +37,61 @@ import { createApp } from '../src/app';
 import { Job } from '../src/database/models';
 import { generateToken } from '../src/api/middleware/auth';
 import { recoverStuckJobs } from '../src/jobs/recovery';
+import orchestrator from '../src/orchestrator/Orchestrator';
 
 const mockJob = Job as unknown as {
   updateMany: jest.Mock;
   countDocuments: jest.Mock;
   find: jest.Mock;
 };
+
+describe('POST /api/v1/jobs prompt builders', () => {
+  const app = createApp();
+  const token = generateToken('user-1', 'user@example.com', 'user');
+  const createJob = (orchestrator as unknown as { createJob: jest.Mock }).createJob;
+
+  beforeEach(() => createJob.mockClear());
+
+  it('accepts a single prompt for a provider-free playable game build', async () => {
+    const input = { prompt: 'Build a 2D maze game where a hero collects gems and reaches the exit.' };
+    const res = await request(app)
+      .post('/api/v1/jobs')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ type: 'game_build', input });
+
+    expect(res.status).toBe(201);
+    expect(createJob).toHaveBeenCalledWith(expect.objectContaining({
+      jobType: 'game_build',
+      input,
+      userId: 'user-1',
+    }));
+  });
+
+  it('accepts a single prompt for a local website build', async () => {
+    const input = { prompt: 'Create a responsive website for a handmade ceramics studio with product and contact sections.', language: 'en' };
+    const res = await request(app)
+      .post('/api/v1/jobs')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ type: 'website_build', input });
+
+    expect(res.status).toBe(201);
+    expect(createJob).toHaveBeenCalledWith(expect.objectContaining({
+      jobType: 'website_build',
+      input,
+      userId: 'user-1',
+    }));
+  });
+
+  it('rejects malformed prompt payloads before queueing', async () => {
+    const res = await request(app)
+      .post('/api/v1/jobs')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ type: 'game_build', input: { prompt: 'short', executable: 'alert(1)' } });
+
+    expect(res.status).toBe(400);
+    expect(createJob).not.toHaveBeenCalled();
+  });
+});
 
 describe('GET /api/v1/jobs', () => {
   const app = createApp();

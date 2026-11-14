@@ -6,9 +6,10 @@ import { MemoryRouter } from 'react-router-dom';
 import '../i18n/config';
 import Studio from './Studio';
 
-const { listProjectsMock, createGameJobMock, createJobMock, getJobStatusMock } = vi.hoisted(() => ({
+const { listProjectsMock, createGameJobMock, createPromptGameJobMock, createJobMock, getJobStatusMock } = vi.hoisted(() => ({
   listProjectsMock: vi.fn(),
   createGameJobMock: vi.fn(),
+  createPromptGameJobMock: vi.fn(),
   createJobMock: vi.fn(),
   getJobStatusMock: vi.fn(),
 }));
@@ -17,6 +18,7 @@ vi.mock('../services/api', () => ({
   default: {
     listProjects: listProjectsMock,
     createGameJob: createGameJobMock,
+    createPromptGameJob: createPromptGameJobMock,
     createJob: createJobMock,
     getJobStatus: getJobStatusMock,
   },
@@ -38,6 +40,10 @@ beforeEach(() => {
   });
   createGameJobMock.mockReset().mockResolvedValue({
     success: true,
+    data: { jobId: 'scene-job-1', status: 'queued', createdAt: '2026-10-25T00:00:00.000Z' },
+  });
+  createPromptGameJobMock.mockReset().mockResolvedValue({
+    success: true,
     data: { jobId: 'job-1', status: 'queued', createdAt: '2026-10-25T00:00:00.000Z' },
   });
   createJobMock.mockReset().mockResolvedValue({
@@ -55,7 +61,15 @@ beforeEach(() => {
 });
 
 describe('Studio playable game creation', () => {
-  it('submits a playable build with the selected project association', async () => {
+  it('builds a playable 2D game from one prompt and attaches it to the selected project', async () => {
+    getJobStatusMock.mockResolvedValue({
+      success: true,
+      data: {
+        id: 'job-1',
+        status: 'completed',
+        result: { metadata: { playableGame: { schemaVersion: 1 } } },
+      },
+    });
     render(
       <MemoryRouter>
         <Studio />
@@ -69,6 +83,32 @@ describe('Studio playable game creation', () => {
     fireEvent.click(within(listbox).getByRole('option', { name: 'My Adventure' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Build playable 2D game' }));
+    fireEvent.change(screen.getByLabelText('Describe your game in one prompt'), {
+      target: { value: 'Build a 2D maze adventure where the player collects gems and reaches the exit.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Build playable game' }));
+
+    await waitFor(() => expect(createPromptGameJobMock).toHaveBeenCalledWith(
+      'Build a 2D maze adventure where the player collects gems and reaches the exit.',
+      'project-1',
+    ));
+    expect(await screen.findByRole('link', { name: 'Play game' }, { timeout: 5000 })).toHaveAttribute('href', '/play/job-1');
+  });
+
+  it('requires a meaningful prompt before enabling the playable game build', async () => {
+    render(<MemoryRouter><Studio /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: 'Game' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Build playable 2D game' }));
+    fireEvent.change(screen.getByLabelText('Describe your game in one prompt'), {
+      target: { value: 'short' },
+    });
+    expect(screen.getByRole('button', { name: 'Build playable game' })).toBeDisabled();
+    expect(createPromptGameJobMock).not.toHaveBeenCalled();
+  });
+
+  it('keeps the original scene-concept creation path available', async () => {
+    render(<MemoryRouter><Studio /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: 'Game' }));
     fireEvent.change(screen.getByLabelText('Game title'), { target: { value: 'Crystal Run' } });
     fireEvent.change(screen.getByLabelText('Game description'), { target: { value: 'Collect every crystal.' } });
     fireEvent.change(screen.getByLabelText('Scene name 1'), { target: { value: 'Ruins' } });
@@ -83,10 +123,9 @@ describe('Studio playable game creation', () => {
         artStyle: undefined,
         scenes: [{ name: 'Ruins', description: 'A courtyard with an exit.' }],
       },
-      'build',
-      'project-1',
+      'create',
+      undefined,
     ));
-    expect(await screen.findByText(/job-1/)).toBeInTheDocument();
   });
 });
 

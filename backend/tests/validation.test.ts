@@ -22,6 +22,14 @@ describe('validation schemas', () => {
     expect(parsed.language).toBe('fa');
   });
 
+  it('websiteSpec accepts a single natural-language prompt', () => {
+    const parsed = validateWithSchema<{ prompt: string; language?: string }>(
+      { prompt: 'Create a responsive website for a local design studio.', language: 'en' },
+      schemas.websiteSpec,
+    );
+    expect(parsed.prompt).toContain('design studio');
+  });
+
   it('websiteSpec rejects unknown fields', () => {
     expect(() => validateWithSchema({
       name: 'SINA',
