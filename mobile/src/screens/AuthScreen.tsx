@@ -95,7 +95,7 @@ export default function AuthScreen() {
         placeholder={t('auth.password')}
         placeholderTextColor={colors.muted}
         secureTextEntry
-        autoComplete={isRegister ? 'new-password' : 'current-password'}
+        autoComplete="password"
         value={password}
         onChangeText={setPassword}
       />
