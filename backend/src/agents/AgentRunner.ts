@@ -19,6 +19,9 @@ export class AgentRunner {
     if (!agent) {
       return this.failure(task, 'AGENT_NOT_FOUND', 'Requested agent is not registered', startedAt);
     }
+    if (task.signal?.aborted) {
+      return this.failure(task, 'AGENT_ABORTED', 'Agent task was cancelled before execution', startedAt, agent);
+    }
     if (!agent.enabled) {
       return this.failure(task, 'AGENT_DISABLED', 'Requested agent is disabled', startedAt);
     }
@@ -32,6 +35,7 @@ export class AgentRunner {
         userId: task.userId,
         projectId: task.projectId,
         correlationId: task.correlationId,
+        signal: task.signal,
       });
       return {
         ok: true,
