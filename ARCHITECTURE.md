@@ -522,7 +522,7 @@ The CI evidence previously recorded in README (149/149 tests on the referenced 2
 
 ## Parallel development and Orchestrator evolution
 
-Parallel implementation is expected. Agents may work simultaneously on separate branches/worktrees and modules with explicit ownership, shared contracts, and independent tests. Do not impose a sequential-only development policy.
+Parallel implementation is expected. Agents may work simultaneously on separate branches/worktrees and modules with explicit ownership, shared contracts, and independent tests. Do not impose a sequential-only development policy. React + Vite is the current frontend baseline, not an absolute ban on alternatives; prototype other frontend stacks in isolated workstreams and migrate only when measurable benefits and full compatibility/regression evidence justify it.
 
 A new SINA Orchestrator is permitted and encouraged as a side-by-side implementation. Keep the current `Orchestrator.ts` as the stable baseline while building a new version in an isolated module such as `backend/src/orchestrator/v2/`. Give it explicit contracts for planning, agent selection, tool registry, execution, persistent memory, approvals, events, retries, reflection, and result verification. Validate it with FakeProvider and local Ollama tests, regression/contract tests, and shadow comparisons. Route production traffic through a feature flag only after acceptance criteria pass; preserve rollback until migration is approved. The existence of the current Orchestrator is not a reason to prohibit a better one.
 
