@@ -43,7 +43,6 @@ function hasValidApiKey(req: Request): boolean {
   const credential = separator > 0 ? authorization.slice(separator + 1).trim() : '';
   const bearer = scheme.toLowerCase() === 'bearer' ? credential : '';
   const supplied = bearer || req.header('x-sina-mcp-key') || '';
-  const supplied = bearer || req.header('x-sina-mcp-key') || '';
   const expectedBuffer = Buffer.from(expected);
   const suppliedBuffer = Buffer.from(supplied);
   return expectedBuffer.length === suppliedBuffer.length && timingSafeEqual(expectedBuffer, suppliedBuffer);
