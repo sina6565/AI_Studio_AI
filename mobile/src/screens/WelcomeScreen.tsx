@@ -99,7 +99,12 @@ export default function WelcomeScreen({ navigation }: Props) {
               <Text style={styles.brandCaption}>AI CREATIVE UNIVERSE</Text>
             </View>
           </View>
-          <TouchableOpacity accessibilityRole="button" onPress={switchLanguage} style={styles.languageButton}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={isPersian ? 'تغییر زبان به انگلیسی' : 'Switch language to Persian'}
+            onPress={switchLanguage}
+            style={styles.languageButton}
+          >
             <Text style={styles.languageText}>{isPersian ? 'EN' : 'FA'}</Text>
           </TouchableOpacity>
         </View>
