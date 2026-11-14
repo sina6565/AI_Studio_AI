@@ -12,6 +12,7 @@ export interface AgentTask {
   userId?: string;
   projectId?: string;
   correlationId?: string;
+  signal?: AbortSignal;
 }
 
 export interface AgentExecutionContext {
