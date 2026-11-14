@@ -1,12 +1,14 @@
 {
   "app": {
-    "title": "AI Creator",
-    "subtitle": "Create amazing content"
+    "title": "SINA AI STUDIO",
+    "subtitle": "From a single idea to an entire universe"
   },
   "creation": {
     "whatToCreate": "What do you want to create?",
     "image": "Image",
     "video": "Video",
+    "audio": "Audio",
+    "speech": "Speech",
     "game": "Game",
     "promptPlaceholder": "Describe what you want to create",
     "generate": "Generate",
@@ -45,5 +47,13 @@
     "description": "Description",
     "create": "Create project",
     "empty": "No projects yet"
+  },
+  "language": {
+    "switchToEnglish": "Switch to English",
+    "switchToPersian": "Switch to Persian",
+    "restartTitle": "Restart required",
+    "restartMessage": "Close and reopen SINA AI STUDIO to apply the Persian right-to-left layout.",
+    "errorTitle": "Language update failed",
+    "errorMessage": "The language preference could not be saved. Please try again."
   }
 }
