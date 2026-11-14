@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import axios from 'axios';
 import api from '../services/api';
 import {
   clearSessionToken,
@@ -14,9 +15,9 @@ import {
 } from '../services/storage';
 
 interface AuthContextValue {
-  /** True once a stored token has been found and validated into the API client. */
+  /** True after a stored token is accepted by the backend or a session is created. */
   authenticated: boolean;
-  /** True after the initial secure-storage hydration completes. */
+  /** True after the initial secure-storage hydration and best-effort validation. */
   ready: boolean;
   signIn: (token: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -33,20 +34,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authenticated, setAuthenticated] = useState(false);
   const [ready, setReady] = useState(false);
 
-  // Restore a previously stored session from the platform keychain on startup.
+  // Restore the session and reject tokens that the backend explicitly invalidates.
+  // A temporary network failure does not erase a valid locally stored session.
   useEffect(() => {
     let mounted = true;
 
     (async () => {
-      const token = await loadSessionToken();
-      if (!mounted) {
-        return;
+      try {
+        const token = await loadSessionToken();
+        if (!mounted) return;
+
+        if (token) {
+          api.setToken(token);
+          try {
+            await api.getMe();
+            if (mounted) setAuthenticated(true);
+          } catch (error) {
+            const status = axios.isAxiosError(error)
+              ? error.response?.status
+              : undefined;
+
+            if ([401, 403, 404].includes(status ?? 0)) {
+              api.setToken(null);
+              await clearSessionToken();
+              if (mounted) setAuthenticated(false);
+            } else if (mounted) {
+              // Keep the session available during a transient backend outage.
+              setAuthenticated(true);
+            }
+          }
+        }
+      } finally {
+        if (mounted) setReady(true);
       }
-      if (token) {
-        api.setToken(token);
-        setAuthenticated(true);
-      }
-      setReady(true);
     })();
 
     return () => {
@@ -56,8 +76,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async (token: string) => {
     api.setToken(token);
-    await saveSessionToken(token);
-    setAuthenticated(true);
+    try {
+      await saveSessionToken(token);
+      setAuthenticated(true);
+    } catch (error) {
+      api.setToken(null);
+      throw error;
+    }
   }, []);
 
   const signOut = useCallback(async () => {
