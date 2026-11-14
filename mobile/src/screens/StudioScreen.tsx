@@ -28,9 +28,8 @@ export default function StudioScreen() {
   const canSubmit = prompt.trim().length > 0 && !busy;
 
   const submit = async () => {
-    if (!canSubmit) {
-      return;
-    }
+    if (!canSubmit) return;
+
     setBusy(true);
     setError('');
     setCreatedJobId('');
@@ -53,11 +52,13 @@ export default function StudioScreen() {
         {TYPES.map((option) => (
           <TouchableOpacity
             key={option}
+            accessibilityRole="button"
+            accessibilityState={{ selected: type === option }}
             style={[styles.type, type === option && styles.typeActive]}
             onPress={() => setType(option)}
           >
             <Text style={[styles.typeText, type === option && styles.typeTextActive]}>
-              {option}
+              {t(`creation.${option}`)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -68,6 +69,8 @@ export default function StudioScreen() {
           {(['create', 'build'] as const).map((option) => (
             <TouchableOpacity
               key={option}
+              accessibilityRole="button"
+              accessibilityState={{ selected: gameMode === option }}
               style={[styles.type, gameMode === option && styles.typeActive]}
               onPress={() => setGameMode(option)}
             >
@@ -84,6 +87,7 @@ export default function StudioScreen() {
         placeholder={t('creation.promptPlaceholder')}
         placeholderTextColor={colors.muted}
         multiline
+        textAlignVertical="top"
         value={prompt}
         onChangeText={setPrompt}
       />
@@ -96,12 +100,13 @@ export default function StudioScreen() {
       ) : null}
 
       <TouchableOpacity
+        accessibilityRole="button"
         style={[styles.button, !canSubmit && styles.buttonDisabled]}
         onPress={submit}
         disabled={!canSubmit}
       >
         {busy ? (
-          <ActivityIndicator color={colors.text} />
+          <ActivityIndicator color="#07101D" />
         ) : (
           <Text style={styles.buttonText}>{t('creation.generate')}</Text>
         )}
@@ -135,41 +140,41 @@ const styles = StyleSheet.create({
     marginBottom: spacing.s,
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
+    backgroundColor: colors.surface,
   },
   typeActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.surfaceElevated,
     borderColor: colors.primary,
   },
   typeText: {
     color: colors.muted,
-    textTransform: 'capitalize',
   },
   typeTextActive: {
-    color: colors.text,
+    color: colors.primary,
+    fontWeight: '700',
   },
   input: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
     color: colors.text,
-    height: 130,
+    height: 150,
     marginBottom: spacing.m,
     padding: spacing.m,
-    textAlignVertical: 'top',
   },
   button: {
     alignItems: 'center',
     backgroundColor: colors.primary,
-    borderRadius: 10,
+    borderRadius: 12,
     paddingVertical: spacing.m,
   },
   buttonDisabled: {
     opacity: 0.5,
   },
   buttonText: {
-    color: colors.text,
-    fontWeight: '600',
+    color: '#07101D',
+    fontWeight: '700',
   },
   error: {
     color: colors.danger,
