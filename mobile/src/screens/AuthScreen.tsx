@@ -7,12 +7,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { extractErrorMessage } from '../utils/errors';
 import { colors, spacing } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import LanguageToggle from '../components/LanguageToggle';
 
 export default function AuthScreen() {
   const { t } = useTranslation();
@@ -32,9 +34,8 @@ export default function AuthScreen() {
     !busy;
 
   const submit = async () => {
-    if (!canSubmit) {
-      return;
-    }
+    if (!canSubmit) return;
+
     setBusy(true);
     setError('');
     try {
@@ -54,6 +55,9 @@ export default function AuthScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <View style={styles.languageRow}>
+        <LanguageToggle />
+      </View>
       <Text style={styles.title}>{t('app.title')}</Text>
       <Text style={styles.subtitle}>{t('app.subtitle')}</Text>
 
@@ -63,6 +67,7 @@ export default function AuthScreen() {
         placeholderTextColor={colors.muted}
         autoCapitalize="none"
         keyboardType="email-address"
+        autoComplete="email"
         value={email}
         onChangeText={setEmail}
       />
@@ -73,6 +78,7 @@ export default function AuthScreen() {
           placeholder={t('auth.username')}
           placeholderTextColor={colors.muted}
           autoCapitalize="none"
+          autoComplete="username"
           value={username}
           onChangeText={setUsername}
         />
@@ -83,6 +89,7 @@ export default function AuthScreen() {
         placeholder={t('auth.password')}
         placeholderTextColor={colors.muted}
         secureTextEntry
+        autoComplete={isRegister ? 'new-password' : 'current-password'}
         value={password}
         onChangeText={setPassword}
       />
@@ -124,6 +131,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.l,
   },
+  languageRow: {
+    alignItems: 'flex-end',
+    marginBottom: spacing.l,
+  },
   title: {
     color: colors.text,
     fontSize: 28,
@@ -156,15 +167,15 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: colors.text,
-    fontWeight: '600',
+    color: '#07101D',
+    fontWeight: '700',
   },
   error: {
     color: colors.danger,
     marginBottom: spacing.m,
   },
   switch: {
-    color: colors.primary,
+    color: colors.accent,
     marginTop: spacing.m,
     textAlign: 'center',
   },
