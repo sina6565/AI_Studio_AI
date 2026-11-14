@@ -15,17 +15,18 @@ interface JsonRpcRequest {
   params?: Record<string, any>;
 }
 
-function sendRpc(res: Response, id: JsonRpcId, result: unknown, protocolVersion = PROTOCOL_VERSION): void {
-  res.setHeader('MCP-Protocol-Version', protocolVersion);
+function responseVersion(req: Request, fallback = PROTOCOL_VERSION): string {
+  const requested = req.header('MCP-Protocol-Version');
+  return requested && SUPPORTED_PROTOCOL_VERSIONS.includes(requested) ? requested : fallback;
+}
+
+function sendRpc(res: Response, req: Request, id: JsonRpcId, result: unknown, version = responseVersion(req)): void {
+  res.setHeader('MCP-Protocol-Version', version);
   res.status(200).type('application/json').json({ jsonrpc: '2.0', id, result });
 }
 
-function sendRpcError(
-  res: Response,
-  id: JsonRpcId,
-  code: number,
-  message: string,
-): void {
+function sendRpcError(res: Response, req: Request, id: JsonRpcId, code: number, message: string): void {
+  res.setHeader('MCP-Protocol-Version', responseVersion(req));
   res.status(200).type('application/json').json({
     jsonrpc: '2.0',
     id,
@@ -41,8 +42,7 @@ function hasValidApiKey(req: Request): boolean {
   const supplied = bearer || req.header('x-sina-mcp-key') || '';
   const expectedBuffer = Buffer.from(expected);
   const suppliedBuffer = Buffer.from(supplied);
-  return expectedBuffer.length === suppliedBuffer.length &&
-    timingSafeEqual(expectedBuffer, suppliedBuffer);
+  return expectedBuffer.length === suppliedBuffer.length && timingSafeEqual(expectedBuffer, suppliedBuffer);
 }
 
 function textResult(value: unknown) {
@@ -79,9 +79,7 @@ async function callTool(name: string): Promise<unknown> {
       };
     }
     case 'sina_list_providers': {
-      const providers = registry.getAvailableProviders().map((provider) => ({
-        name: provider.name,
-      }));
+      const providers = registry.getAvailableProviders().map((provider) => ({ name: provider.name }));
       return { count: providers.length, providers };
     }
     default:
@@ -100,48 +98,54 @@ router.post('/', async (req: Request, res: Response) => {
 
   const message = req.body as JsonRpcRequest;
   if (!message || message.jsonrpc !== '2.0' || typeof message.method !== 'string') {
-    sendRpcError(res, message?.id ?? null, -32600, 'Invalid JSON-RPC request');
+    sendRpcError(res, req, message?.id ?? null, -32600, 'Invalid JSON-RPC request');
     return;
   }
 
   const id = message.id;
   const isNotification = id === undefined;
+  const requestVersion = req.header('MCP-Protocol-Version');
+  if (message.method !== 'initialize' && requestVersion && !SUPPORTED_PROTOCOL_VERSIONS.includes(requestVersion)) {
+    res.status(400).json({ error: 'Unsupported MCP-Protocol-Version' });
+    return;
+  }
 
   try {
     switch (message.method) {
       case 'initialize': {
         const requested = message.params?.protocolVersion;
-        const supported = typeof requested === 'string' && SUPPORTED_PROTOCOL_VERSIONS.includes(requested)
+        const negotiated = typeof requested === 'string' && SUPPORTED_PROTOCOL_VERSIONS.includes(requested)
           ? requested
           : PROTOCOL_VERSION;
-        sendRpc(res, id ?? null, {
-          protocolVersion: supported,
+        sendRpc(res, req, id ?? null, {
+          protocolVersion: negotiated,
           capabilities: { tools: { listChanged: false } },
           serverInfo: SERVER_INFO,
           instructions: 'SINA MCP exposes read-only platform status and provider discovery. It does not replace the SINA Orchestrator.',
-        });
+        }, negotiated);
         return;
       }
       case 'notifications/initialized':
+        res.setHeader('MCP-Protocol-Version', requestVersion || PROTOCOL_VERSION);
         res.status(202).end();
         return;
       case 'ping':
-        sendRpc(res, id ?? null, {});
+        sendRpc(res, req, id ?? null, {});
         return;
       case 'tools/list':
-        sendRpc(res, id ?? null, { tools: toolDefinitions });
+        sendRpc(res, req, id ?? null, { tools: toolDefinitions });
         return;
       case 'tools/call': {
         const name = message.params?.name;
         if (typeof name !== 'string') {
-          sendRpcError(res, id ?? null, -32602, 'Tool name is required');
+          sendRpcError(res, req, id ?? null, -32602, 'Tool name is required');
           return;
         }
         try {
           const result = await callTool(name);
-          sendRpc(res, id ?? null, textResult(result));
+          sendRpc(res, req, id ?? null, textResult(result));
         } catch {
-          sendRpc(res, id ?? null, {
+          sendRpc(res, req, id ?? null, {
             content: [{ type: 'text', text: 'Unknown tool or tool execution failed' }],
             isError: true,
           });
@@ -150,17 +154,19 @@ router.post('/', async (req: Request, res: Response) => {
       }
       default:
         if (isNotification) {
-          res.setHeader('MCP-Protocol-Version', requestVersion || PROTOCOL_VERSION);\n          res.status(202).end();
+          res.setHeader('MCP-Protocol-Version', requestVersion || PROTOCOL_VERSION);
+          res.status(202).end();
           return;
         }
-        sendRpcError(res, id ?? null, -32601, 'Method not found');
+        sendRpcError(res, req, id ?? null, -32601, 'Method not found');
     }
   } catch {
     if (isNotification) {
+      res.setHeader('MCP-Protocol-Version', requestVersion || PROTOCOL_VERSION);
       res.status(202).end();
       return;
     }
-    sendRpcError(res, id ?? null, -32603, 'Internal error');
+    sendRpcError(res, req, id ?? null, -32603, 'Internal error');
   }
 });
 
