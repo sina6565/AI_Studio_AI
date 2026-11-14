@@ -3,7 +3,8 @@ import { Request, Response, Router } from 'express';
 import registry from '../providers/registry';
 
 const router = Router();
-const PROTOCOL_VERSION = '2025-11-25';
+const PROTOCOL_VERSION = '2026-07-28';
+const SUPPORTED_PROTOCOL_VERSIONS = [PROTOCOL_VERSION, '2025-11-25'];
 const SERVER_INFO = { name: 'sina-ai-studio-mcp', version: '0.1.0' };
 
 type JsonRpcId = string | number | null;
@@ -109,7 +110,9 @@ router.post('/', async (req: Request, res: Response) => {
     switch (message.method) {
       case 'initialize': {
         const requested = message.params?.protocolVersion;
-        const supported = typeof requested === 'string' ? requested : PROTOCOL_VERSION;
+        const supported = typeof requested === 'string' && SUPPORTED_PROTOCOL_VERSIONS.includes(requested)
+          ? requested
+          : PROTOCOL_VERSION;
         sendRpc(res, id ?? null, {
           protocolVersion: supported,
           capabilities: { tools: { listChanged: false } },
