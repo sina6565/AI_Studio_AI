@@ -1,35 +1,46 @@
 /**
- * Secure session storage.
+ * Secure local preferences and session storage.
  *
- * The session token is kept in the platform keychain (Android Keystore-backed
- * EncryptedSharedPreferences / iOS Keychain) rather than plain AsyncStorage, so
- * a filesystem dump on a rooted or jailbroken device does not expose it.
+ * Session tokens and the selected locale are stored in separate platform
+ * keychain entries. No credentials or private provider keys belong in the app.
  */
 import * as Keychain from 'react-native-keychain';
 
-const SERVICE = 'com.sinastudioai.session';
+const SESSION_SERVICE = 'com.sinastudioai.session';
+const LANGUAGE_SERVICE = 'com.sinastudioai.language';
 
-/** Persist the session token in secure platform storage. */
+export type AppLanguage = 'en' | 'fa';
+
 export async function saveSessionToken(token: string): Promise<void> {
-  await Keychain.setGenericPassword('session', token, { service: SERVICE });
+  await Keychain.setGenericPassword('session', token, { service: SESSION_SERVICE });
 }
 
-/** Read the persisted session token, or null when none is stored. */
 export async function loadSessionToken(): Promise<string | null> {
   try {
-    const credentials = await Keychain.getGenericPassword({ service: SERVICE });
+    const credentials = await Keychain.getGenericPassword({ service: SESSION_SERVICE });
     return credentials ? credentials.password : null;
   } catch {
-    // A locked/unavailable keystore should not crash startup; treat as signed out.
     return null;
   }
 }
 
-/** Remove the persisted session token. */
 export async function clearSessionToken(): Promise<void> {
   try {
-    await Keychain.resetGenericPassword({ service: SERVICE });
+    await Keychain.resetGenericPassword({ service: SESSION_SERVICE });
   } catch {
     // Best-effort cleanup: a missing entry is not an error.
+  }
+}
+
+export async function saveLanguage(language: AppLanguage): Promise<void> {
+  await Keychain.setGenericPassword('language', language, { service: LANGUAGE_SERVICE });
+}
+
+export async function loadLanguage(): Promise<AppLanguage | null> {
+  try {
+    const credentials = await Keychain.getGenericPassword({ service: LANGUAGE_SERVICE });
+    return credentials?.password === 'fa' ? 'fa' : credentials?.password === 'en' ? 'en' : null;
+  } catch {
+    return null;
   }
 }
