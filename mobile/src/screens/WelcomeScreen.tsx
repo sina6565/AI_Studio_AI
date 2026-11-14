@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../theme';
+import { toggleAppLanguage } from '../i18n/switchLanguage';
 
 type WelcomeNavigation = {
   navigate: (screen: string) => void;
@@ -80,7 +81,7 @@ export default function WelcomeScreen({ navigation }: Props) {
       };
 
   const switchLanguage = () => {
-    void i18n.changeLanguage(isPersian ? 'en' : 'fa');
+    void toggleAppLanguage();
   };
 
   return (
@@ -98,7 +99,12 @@ export default function WelcomeScreen({ navigation }: Props) {
               <Text style={styles.brandCaption}>AI CREATIVE UNIVERSE</Text>
             </View>
           </View>
-          <TouchableOpacity accessibilityRole="button" onPress={switchLanguage} style={styles.languageButton}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={isPersian ? 'تغییر زبان به انگلیسی' : 'Switch language to Persian'}
+            onPress={switchLanguage}
+            style={styles.languageButton}
+          >
             <Text style={styles.languageText}>{isPersian ? 'EN' : 'FA'}</Text>
           </TouchableOpacity>
         </View>
