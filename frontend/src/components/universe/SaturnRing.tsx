@@ -20,8 +20,10 @@ export default function SaturnRing() {
   const rightRef = useRef<THREE.Group>(null);
   const leftAccentRef = useRef<THREE.Group>(null);
   const rightAccentRef = useRef<THREE.Group>(null);
-  const goldMaterial = useRef<THREE.MeshStandardMaterial>(null);
-  const accentMaterial = useRef<THREE.MeshBasicMaterial>(null);
+  const goldLeftRef = useRef<THREE.MeshStandardMaterial>(null);
+  const goldRightRef = useRef<THREE.MeshStandardMaterial>(null);
+  const accentLeftRef = useRef<THREE.MeshBasicMaterial>(null);
+  const accentRightRef = useRef<THREE.MeshBasicMaterial>(null);
 
   useFrame((state) => {
     const t = introTime();
@@ -49,13 +51,14 @@ export default function SaturnRing() {
       rightAccentRef.current.rotation.z = Math.PI + 0.11 * split;
     }
 
-    if (goldMaterial.current) {
-      goldMaterial.current.opacity = visibility;
-      goldMaterial.current.emissiveIntensity = 0.42 + intro.flash * 2.1;
-    }
-    if (accentMaterial.current) {
-      accentMaterial.current.opacity = visibility * 0.72;
-    }
+    [goldLeftRef.current, goldRightRef.current].forEach((material) => {
+      if (!material) return;
+      material.opacity = visibility;
+      material.emissiveIntensity = 0.42 + intro.flash * 2.1;
+    });
+    [accentLeftRef.current, accentRightRef.current].forEach((material) => {
+      if (material) material.opacity = visibility * 0.72;
+    });
 
     const drift = state.clock.elapsedTime * 0.018 + scroll * 0.18;
     [leftRef.current, rightRef.current, leftAccentRef.current, rightAccentRef.current]
@@ -70,7 +73,7 @@ export default function SaturnRing() {
         <mesh>
           <torusGeometry args={[2.76, 0.052, 16, 128, Math.PI - 0.16]} />
           <meshStandardMaterial
-            ref={goldMaterial}
+            ref={goldLeftRef}
             color="#E8C36A"
             emissive="#9A5B16"
             emissiveIntensity={0.42}
@@ -84,9 +87,10 @@ export default function SaturnRing() {
         </mesh>
       </group>
       <group ref={rightRef}>
-        <mesh rotation={[0, 0, Math.PI]}>
+        <mesh>
           <torusGeometry args={[2.76, 0.052, 16, 128, Math.PI - 0.16]} />
           <meshStandardMaterial
+            ref={goldRightRef}
             color="#E8C36A"
             emissive="#9A5B16"
             emissiveIntensity={0.42}
@@ -103,7 +107,7 @@ export default function SaturnRing() {
         <mesh>
           <torusGeometry args={[2.91, 0.012, 8, 128, Math.PI - 0.16]} />
           <meshBasicMaterial
-            ref={accentMaterial}
+            ref={accentLeftRef}
             color="#FFE7A3"
             transparent
             opacity={0}
@@ -112,9 +116,10 @@ export default function SaturnRing() {
         </mesh>
       </group>
       <group ref={rightAccentRef}>
-        <mesh rotation={[0, 0, Math.PI]}>
+        <mesh>
           <torusGeometry args={[2.91, 0.012, 8, 128, Math.PI - 0.16]} />
           <meshBasicMaterial
+            ref={accentRightRef}
             color="#FFE7A3"
             transparent
             opacity={0}
