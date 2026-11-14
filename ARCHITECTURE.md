@@ -502,42 +502,68 @@ Environment variables by service:
 - Integration tests: Page flows
 - E2E tests: User workflows (Cypress/Playwright)
 
+## Verified repository status (2026-11-14)
+
+This status is based on files read from the current `main` branch, not on the original project proposal. A file's presence confirms implementation code exists; it does not by itself prove a live production integration.
+
+Verified current implementation paths include:
+- Express API and authentication: `backend/src/api/routes/` and `backend/src/api/middleware/`.
+- Existing SINA Orchestrator and Router: `backend/src/orchestrator/Orchestrator.ts` and `backend/src/routing/Router.ts`.
+- Provider contract and Agnes adapter: `backend/src/providers/interfaces/IProvider.ts` and `backend/src/providers/agnes/AgnesProvider.ts`.
+- MongoDB connection and job APIs: `backend/src/database/connection.ts` and `backend/src/api/routes/jobs.ts`.
+- React/Vite frontend with Auth, Studio, Jobs, and i18n: `frontend/src/App.tsx`, `frontend/src/pages/`, and `frontend/src/i18n/config.ts`.
+- Container build definition: repository-root `Dockerfile`.
+- GitHub Actions CI: `.github/workflows/ci.yml`.
+- Deployment instructions: `docs/DEPLOYMENT.md`.
+
+The root Docker Compose manifests (`docker-compose.yml`, `docker-compose.prod.yml`), a root `nginx.conf`, and the previously sketched standalone ContentStorage/Analytics services were not found at the documented paths during this inspection. Do not mark those items complete until their actual implementations are located or added and tested.
+
+The CI evidence previously recorded in README (149/149 tests on the referenced 2026-11-09 run) remains a historical verified run. It is not evidence that a local clone, Docker build, production provider call, Blender render, UE5 import, or packaged game was executed in this session.
+
+## Parallel development and Orchestrator evolution
+
+Parallel implementation is expected. Agents may work simultaneously on separate branches/worktrees and modules with explicit ownership, shared contracts, and independent tests. Do not impose a sequential-only development policy.
+
+A new SINA Orchestrator is permitted and encouraged as a side-by-side implementation. Keep the current `Orchestrator.ts` as the stable baseline while building a new version in an isolated module such as `backend/src/orchestrator/v2/`. Give it explicit contracts for planning, agent selection, tool registry, execution, persistent memory, approvals, events, retries, reflection, and result verification. Validate it with FakeProvider and local Ollama tests, regression/contract tests, and shadow comparisons. Route production traffic through a feature flag only after acceptance criteria pass; preserve rollback until migration is approved. The existence of the current Orchestrator is not a reason to prohibit a better one.
+
 ## Implementation Roadmap
 
-### Phase 1: Foundation
-- [ ] Backend project setup with Express
-- [ ] Database schema and models
-- [ ] Authentication system (JWT)
-- [ ] Job queue infrastructure (Bull + Redis)
-- [ ] Basic API endpoints
+### Phase 1: Foundation — implemented in current main
+- [x] Backend project setup with Express
+- [x] Database connection/model layer (MongoDB/Mongoose)
+- [x] Authentication system (JWT routes and middleware)
+- [x] Job queue infrastructure (Bull + Redis; retain the configured fallback mode)
+- [x] Basic API endpoints
 
-### Phase 2: Core Orchestrator
-- [ ] Orchestrator implementation
-- [ ] Provider abstraction layer
-- [ ] Agnes AI provider integration
-- [ ] Job lifecycle management
-- [ ] Error handling and retries
+### Phase 2: Core Orchestrator — implemented baseline
+- [x] Existing SINA Orchestrator implementation
+- [x] Provider abstraction layer
+- [x] Agnes AI provider adapter
+- [x] Job lifecycle and API status management
+- [x] Error handling and retry paths in the existing execution flow
 
-### Phase 3: Frontend
-- [ ] React app setup
-- [ ] Authentication UI
-- [ ] Studio interface for job creation
-- [ ] Job monitoring dashboard
-- [ ] i18n (Persian/English) with RTL
+### Phase 3: Frontend — implemented baseline
+- [x] React + Vite app
+- [x] Authentication UI
+- [x] Studio interface for job creation
+- [x] Job monitoring dashboard
+- [x] i18n (Persian/English) with RTL support
 
-### Phase 4: Storage & Advanced Features
-- [ ] Content storage service
-- [ ] Generated content delivery
-- [ ] Webhook notifications
-- [ ] Advanced routing strategies
-- [ ] Analytics
+### Phase 4: Storage & Advanced Features — partially implemented / still open
+- [ ] Dedicated content storage service with verified persistence and retrieval
+- [ ] Complete generated-content delivery lifecycle across all modalities
+- [ ] Outbound webhook delivery and retry verification (a webhook URL field alone is not completion)
+- [x] Provider routing layer exists; advanced policy/health/cost routing still needs end-to-end verification
+- [ ] Analytics service and validated reporting pipeline
 
-### Phase 5: DevOps & Deployment
-- [ ] Docker containerization
-- [ ] Docker Compose orchestration
-- [ ] Nginx configuration
-- [ ] CI/CD pipelines
-- [ ] Production deployment guide
+### Phase 5: DevOps & Deployment — partially implemented
+- [x] Repository-root Dockerfile (image build definition exists; local Docker build not run in this inspection)
+- [ ] Docker Compose orchestration (the documented root compose files were not found)
+- [ ] Nginx configuration (the documented root nginx.conf was not found)
+- [x] GitHub Actions CI workflow at `.github/workflows/ci.yml`
+- [x] Production deployment guide at `docs/DEPLOYMENT.md` (deployment itself is not verified here)
+
+**Status rule:** phases 1–3 describe implemented foundations in the current repository, not proof that every provider is live. Phases 4–5 remain partial exactly as marked above. Update each checkbox only when the named implementation is present and its relevant tests or operational evidence have been checked.
 
 ## Key Design Decisions
 
