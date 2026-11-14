@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { AgentContext } from './contracts';
 import { InMemoryMemory } from './infra/memory';
 import { SimpleProviderRegistry, OllamaProvider, FakeProvider } from './infra/providers';
-import { SimpleToolRegistry, FileWriteTool, ShellTool } from './infra/tools';
+import { SimpleToolRegistry, FileWriteTool } from './infra/tools';
 import { ConsoleMonitor } from './infra/monitor';
 import { PolicyApproval } from './infra/approval';
 import { CodingAgent } from './agents/coding.agent';
@@ -27,8 +27,6 @@ async function main(): Promise<void> {
   const providers = new SimpleProviderRegistry([provider]);
   const tools = new SimpleToolRegistry();
   tools.register(new FileWriteTool(workspace));
-  // Available for future approved tasks; QA does not execute shell commands.
-  tools.register(new ShellTool(workspace));
 
   const ctx: AgentContext = {
     runId: `run-${Date.now()}`,
