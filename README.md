@@ -48,7 +48,7 @@ Web client (React + Vite) / Mobile client (React Native)
 ### Responsibilities
 
 - **API:** authentication, authorization, validation, and REST endpoints.
-- **Orchestrator / task planner:** classify a request, break multi-step work into tasks, route tasks to the relevant capability, and coordinate results. Preserve the existing implementation; do not replace it with an autonomous-agent framework without evidence and an approved migration.
+- **Orchestrator / task planner:** classify requests, decompose multi-step missions, route tasks, coordinate agents and tools, verify outputs, and manage retries/approvals. The current Orchestrator remains the production baseline, but parallel development of a new SINA-owned Orchestrator is explicitly allowed and expected. Build it side-by-side, test it against shared contracts, and migrate by a controlled feature flag when it is ready; do not block its development merely to avoid parallel work.
 - **Provider routing:** select providers by capability, configuration, constraints, and availability. Keep Agnes and the provider-agnostic abstraction.
 - **Redis + Bull:** queue and track asynchronous jobs, retries, cancellation, and recovery using the existing queue implementation.
 - **Specialized workers:** separate media work from website/game work where the existing architecture supports it. An assembly/FFmpeg worker is an optional extension, not an assumed completed service.
@@ -56,6 +56,20 @@ Web client (React + Vite) / Mobile client (React Native)
 - **MongoDB Atlas / Mongoose:** persist users, projects, job state, metadata, and results through the existing database layer.
 - **Git integration:** where implemented and authorized, version generated website/game project files through branches and commits. Do not claim automatic commits or pushes unless verified.
 - **Progress delivery:** use the project's implemented progress/status mechanism; WebSocket or Redis Pub/Sub is a design option only if confirmed in code.
+
+## Parallel engineering and Orchestrator evolution
+
+Parallel development is an intentional delivery strategy for SINA AI STUDIO. Multiple agents/workstreams may implement independent modules at the same time, provided each has a clear branch or worktree, file ownership, task contract, tests, and integration boundary. Do not force the project into a single-agent, strictly sequential workflow.
+
+A new SINA-owned Orchestrator may and should be developed alongside the existing Orchestrator when it materially advances planning, multi-agent coordination, tool execution, memory, approvals, reflection, and result verification. A safe evolution path is:
+
+1. Keep `backend/src/orchestrator/Orchestrator.ts` running as the current baseline.
+2. Implement the next-generation orchestration runtime in an isolated module/branch (for example, `backend/src/orchestrator/v2/`), reusing existing API, provider, job, queue, and persistence contracts where appropriate.
+3. Define versioned task, agent, tool-call, event, approval, memory, and result-verification contracts. Add contract tests and FakeProvider tests before integration.
+4. Run the new runtime in tests and, where safe, shadow mode. Compare routing decisions, execution traces, failure handling, and verified outputs with the baseline.
+5. Switch traffic gradually behind a feature flag only after build, regression, security, and end-to-end acceptance checks pass. Keep rollback to the existing Orchestrator available until the migration is accepted.
+
+The same parallel-work rule applies to Website Builder, 2D/3D Game Builder, vision, speech, MCP, and local-provider tracks. Independent work is encouraged; uncontrolled duplicate production services and unverified claims are not. React + Vite is the current web-client baseline, not an immutable prohibition: evaluate alternatives (including a different frontend framework) in a separate workstream when there is a measurable product or engineering benefit, then migrate only after compatibility, accessibility, performance, mobile/API integration, and regression checks pass. Keep the current client available until the replacement is accepted.
 
 ## Architecture options and decisions
 
@@ -66,7 +80,7 @@ The architecture notes considered both a hierarchical Orchestrator and an event-
 3. Keep task inputs/outputs structured and validated. A useful internal contract is `{ task_id, prompt, user_id, parameters }`; adapt it to the existing types rather than creating a competing contract.
 4. Apply provider-specific rate limits and concurrency limits separately. Concurrency alone does not enforce requests-per-minute limits.
 5. Retry transient failures with bounded retries, clear job states, and provider fallback only when a compatible provider is configured.
-6. Do not introduce CrewAI, AutoGen, NestJS, BullMQ, or a replacement queue merely because they appeared in architecture proposals. The repository currently documents **Express + TypeScript and Redis + Bull**; preserve those until a code-backed decision justifies a migration.
+6. Keep **Express + TypeScript and Redis + Bull** as the current production stack. Parallel R&D may prototype alternative agents, orchestrators, queues, or frameworks in isolated branches/modules. Promote only validated components through compatibility tests and an explicit migration plan; experimentation is not prohibited, and the existing runtime must remain available during the transition.
 
 ### Ollama and n8n
 
@@ -125,7 +139,7 @@ Update this list only when a specific item has been verified or resolved; avoid 
 
 ## Runtime and deployment
 
-Use the existing deployment files and environment templates in this repository. Check `docker-compose.yml`, `docker-compose.prod.yml`, Dockerfiles, and the relevant `docs/` guides before changing deployment behavior.
+Use the existing deployment files and environment templates in this repository. The current `main` contains a repository-root `Dockerfile`, `.github/workflows/ci.yml`, and `docs/DEPLOYMENT.md`. The root `docker-compose.yml` and `docker-compose.prod.yml` paths are not present in the inspected tree; do not assume Compose or Nginx configuration exists. Add and verify Compose manifests as a separate deployment task if the product needs them.
 
 Core environment settings documented by the project include:
 
@@ -166,7 +180,7 @@ Do not infer that an optional service, tool, provider, or framework is installed
 
 ## Documentation
 
-- [Architecture](./docs/ARCHITECTURE.md)
+- [Architecture](./ARCHITECTURE.md)
 - [API](./docs/API.md)
 - [Providers](./docs/PROVIDERS.md)
 - [Sandbox](./docs/SANDBOX.md)
@@ -271,6 +285,6 @@ The current CI workflow does **not** define separate automated test jobs for liv
 - **Sole designated GitHub owner account:** [`sina6565`](https://github.com/sina6565). The repository is maintained under this account; do not describe another person or account as a co-owner or rights holder unless the project owner explicitly authorizes that change in writing.
 - **Repository:** [`sina6565/AI_Studio_AI`](https://github.com/sina6565/AI_Studio_AI), default branch: `main`.
 - **Code and materials:** SINA AI STUDIO's original code, architecture, documentation, designs, branding, and original assets are proprietary, subject to the rights of their applicable owners and the separate terms of third-party components. See the root `LICENSE` notice. Repository access does not grant a public license to reuse or redistribute proprietary materials.
-- **Access policy:** The intended repository visibility is **Private**. Only the designated owner and collaborators explicitly authorized by that owner should have access. Do not infer or grant ownership from write, maintain, or administrative access alone.
+- **Observed GitHub visibility (2026-11-14):** The GitHub API reports this repository as **Public**. This README does not restrict GitHub API access or change repository visibility; public repository content remains readable. Only the repository's GitHub settings can change visibility. Do not describe the repository as Private unless GitHub confirms that change. Write/admin access does not by itself grant project ownership or intellectual-property rights.
 - **Product capability protection:** Changing GitHub repository visibility from Public to Private is an access-control and source-confidentiality measure only. It must not remove, disable, downgrade, hide, or otherwise restrict any SINA AI STUDIO feature, API, provider adapter, Orchestrator, Agent, workflow, user entitlement, or runtime capability. Preserve the existing implementation and deployment behavior. If a GitHub-hosted service or workflow has a plan-dependent visibility restriction, document and resolve that separately without reducing SINA product functionality.
 - **Verification:** Repository visibility and collaborator permissions must be checked in GitHub repository settings after the owner applies the Private setting. Do not report the repository as Private until GitHub confirms the change.
