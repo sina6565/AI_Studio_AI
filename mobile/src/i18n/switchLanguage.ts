@@ -34,18 +34,27 @@ export async function initializeAppLanguage(): Promise<void> {
 
 export async function toggleAppLanguage(): Promise<void> {
   const nextLanguage: AppLanguage = i18n.language.startsWith('fa') ? 'en' : 'fa';
-  await AsyncStorage.setItem(LANGUAGE_KEY, nextLanguage);
-  await i18n.changeLanguage(nextLanguage);
+  try {
+    await AsyncStorage.setItem(LANGUAGE_KEY, nextLanguage);
+    await i18n.changeLanguage(nextLanguage);
 
-  const shouldUseRtl = nextLanguage === 'fa';
-  if (I18nManager.isRTL !== shouldUseRtl) {
-    I18nManager.allowRTL(true);
-    I18nManager.forceRTL(shouldUseRtl);
+    const shouldUseRtl = nextLanguage === 'fa';
+    if (I18nManager.isRTL !== shouldUseRtl) {
+      I18nManager.allowRTL(true);
+      I18nManager.forceRTL(shouldUseRtl);
+      Alert.alert(
+        nextLanguage === 'fa' ? 'راه‌اندازی مجدد لازم است' : 'Restart required',
+        nextLanguage === 'fa'
+          ? 'برای اعمال کامل چیدمان راست‌به‌چپ، برنامه را ببندید و دوباره باز کنید.'
+          : 'Close and reopen SINA AI STUDIO to apply the complete left-to-right layout.',
+      );
+    }
+  } catch {
     Alert.alert(
-      nextLanguage === 'fa' ? 'راه‌اندازی مجدد لازم است' : 'Restart required',
-      nextLanguage === 'fa'
-        ? 'برای اعمال کامل چیدمان راست‌به‌چپ، برنامه را ببندید و دوباره باز کنید.'
-        : 'Close and reopen SINA AI STUDIO to apply the complete left-to-right layout.',
+      i18n.language.startsWith('fa') ? 'تغییر زبان انجام نشد' : 'Language update failed',
+      i18n.language.startsWith('fa')
+        ? 'ذخیره تنظیم زبان ممکن نشد. دوباره تلاش کنید.'
+        : 'The language preference could not be saved. Please try again.',
     );
   }
 }
