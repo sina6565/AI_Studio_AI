@@ -1,6 +1,8 @@
 import request from 'supertest';
 import { createApp } from '../src/app';
 
+const TEST_MCP_KEY = 'sina-mcp-test-secret-0123456789abcdef';
+
 jest.mock('../src/providers/registry', () => ({
   __esModule: true,
   default: {
@@ -26,8 +28,17 @@ describe('SINA MCP endpoint', () => {
     expect(response.status).toBe(503);
   });
 
+  it('fails closed when a configured MCP secret is shorter than 32 bytes', async () => {
+    process.env.SINA_MCP_API_KEY = 'short-secret';
+    const response = await request(app)
+      .post('/mcp')
+      .send({ jsonrpc: '2.0', id: 10, method: 'initialize', params: {} });
+
+    expect(response.status).toBe(503);
+  });
+
   it('rejects an invalid MCP secret', async () => {
-    process.env.SINA_MCP_API_KEY = 'expected-secret';
+    process.env.SINA_MCP_API_KEY = TEST_MCP_KEY;
     const response = await request(app)
       .post('/mcp')
       .set('Authorization', 'Bearer incorrect-secret')
@@ -37,7 +48,7 @@ describe('SINA MCP endpoint', () => {
   });
 
   it('rejects malformed Bearer headers with long whitespace without regex backtracking', async () => {
-    process.env.SINA_MCP_API_KEY = 'expected-secret';
+    process.env.SINA_MCP_API_KEY = TEST_MCP_KEY;
     const response = await request(app)
       .post('/mcp')
       .set('Authorization', `Bearer ${' '.repeat(10000)}incorrect-secret`)
@@ -47,10 +58,10 @@ describe('SINA MCP endpoint', () => {
   });
 
   it('negotiates MCP and lists only read-only tools', async () => {
-    process.env.SINA_MCP_API_KEY = 'expected-secret';
+    process.env.SINA_MCP_API_KEY = TEST_MCP_KEY;
     const response = await request(app)
       .post('/mcp')
-      .set('Authorization', 'Bearer expected-secret')
+      .set('Authorization', `Bearer ${TEST_MCP_KEY}`)
       .send({
         jsonrpc: '2.0',
         id: 1,
@@ -64,7 +75,7 @@ describe('SINA MCP endpoint', () => {
 
     const tools = await request(app)
       .post('/mcp')
-      .set('Authorization', 'Bearer expected-secret')
+      .set('Authorization', `Bearer ${TEST_MCP_KEY}`)
       .send({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
 
     expect(tools.body.result.tools.map((tool: { name: string }) => tool.name)).toEqual([
@@ -74,10 +85,10 @@ describe('SINA MCP endpoint', () => {
   });
 
   it('executes read-only provider discovery and returns structured content', async () => {
-    process.env.SINA_MCP_API_KEY = 'expected-secret';
+    process.env.SINA_MCP_API_KEY = TEST_MCP_KEY;
     const response = await request(app)
       .post('/mcp')
-      .set('x-sina-mcp-key', 'expected-secret')
+      .set('x-sina-mcp-key', TEST_MCP_KEY)
       .send({
         jsonrpc: '2.0',
         id: 3,
@@ -93,10 +104,10 @@ describe('SINA MCP endpoint', () => {
   });
 
   it('returns a tool error for an unknown tool', async () => {
-    process.env.SINA_MCP_API_KEY = 'expected-secret';
+    process.env.SINA_MCP_API_KEY = TEST_MCP_KEY;
     const response = await request(app)
       .post('/mcp')
-      .set('Authorization', 'Bearer expected-secret')
+      .set('Authorization', `Bearer ${TEST_MCP_KEY}`)
       .send({
         jsonrpc: '2.0',
         id: 4,
