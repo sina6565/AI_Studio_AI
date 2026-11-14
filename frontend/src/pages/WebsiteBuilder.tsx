@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import {
   Alert, Button, Chip, Container, Paper, Stack, TextField, Typography,
 } from '@mui/material';
@@ -32,6 +32,7 @@ const copy = {
     timeout: 'The build is taking longer than expected. Check the Jobs page for its status.',
     job: 'Job',
     honest: 'With your own Ollama server enabled, SINA can write the page content locally; if it is unavailable, a deterministic offline interpreter is used. No paid API is required. This release creates a responsive single-page HTML draft; multi-page routing, saved revisions and hosted publishing are not connected yet.',
+    openGameBuilder: 'Continue in 3D Game Lab',
   },
   fa: {
     eyebrow: 'سایت‌ساز SINA',
@@ -55,6 +56,7 @@ const copy = {
     timeout: 'ساخت بیش از حد معمول طول کشید؛ وضعیت را در صفحه وظایف بررسی کن.',
     job: 'شناسه کار',
     honest: 'اگر سرور Ollama خودت را فعال کنی، سینا متن صفحه را با مدل محلی تولید می‌کند؛ در غیر این صورت از تفسیرگر آفلاین استفاده می‌شود. API پولی لازم نیست. نسخه فعلی یک صفحه HTML واکنش‌گرا می‌سازد؛ چندصفحه‌ای، تاریخچه نسخه‌ها و انتشار میزبانی‌شده هنوز متصل نیست.',
+    openGameBuilder: 'ادامه در آزمایشگاه بازی سه‌بعدی',
   },
 };
 
@@ -187,6 +189,9 @@ const WebsiteBuilder: React.FC = () => {
             />
             <Button variant="contained" size="large" onClick={() => void build()} disabled={loading || prompt.trim().length < 12} startIcon={<CodeRoundedIcon />}>
               {loading ? t.processing : t.generate}
+            </Button>
+            <Button component={RouterLink} to="/studio/3d" variant="outlined" fullWidth>
+              {t.openGameBuilder}
             </Button>
           </Stack>
         </Paper>
