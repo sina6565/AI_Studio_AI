@@ -1,13 +1,13 @@
 /**
  * Mobile App Entry Point
  */
-
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import './i18n/config';
+import LanguageToggle from './components/LanguageToggle';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import {
   AuthScreen,
@@ -26,7 +26,11 @@ const screenOptions = {
   headerStyle: { backgroundColor: colors.surface },
   headerTintColor: colors.text,
   headerTitleStyle: { color: colors.text },
-  tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+  headerRight: () => <LanguageToggle />,
+  tabBarStyle: {
+    backgroundColor: colors.surface,
+    borderTopColor: colors.border,
+  },
   tabBarActiveTintColor: colors.primary,
   tabBarInactiveTintColor: colors.muted,
 };
