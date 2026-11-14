@@ -7,7 +7,7 @@ The SINA MCP endpoint exposes a controlled, standards-based tool interface for M
 ## Current scope
 
 - Transport: stateless Streamable HTTP-style JSON-RPC endpoint at `POST /mcp`.
-- Protocol negotiation: MCP protocol version `2025-11-25`.
+- Protocol negotiation: MCP protocol version `2026-07-28`, with compatibility for `2025-11-25` clients.
 - Authentication: dedicated bearer token (`SINA_MCP_API_KEY`) or `x-sina-mcp-key` header.
 - Tools: `sina_backend_status` and `sina_list_providers` (read-only).
 - No MCP session state is stored.
@@ -42,7 +42,7 @@ Initialize:
   "id": 1,
   "method": "initialize",
   "params": {
-    "protocolVersion": "2025-11-25",
+    "protocolVersion": "2026-07-28",
     "capabilities": {},
     "clientInfo": { "name": "your-mcp-client", "version": "1.0.0" }
   }
