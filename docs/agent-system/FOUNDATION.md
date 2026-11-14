@@ -6,7 +6,7 @@ Status: **foundation interfaces added; not yet wired into production request flo
 
 - A provider-agnostic SINAAgent contract and typed task/context/output models.
 - An in-memory AgentRegistry with duplicate-id protection and capability lookup.
-- An AgentRunner that executes one registered agent and returns a structured result.
+- An AgentRunner that executes one registered agent, returns a structured result, and propagates cooperative AbortSignal cancellation.
 - A MessageBus port plus a single-process in-memory fallback.
 - A ModelRouter port that makes privacy and remote-use permission explicit.
 
@@ -20,7 +20,7 @@ Status: **foundation interfaces added; not yet wired into production request flo
 ## Important limitations
 
 - The in-memory registry and message bus are process-local and non-durable.
-- The runner does not schedule tasks, retry, persist state, grant tool permissions, or invoke a model.
+- The runner does not schedule tasks, retry, persist state, grant tool permissions, or invoke a model. Cancellation is cooperative: an agent must observe the supplied AbortSignal.
 - The model router is an interface only; no model is selected until a concrete adapter is implemented.
 - These interfaces are not yet connected to API endpoints, the Orchestrator, MongoDB, Redis, MCP, or a sandbox.
 - No claim of production multi-agent execution is made by this increment.
@@ -49,3 +49,6 @@ Status: **foundation interfaces added; not yet wired into production request flo
 This branch also adds an in-memory SkillRegistry for reusable capability-scoped instructions. It validates stable IDs and capability names, rejects duplicate registrations, bounds instruction text to 32,000 characters, returns summaries without instruction bodies, and returns defensive copies of capability arrays. Skills are plain declarative text: the registry does not download packages, read arbitrary files, access the network, or execute scripts. See [Agent Skills](./SKILLS.md) for its trust boundary and future package-governance requirements.
 
 The skill registry is not persistent and is not yet wired into AgentRunner or production routing. Do not describe skill marketplace, remote installation, signature verification, or cross-process synchronization as implemented.
+
+
+The vertical-slice CLI registers only the workspace-scoped file-write tool by default. The low-level ShellTool helper is deliberately not registered: it is not an OS/container sandbox, and an executable allowlist alone is not a safe boundary for model-generated code. Do not expose it to agents until an isolated runtime and an approval-enforcing tool wrapper are implemented and tested.
