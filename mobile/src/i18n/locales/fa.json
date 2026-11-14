@@ -1,16 +1,18 @@
 {
   "app": {
-    "title": "آفرینندهی",
-    "subtitle": "محتوا فوق‌العاده ایجاد کنید"
+    "title": "سینا AI استودیو",
+    "subtitle": "از یک ایده تا یک جهان کامل"
   },
   "creation": {
     "whatToCreate": "می‌خواهید چه چیزی بسازید؟",
     "image": "تصویر",
     "video": "ویدیو",
+    "audio": "صوت",
+    "speech": "گفتار",
     "game": "بازی",
     "promptPlaceholder": "توضیح دهید چه چیزی می‌خواهید بسازید",
-    "generate": "بساز",
-    "queued": "در صف قرار گرفت",
+    "generate": "شروع تولید",
+    "queued": "در صف کار قرار گرفت",
     "gameModeCreate": "ایجاد تعریف بازی",
     "gameModeBuild": "ساخت نمایشگر صحنه"
   },
@@ -31,19 +33,27 @@
     "projects": "پروژه‌ها"
   },
   "jobs": {
-    "total": "کل",
+    "total": "مجموع",
     "completed": "تکمیل‌شده",
     "processing": "در حال پردازش",
     "failed": "ناموفق",
     "recent": "کارهای اخیر",
-    "empty": "هنوز کاری وجود ندارد",
+    "empty": "هنوز کاری ثبت نشده است",
     "progress": "پیشرفت",
     "cancel": "لغو"
   },
   "projects": {
     "name": "نام پروژه",
-    "description": "توضیح",
+    "description": "توضیحات",
     "create": "ایجاد پروژه",
     "empty": "هنوز پروژه‌ای وجود ندارد"
+  },
+  "language": {
+    "switchToEnglish": "تغییر زبان به انگلیسی",
+    "switchToPersian": "تغییر زبان به فارسی",
+    "restartTitle": "راه‌اندازی مجدد لازم است",
+    "restartMessage": "برای اعمال کامل چیدمان راست‌به‌چپ، برنامه SINA AI STUDIO را ببندید و دوباره باز کنید.",
+    "errorTitle": "تغییر زبان انجام نشد",
+    "errorMessage": "ذخیره تنظیم زبان ممکن نشد. دوباره تلاش کنید."
   }
 }
