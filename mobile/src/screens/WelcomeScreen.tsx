@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../theme';
+import { toggleAppLanguage } from '../i18n/switchLanguage';
 
 type WelcomeNavigation = {
   navigate: (screen: string) => void;
@@ -80,7 +81,7 @@ export default function WelcomeScreen({ navigation }: Props) {
       };
 
   const switchLanguage = () => {
-    void i18n.changeLanguage(isPersian ? 'en' : 'fa');
+    void toggleAppLanguage();
   };
 
   return (
