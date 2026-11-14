@@ -14,6 +14,7 @@ import userRoutes from './api/routes/users';
 import projectRoutes from './api/routes/projects';
 import generateRoutes from './api/routes/generate';
 import healthRoutes from './api/routes/health';
+import mcpRoutes from './api/routes/mcp';
 
 /**
  * Locate the built web frontend for single-container deployments.
@@ -54,6 +55,9 @@ export function createApp(): Express {
   app.use('/api/', rateLimit({ windowMs: config.rateLimit.windowMs, max: config.rateLimit.maxRequests, standardHeaders: true, legacyHeaders: false }));
   // Root-level probes (liveness + readiness) plus the versioned API health.
   app.use('/health', healthRoutes);
+  // MCP is a separately authenticated integration surface; it is intentionally
+  // not mounted under the user-session API routes.
+  app.use('/mcp', mcpRoutes);
   app.use(`${config.apiPrefix}/${config.apiVersion}/health`, healthRoutes);
   // Built web frontend shipped in the production image, if any. Health
   // probes above are unaffected; liveness should target `/health`
