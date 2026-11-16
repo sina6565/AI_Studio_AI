@@ -1,13 +1,16 @@
 # Cinematic Site
 
-این اپ برای تجربهٔ سینمایی، landing page و brand presentation در نظر گرفته می‌شود.
+این مسیر برای جداسازی تجربهٔ سینمایی و معرفی عمومی برند SINA AI STUDIO تعریف شده است.
 
-## شامل
-- `UniverseLanding`
-- `HeroScene`
-- `PreOrder`
-- sections brand و cinematic
-- motion/3D effects
+## دامنهٔ تجربه
 
-## وضعیت
-در حال جداسازی از هستهٔ محصول.
+- Universe landing
+- Hero scene
+- Pre-order
+- Brand storytelling
+- Motion و جلوه‌های سه‌بعدی
+- User acquisition experience
+
+## وضعیت فعلی
+
+این مسیر در شاخهٔ فعلی فایل معرفی دارد، اما `package.json` مستقل و اجرای مستقل آن تأیید نشده است. اجزای واقعی این تجربه باید در ساختار فعلی مخزن شناسایی شوند؛ وجود این پوشه به معنی تکمیل جداسازی از اپلیکیشن وب نیست.
