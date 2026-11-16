@@ -1,9 +1,14 @@
 # Mobile Brand
 
-این اپ برای تجربهٔ سینمایی و معرفی برند در موبایل طراحی می‌شود.
+این مسیر برای تجربهٔ سینمایی و معرفی برند SINA AI STUDIO در موبایل تعریف شده است.
 
-## شامل
-- cinematic intro
-- promo screens
-- brand onboarding
-- visual presentation
+## دامنهٔ تجربه
+
+- Cinematic intro
+- Promo screens
+- Brand onboarding
+- Visual presentation
+
+## وضعیت فعلی
+
+این مسیر در شاخهٔ فعلی فایل معرفی دارد، اما `package.json` مستقل و اجرای مستقل آن تأیید نشده است. این مسیر فعلاً یک محل مستندسازی برای دامنهٔ کاری پیشنهادی است، نه اپلیکیشن موبایل آمادهٔ اجرا یا انتشار.
