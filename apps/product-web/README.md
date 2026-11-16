@@ -1,19 +1,10 @@
 # Product Web
 
-این مسیر برای تفکیک آیندهٔ اپلیکیشن وب اصلی SINA AI STUDIO در نظر گرفته شده است.
+اپلیکیشن وب اجرایی پروژه در پوشهٔ `frontend/` قرار دارد.
 
-## دامنهٔ محصول
+- نقطهٔ ورود: `frontend/src/App.tsx`
+- صفحه‌های محصول: `frontend/src/pages/`
+- اتصال API: `frontend/src/services/`
+- اجزای رابط کاربری: `frontend/src/components/`
 
-- Dashboard
-- Studio
-- Jobs
-- Projects
-- Auth
-- API services
-- Core app routing
-
-## وضعیت فعلی
-
-این مسیر در شاخهٔ فعلی فایل معرفی دارد، اما `package.json` مستقل و ورودی اجرایی اپلیکیشن در آن تأیید نشده است. کد اجرایی وب فعلی در `frontend/` قرار دارد.
-
-این پوشه فعلاً نباید به‌عنوان اپلیکیشن مستقل build یا deploy شود. انتقال از `frontend/` تنها پس از بررسی وابستگی‌ها، مسیرهای اجرا و تست‌های مربوط انجام می‌شود.
+این پوشه در `apps/product-web/` فقط فایل معرفی دارد و `package.json` یا ورودی اجرای مستقل در آن ثبت نشده است.
