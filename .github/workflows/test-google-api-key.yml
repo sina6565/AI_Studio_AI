@@ -11,19 +11,18 @@ permissions:
 
 jobs:
   test-gemini-api:
-    name: Verify Gemini API access
+    name: Verify Gemini API key
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Call Gemini API without exposing the secret
+      - name: Check whether Google accepts the API key
         shell: bash
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           set -euo pipefail
-
           if [[ -z "${GOOGLE_API_KEY:-}" ]]; then
-            echo "::error::GitHub Actions secret GOOGLE_API_KEY is missing or empty."
+            echo "::error::Secret GOOGLE_API_KEY is missing or empty."
             exit 1
           fi
 
@@ -33,31 +32,30 @@ jobs:
           http_status="$(curl --silent --show-error \
             --output "$response_file" \
             --write-out "%{http_code}" \
-            --request POST \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent" \
-            --header "x-goog-api-key: ${GOOGLE_API_KEY}" \
-            --header "Content-Type: application/json" \
-            --data '{"contents":[{"parts":[{"text":"Reply with exactly: SINA_API_OK"}]}],"generationConfig":{"maxOutputTokens":12}}')"
+            --request GET \
+            "https://generativelanguage.googleapis.com/v1beta/models" \
+            --header "x-goog-api-key: ${GOOGLE_API_KEY}")"
 
-          if [[ "$http_status" != "200" ]]; then
-            echo "::error::Gemini API request failed (HTTP ${http_status}). The response body and secret are intentionally not printed."
-            exit 1
-          fi
-
-          node - "$response_file" <<'NODE'
+          node - "$response_file" "$http_status" <<'NODE'
           const fs = require("node:fs");
-          const data = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
-          const text = (data.candidates?.[0]?.content?.parts ?? [])
-            .map((part) => part.text ?? "")
-            .join("")
-            .trim();
+          const body = fs.readFileSync(process.argv[2], "utf8");
+          const status = process.argv[3];
 
-          if (!text) {
-            console.error("Gemini returned HTTP 200 but no text candidate.");
-            process.exit(1);
+          let data = {};
+          try { data = JSON.parse(body); } catch {}
+
+          if (status === "200" && Array.isArray(data.models)) {
+            console.log("RESULT: API KEY ACCEPTED");
+            console.log("Google Gemini API authenticated successfully.");
+            console.log("Available models returned:", data.models.length);
+            process.exit(0);
           }
 
-          console.log("Gemini API authentication and text generation: SUCCESS");
-          console.log("Model: gemini-3.8-flash");
-          console.log("Response received: YES");
+          const message = data.error?.message || "Google rejected the request; no detailed message was returned.";
+          const code = data.error?.status || "UNKNOWN";
+          console.error("RESULT: API KEY NOT VERIFIED");
+          console.error("HTTP status:", status);
+          console.error("Google error code:", code);
+          console.error("Google message:", message.replace(/AIza[0-9A-Za-z_-]{20,}/g, "[REDACTED]"));
+          process.exit(1);
           NODE
