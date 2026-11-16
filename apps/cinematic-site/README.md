@@ -1,16 +1,11 @@
 # Cinematic Site
 
-این مسیر برای جداسازی تجربهٔ سینمایی و معرفی عمومی برند SINA AI STUDIO تعریف شده است.
+صفحهٔ سینمایی و معرفی برند در اپلیکیشن وب فعلی پیاده‌سازی شده است.
 
-## دامنهٔ تجربه
+- صفحهٔ Universe: `frontend/src/pages/UniverseLanding.tsx`
+- صحنهٔ سه‌بعدی: `frontend/src/components/universe/HeroScene.tsx`
+- اجزای جهان و افکت‌ها: `frontend/src/components/universe/`
+- صفحهٔ Pre-order: `frontend/src/pages/PreOrder.tsx`
+- مسیریابی: `frontend/src/App.tsx`
 
-- Universe landing
-- Hero scene
-- Pre-order
-- Brand storytelling
-- Motion و جلوه‌های سه‌بعدی
-- User acquisition experience
-
-## وضعیت فعلی
-
-این مسیر در شاخهٔ فعلی فایل معرفی دارد، اما `package.json` مستقل و اجرای مستقل آن تأیید نشده است. اجزای واقعی این تجربه باید در ساختار فعلی مخزن شناسایی شوند؛ وجود این پوشه به معنی تکمیل جداسازی از اپلیکیشن وب نیست.
+در `apps/cinematic-site/` فقط فایل معرفی وجود دارد؛ این مسیر package یا اپلیکیشن مستقل قابل اجرا ندارد.
