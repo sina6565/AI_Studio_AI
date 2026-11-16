@@ -93,7 +93,9 @@ export class Orchestrator {
 
     // Website builds use the deterministic local template engine. They do not
     // consume provider credits or require a configured AI provider.
-    const routingCapability = gameJobCapability(request.jobType);
+    const routingCapability = request.jobType === JobType.TEXT_GENERATION
+      ? 'text_generation'
+      : gameJobCapability(request.jobType);
     const providerName = isUE5Build
       ? 'unreal-engine-5-worker'
       : isLocalWebsiteBuild
@@ -322,6 +324,15 @@ export class Orchestrator {
           job.progress = { percentage: 30, stage: 'generating_audio' };
           await job.save();
           output = await provider.generateAudio(job.input as any);
+          break;
+
+        case JobType.TEXT_GENERATION:
+          if (!provider.generateText) {
+            throw new AppError('CAPABILITY_NOT_SUPPORTED', 'Selected provider does not support text generation', 400);
+          }
+          job.progress = { percentage: 30, stage: 'generating_text' };
+          await job.save();
+          output = await provider.generateText(job.input as any);
           break;
 
         case JobType.TEXT_TO_SPEECH:
