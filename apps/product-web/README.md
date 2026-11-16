@@ -1,15 +1,10 @@
 # Product Web
 
-این اپ هستهٔ اصلی محصول وب است.
+اپلیکیشن وب اجرایی پروژه در پوشهٔ `frontend/` قرار دارد.
 
-## شامل
-- Dashboard
-- Studio
-- Jobs
-- Projects
-- Auth
-- API services
-- core app routing
+- نقطهٔ ورود: `frontend/src/App.tsx`
+- صفحه‌های محصول: `frontend/src/pages/`
+- اتصال API: `frontend/src/services/`
+- اجزای رابط کاربری: `frontend/src/components/`
 
-## وضعیت
-محور اصلی توسعهٔ محصول و publish اولیه.
+این پوشه در `apps/product-web/` فقط فایل معرفی دارد و `package.json` یا ورودی اجرای مستقل در آن ثبت نشده است.

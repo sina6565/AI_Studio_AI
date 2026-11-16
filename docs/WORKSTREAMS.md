@@ -1,72 +1,57 @@
-# معماری کارکردی و انتشار اولیه
+# نقشهٔ بخش‌های محصول و محل کد
 
-این مخزن در حال عبور از مدل تک‌اپلیکیشن به مدل چند workstream مستقل است:
+این سند محل واقعی کدهای وب، موبایل و بک‌اند را در مخزن ثبت می‌کند.
 
-## 1) Product Workstream
-بخش اصلی محصول برای کاربران واقعی:
-- داشبورد
-- استودیو
-- Jobs
-- Projects
-- Auth
-- API integration
-- state management
-- workflows کسب‌وکار
+## اپلیکیشن وب
 
-مسیر پیشنهادی:
-- `apps/product-web/`
+**پوشهٔ اجرایی:** `frontend/`
 
-## 2) Cinematic Workstream
-تجربهٔ عمومی و برندینگ برای معرفی محصول و جذب مشتری:
-- Landing page سینمایی
-- Universe landing
-- Hero scene / motion / 3D sections
-- Preorder
-- Brand storytelling
-- User acquisition experience
+- نقطهٔ ورود و مسیریابی: `frontend/src/App.tsx`
+- صفحهٔ معرفی و جهان سینمایی: `frontend/src/pages/UniverseLanding.tsx`
+- صحنه و اجزای سه‌بعدی معرفی: `frontend/src/components/universe/`
+- پیش‌خرید: `frontend/src/pages/PreOrder.tsx`
+- سازندهٔ وب‌سایت: `frontend/src/pages/WebsiteBuilder.tsx`
+- استودیو، داشبورد، پروژه‌ها و کارها: `frontend/src/pages/`
 
-مسیر پیشنهادی:
-- `apps/cinematic-site/`
+صفحهٔ معرفی و بخش‌های اصلی محصول در همین اپلیکیشن وب قرار دارند؛ دو اپلیکیشن جداگانه برای سایت سینمایی و محصول وب در ریشهٔ مخزن وجود ندارد.
 
-## 3) Mobile Product Workstream
-اپ موبایل واقعی و عملکردی:
-- auth flow
-- dashboard
-- studio mobile
-- jobs/projects
+## اپلیکیشن موبایل
 
-مسیر پیشنهادی:
-- `apps/mobile-product/`
+**پوشهٔ اجرایی:** `mobile/`
 
-## 4) Mobile Brand Workstream
-تجربهٔ سینمایی و برند��نگ در موبایل:
-- intro cinematic
-- promo screens
-- onboarding/teaser
-- presentation brand
+- نقطهٔ ورود و Navigation: `mobile/src/App.tsx`
+- صفحهٔ خوش‌آمدگویی: `mobile/src/screens/WelcomeScreen.tsx`
+- احراز هویت: `mobile/src/screens/AuthScreen.tsx`
+- داشبورد: `mobile/src/screens/DashboardScreen.tsx`
+- استودیو: `mobile/src/screens/StudioScreen.tsx`
+- پروژه‌ها و کارها: فایل‌های متناظر در `mobile/src/screens/`
 
-مسیر پیشنهادی:
-- `apps/mobile-brand/`
+صفحه‌های معرفی، ورود و امکانات محصول در یک اپلیکیشن React Native قرار دارند؛ دو اپلیکیشن مستقل با نام‌های Mobile Product و Mobile Brand در مخزن تعریف نشده‌اند.
 
-## 5) Shared Layer
-بخش‌های اشتراکی:
-- design system
-- translations
-- shared API layer
-- shared types
-- common UI primitives
+## بک‌اند و اجرای کارها
 
-مسیر پیشنهادی:
-- `packages/`
+**پوشهٔ اجرایی:** `backend/`
 
-## اولویت اجرایی
-1. رفع موانع وابستگی‌ها و lockfile
-2. تفکیک workstream‌ها
-3. هاردنینگ امنیتی و env
-4. آماده‌سازی publish اولیه
-5. انتشار رسمی و بازرسی پس از deploy
+- API و راه‌اندازی سرور: `backend/src/`
+- Orchestrator: `backend/src/orchestrator/`
+- سازندهٔ وب‌سایت: `backend/src/website/`
+- منطق بازی: `backend/src/game/`
+- اتصال Unreal Engine 5: `backend/src/game3d/`
+- Providerها و اتصال Agnes: بخش‌های مربوط در `backend/src/`
 
-## نتیجهٔ انتظار‌دار
-- کد محصول از تجربهٔ برندینگ جدا شود
-- تیم‌ها مستقل روی بخش‌های خود کار کنند
-- اجرای publish اولیه پایدارتر و حرفه‌ای‌تر باشد
+## وابستگی‌ها و packageها
+
+سه package اجرایی پروژه در این مسیرها تعریف شده‌اند:
+
+- `frontend/package.json`
+- `backend/package.json`
+- `mobile/package.json`
+
+در `apps/*` و `packages/*`، package مستقل با `package.json` ثبت نشده است. نام‌هایی مانند `shared-ui`، `shared-api` و `shared-types` در حال حاضر package قابل نصب یا import نیستند.
+
+## قواعد تغییر ساختار
+
+- مسیرهای فعلی `frontend/`، `backend/` و `mobile/` را بدون انتقال واقعی کد و اصلاح همهٔ importها، تنظیمات، اسکریپت‌ها و CI حذف یا جابه‌جا نکنید.
+- هیچ مسیر یا packageای را مستقل و قابل اجرا معرفی نکنید مگر اینکه manifest و ورودی اجرایی آن در مخزن وجود داشته باشد.
+- تغییرات مربوط به Orchestrator، Agnes و Provider Registry باید رفتار فعلی و سازگاری چندارائه‌دهنده‌ای را حفظ کنند.
+- هر تغییر ساختاری باید با build و تست‌های همان بخش بررسی شود.
