@@ -4,83 +4,70 @@
   <strong>FROM A SINGLE IDEA TO AN ENTIRE UNIVERSE</strong>
 </p>
 
-<p align="center">
-  <em>Imagine it. Create it. Build the world around it.</em>
-</p>
+**An independent AI creation and technology ecosystem for turning ideas into digital worlds, creative works, and real products.**
 
-**SINA AI STUDIO is an independent AI creation universe and technology ecosystem—built to bring imagination, intelligence, and engineering together.**
+SINA AI STUDIO brings intelligent creation, media production, software development, game creation, and emerging AI technologies into one connected environment. Its ambition is to make the journey from an idea to a complete digital experience possible—while keeping the platform's identity, orchestration, and technology direction under SINA's control.
 
-From a single idea, SINA is designed to help create complete digital experiences: visual worlds, films and motion, music and sound, intelligent characters, websites and applications, 2D and 3D games, and interactive environments. These are not disconnected tools gathered under one name; they are creative and technical capabilities being brought together into one evolving ecosystem.
+## 🎯 Platform Vision
 
-At its core, SINA is building its own orchestration, agent, and technology architecture. It can work with different AI models, engines, and tools while keeping the platform's identity, workflows, projects, and direction under SINA's control. Technologies are components the ecosystem can connect, evaluate, replace, and improve—not the foundation of someone else's product.
+One creative universe across Web and Mobile: imagine, design, create, develop, and bring ideas to life.
 
-## 🌌 The SINA Vision
+### Supported Capabilities
 
-To make the journey from imagination to realization possible in one connected creative and technological universe: where people can conceive, design, generate, develop, test, and expand ideas into digital products and experiences.
+- 🖼️ **Images & Visual Worlds** — image generation and visual assets
+- 🎬 **Video & Animation** — video, motion, and animation workflows
+- 🎵 **Audio & Music** — sound, music, and audio creation
+- 🗣️ **Speech** — text-to-speech and voice capabilities
+- 📝 **Text & Ideas** — writing, concepts, and creative development
+- 👤 **Characters** — digital character concepts and assets
+- 🧊 **3D Creation** — 3D assets, rooms, and environments
+- 🎮 **Games** — game scenes, environments, assets, and development workflows
+- 🌐 **Web & Apps** — website and software creation
+- 🤖 **Intelligent Agents** — task planning, orchestration, and tool-assisted execution
+- 🔬 **Research & Innovation** — exploring, testing, and integrating emerging technologies
 
-SINA brings together AI-powered creation, software and game development, intelligent agents, and continuous research and innovation. Its ambition is not simply to offer access to AI, but to build an environment in which new things can be made—and the technology behind them can keep evolving.
-
-## ✨ Supported Creative & Technology Domains
-
-- 🖼️ **Image & Visual Creation** — AI-assisted image generation and visual assets
-- 🎬 **Video & Motion** — video creation, animation, and motion-oriented workflows
-- 🎵 **Audio & Music** — sound, music, and audio production
-- 🗣️ **Speech** — speech generation and text-to-speech, including Persian where supported
-- 📝 **Text & Ideas** — writing, concepts, planning, and creative development
-- 👤 **Characters** — character concepts and digital character assets
-- 🧊 **3D Creation** — 3D assets, rooms, environments, and spatial experiences
-- 🎮 **Game Creation** — game concepts, scenes, assets, and game-development workflows
-- 🌐 **Web & App Creation** — website and software project creation
-- 🤖 **Intelligent Agents** — task-oriented agents, orchestration, and tool-assisted execution
-- 🔬 **Research & Innovation** — evaluating emerging technologies and integrating validated capabilities
-
-*These are the platform's product domains and development direction. The depth and availability of each workflow depend on its current implementation, configured providers, and runtime environment.*
+*Capability availability depends on the implemented workflow and configured runtime or provider. The list describes SINA's product domains, not a claim that every workflow is already production-ready.*
 
 ## 🏗️ Architecture Overview
 
-SINA is built as an extensible platform with its own orchestration and provider-independent product layer.
-
 ```text
-                 SINA AI STUDIO
-          Web Experience / Mobile Experience
-                         |
-                  Platform API
-                         |
-              Projects, Users & Jobs
-                         |
-              SINA Orchestrator
-          Planning • Routing • Coordination
-                         |
-             Capability & Provider Layer
-                         |
-       AI Models • Creative Engines • Tools
-                         |
-          Specialized Workers & Services
-                         |
-          Validation • Storage • Results
-                         |
-              SINA Projects & History
+             SINA AI STUDIO
+          Web Experience / Mobile
+                    |
+             Platform API
+                    |
+        Users / Projects / Jobs
+                    |
+              Orchestrator
+          Planning & Coordination
+                    |
+          Capability Routing Layer
+                    |
+       AI Providers / Engines / Tools
+                    |
+          Workers & Safe Execution
+                    |
+         Storage / Results / History
 ```
 
-### Core Architecture Principles
+### Architecture Principles
 
-- 🧠 **SINA-owned orchestration:** the platform coordinates tasks and capabilities through its own architecture.
-- 🔌 **Provider independence:** providers are replaceable resources, selected according to capability, availability, quality, speed, limits, and cost.
-- 🏡 **Local-first direction:** support for local and open technologies is a core architectural priority; optional cloud services must not become mandatory dependencies.
-- 🧩 **Modular capabilities:** creation domains and provider integrations can evolve without tying the entire platform to one engine.
-- ⚙️ **Coordinated execution:** projects, jobs, workers, and results are managed through the platform's existing backend architecture.
-- 🛡️ **Controlled execution:** generated or supplied executable content must be handled through appropriate validation and isolation boundaries.
+- **Independent platform identity:** SINA owns the user experience, projects, workflows, and product direction.
+- **Provider-agnostic design:** models and services are replaceable resources, not platform owners.
+- **Local-first direction:** prioritize local and open technologies; cloud providers remain optional.
+- **Modular capabilities:** add and improve creative and development domains without binding the platform to one engine.
+- **Orchestrated execution:** coordinate tasks, jobs, providers, and results through the existing SINA architecture.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Git
-- Node.js and npm versions supported by the repository and its lockfiles
-- Docker and Docker Compose for the containerized development environment
-- Environment values configured from the relevant example files
+- Node.js and npm versions supported by the repository
+- Docker and Docker Compose
+- Environment configuration from the project's example files
 
-### Run with Docker Compose
+### Development Setup
 
 ```bash
 git clone https://github.com/sina6565/AI_Studio_AI.git
@@ -88,170 +75,154 @@ cd AI_Studio_AI
 docker compose up --build
 ```
 
-Review the environment examples and the [Development Guide](./docs/DEVELOPMENT.md) before starting services. Do not commit real credentials or private environment files.
+Configure the required environment variables before starting services. See [Development Guide](./docs/DEVELOPMENT.md). Never commit credentials or private environment files.
 
 ## 📁 Project Structure
 
 ```text
 AI_Studio_AI/
-├── backend/                 # Express + TypeScript platform API
+├── backend/                 # Express + TypeScript API
 │   └── src/
-│       ├── api/             # API routes and middleware
-│       ├── orchestrator/    # Request planning and coordination
-│       ├── providers/       # Provider integrations and adapters
+│       ├── api/             # Routes and middleware
+│       ├── orchestrator/    # Task planning and coordination
 │       ├── routing/         # Capability/provider routing
+│       ├── providers/       # Provider adapters
 │       ├── jobs/            # Asynchronous job processing
-│       ├── sandbox/         # Isolated execution boundaries
+│       ├── sandbox/         # Execution boundaries
 │       ├── services/        # Application services
-│       ├── storage/         # Storage abstractions
-│       ├── database/        # Database models and access
-│       └── types/           # Shared backend types
-├── frontend/                # React + Vite web experience
-├── mobile/                  # React Native mobile application
-├── docs/                    # Architecture, API, providers and guides
-├── docker-compose.yml       # Development services
-├── docker-compose.prod.yml  # Production-oriented services
+│       ├── storage/         # Storage layer
+│       └── database/        # Data models and access
+├── frontend/                # React + Vite web application
+├── mobile/                  # React Native application
+├── docs/                    # Product and technical documentation
+├── docker-compose.yml
+├── docker-compose.prod.yml
 └── README.md
 ```
 
-*This is a high-level map of the main project areas; individual modules may evolve as development progresses.*
-
 ## 🔑 Key Features
 
-### 🎨 Creative Studio
-A unified product direction for image, video, audio, speech, text, character, and 3D creation—bringing multiple creative capabilities into one SINA experience.
+### Creative Studio
+A connected destination for visual creation, video, animation, audio, speech, text, characters, and 3D workflows.
 
-### 🌐 Website Builder
-A dedicated website-creation workflow with bilingual input, responsive page generation, preview, source editing, and HTML export.
+### Website Builder
+A dedicated website workflow with bilingual input, responsive HTML generation, preview, source editing, and HTML export.
 
-### 🎮 Game & 3D Creation
-Separate workflows for game-scene creation and 3D room development. The current 3D Game Lab targets an Unreal Engine 5 workflow and supports procedural room configuration and a review pipeline.
+### Game & 3D Creation
+Game-scene creation and a separate 3D Game Lab for procedural room design, with an Unreal Engine 5-oriented worker pipeline.
 
-### 🤖 Orchestration & Providers
-A platform-owned orchestration layer and modular provider architecture designed to coordinate capabilities while keeping integrations replaceable.
+### Orchestration & Provider System
+The existing SINA Orchestrator and provider-agnostic routing layer coordinate tasks and connect compatible engines and services.
 
-### 📂 Projects & Jobs
-Project organization, asynchronous job tracking, and result management across the platform's implemented workflows.
+### Projects & Jobs
+Project organization, asynchronous job tracking, and result management for supported workflows.
 
-### 🌍 Multilingual Experience
-Persian and English product experience, including right-to-left and left-to-right interface support where implemented.
+### Web & Mobile Experience
+A multilingual product direction for Persian and English, with RTL and LTR interface support.
 
 ## 📚 Documentation
 
-- [Architecture Overview](./docs/ARCHITECTURE.md)
-- [API Documentation](./docs/API.md)
-- [Provider Integrations](./docs/PROVIDERS.md)
-- [Sandbox & Execution](./docs/SANDBOX.md)
+- [Architecture](./docs/ARCHITECTURE.md)
+- [API](./docs/API.md)
+- [Providers](./docs/PROVIDERS.md)
+- [Sandbox](./docs/SANDBOX.md)
 - [Game Creation](./docs/GAME_CREATION.md)
 - [Website Creation](./docs/WEBSITE_CREATION.md)
 - [3D Game Room Pipeline — Unreal Engine 5](./docs/3D_GAME_ROOM_PIPELINE.md)
 - [3D Model Benchmark](./docs/3D_MODEL_BENCHMARK.md)
-- [Development Guide](./docs/DEVELOPMENT.md)
-- [Deployment Guide](./docs/DEPLOYMENT.md)
-- [Security Guide](./docs/SECURITY.md)
+- [Development](./docs/DEVELOPMENT.md)
+- [Deployment](./docs/DEPLOYMENT.md)
+- [Security](./docs/SECURITY.md)
 
-## 🔌 Providers & Technology Resources
+## 🔌 Providers
 
-SINA uses a modular provider layer so capabilities can be connected to suitable engines and services without making the platform dependent on a single vendor.
+SINA connects capabilities to suitable AI models, engines, and tools through modular adapters.
 
-- **Configured integrations:** provider adapters implemented in the repository, including the current Agnes integration.
-- **Local-first technologies:** Ollama, ComfyUI, Whisper, Piper, and FFmpeg are part of the intended local technology direction; each workflow must be verified before being described as active.
-- **Optional cloud resources:** external inference and media services may be connected when needed, but they are not the foundation or owner of SINA.
+- **Current integration:** Agnes adapter, enabled through configuration.
+- **Local-first technology direction:** Ollama, ComfyUI, Whisper, Piper, and FFmpeg.
+- **Optional cloud resources:** may be connected when needed; none should become a mandatory foundation for SINA.
 
-Provider availability depends on configuration, credentials, supported capabilities, and the deployment environment. See [Providers](./docs/PROVIDERS.md).
+Provider availability depends on implementation, credentials, configuration, and deployment environment. See [Provider Documentation](./docs/PROVIDERS.md).
 
-## 🎮 Game Creation
-
-SINA's game-development direction brings together:
+## 🎮 Game Creation Features
 
 - Game concepts and design workflows
 - Scene and environment creation
 - Character and asset workflows
-- 3D room and spatial environment generation
-- Unreal Engine 5-oriented development pipeline
-- A future path toward richer interactive gameplay and export workflows
+- Procedural 3D room creation
+- Unreal Engine 5-oriented project pipeline
+- Future expansion toward interactive gameplay and game export
 
-The current implementation includes a scene-generation path and a separate procedural 3D room workflow. A complete arbitrary game-generation and packaged playable-game pipeline remains a development goal, not a blanket claim about current functionality.
-
-## 🔒 Security & Responsible Execution
-
-- Environment-based configuration for credentials
-- Input validation and controlled API access
-- Authentication and authorization in supported application flows
-- Isolation boundaries for executable content
-- Careful handling of provider credentials and user project data
-
-See the [Security Guide](./docs/SECURITY.md) for implementation details.
+The current scene workflow produces provider-backed artwork and a validated scene manifest with a standalone viewer; it is not a complete playable 2D runtime. The 3D Game Lab currently focuses on configurable procedural rooms. A fully playable arbitrary 3D game and packaged export are development goals, not completed claims.
 
 ## 🚀 Deployment
 
-SINA includes Docker-based development and production-oriented deployment configurations.
+SINA includes Docker-based development and production-oriented configurations.
 
-- Review the relevant environment examples.
-- Configure database, queue, authentication, and provider settings for the target environment.
-- Follow the [Deployment Guide](./docs/DEPLOYMENT.md).
-- Verify the deployed services and configured capabilities before announcing a release.
+```bash
+docker compose up --build
+```
 
-## 🧰 Technology Stack
+For environment setup, services, and deployment guidance, see [Deployment Guide](./docs/DEPLOYMENT.md).
+
+## 📊 Technology Stack
 
 | Area | Technology |
 |---|---|
+| Backend | Node.js, Express, TypeScript |
 | Web | React, TypeScript, Vite |
 | Mobile | React Native, TypeScript |
-| Backend | Node.js, Express, TypeScript |
 | Database | MongoDB, Mongoose |
 | Queue | Redis, Bull |
-| AI integration | Modular provider adapters and orchestration |
+| AI integration | Orchestrator and modular provider adapters |
 | 3D pipeline | Blender workflow and Unreal Engine 5 worker integration |
-| Containers | Docker, Docker Compose |
-| CI | GitHub Actions |
+| DevOps | Docker, Docker Compose, GitHub Actions |
+
+## 📝 API Endpoints
+
+The API surface evolves with the implementation. Use [API Documentation](./docs/API.md) and the backend route definitions as the source of truth; this README intentionally does not list unverified endpoints.
 
 ## 🤝 Contributing
 
-SINA AI STUDIO is developed as a modular, evolving platform.
-
-1. Understand the existing architecture before changing it.
-2. Preserve working capabilities and established interfaces.
-3. Keep provider integrations modular and optional where appropriate.
-4. Add or update tests for implementation changes.
-5. Document meaningful changes and verified behavior.
+1. Create a focused feature branch.
+2. Preserve the existing architecture and working capabilities.
+3. Add or update tests for changed behavior.
+4. Run the relevant checks.
+5. Submit a pull request with a concise description and verification results.
 
 ## 📝 Environment Configuration
 
-Use the repository's `.env.example` files and configuration documentation as the source of truth for environment variable names and required values.
+Use the repository's `.env.example` files and configuration schema as the source of truth. Keep API keys, passwords, and tokens out of source control.
 
-Never commit API keys, passwords, tokens, or private environment files.
+## 🆘 Support
+
+For development and troubleshooting, start with the [Development Guide](./docs/DEVELOPMENT.md) and the repository's GitHub issues.
+
+## 📄 Ownership
+
+SINA AI STUDIO and its original code, designs, documentation, brand, and assets are proprietary. Commercial use, redistribution, or reuse of proprietary materials requires prior written permission from the rights holder. Third-party components remain subject to their own licenses.
+
+**Project Owner: M. Safarpour**  
+**© SINA AI STUDIO. All rights reserved.**
 
 ## 📊 Current Status
 
-**SINA AI STUDIO is under active development.**
+**Active Development**
 
-The repository contains a working foundation for the web and mobile experiences, backend API, orchestration and provider layers, project/job workflows, website creation, game-scene creation, and a procedural 3D room pipeline.
+The repository includes the web and mobile foundations, Express/TypeScript backend, existing Orchestrator and provider routing, projects and jobs, website creation workflow, game-scene workflow, and procedural 3D room pipeline. Live provider behavior, full native-engine execution, and production release readiness must be verified in their target environments.
 
-The broader creative ecosystem—including deeper agent capabilities, expanded local-first engines, richer 3D/game workflows, and additional creation domains—is being developed and validated incrementally.
+## 🗓️ Roadmap to Release
 
-## 🗺️ Roadmap
-
-- Expand the SINA orchestration and intelligent-agent architecture.
-- Strengthen local-first model and creative-engine integration.
-- Advance image, video, audio, speech, and animation workflows.
-- Develop richer website and application creation capabilities.
-- Extend 3D environments, characters, and Unreal Engine 5 workflows.
-- Advance interactive game creation and playable output.
-- Improve project continuity, collaboration, and asset management.
-- Establish SINA Nexus as a research and technology-validation engine.
-- Prepare the platform for broader release through verified end-to-end workflows.
-
----
-
-## © Ownership
-
-**Project Owner & Exclusive Rights Holder: Sina M. Safarpour**
-
-**© SINA AI STUDIO. All rights reserved.**
+1. Strengthen the core SINA platform and orchestration.
+2. Expand intelligent agents and tool integration.
+3. Advance local-first AI and creative-engine support.
+4. Improve image, video, audio, speech, and animation workflows.
+5. Expand website and application creation.
+6. Advance 3D worlds, characters, and Unreal Engine 5 workflows.
+7. Develop richer playable game creation and export.
+8. Strengthen project continuity, testing, and release readiness.
 
 ---
 
 **Version:** 1.0.0  
-**Last Updated:** 2026-11-15  
 **Status:** Active Development
