@@ -6,83 +6,118 @@ import { IProvider } from './interfaces/IProvider';
 class ProviderRegistry {
   private providers = new Map<string, IProvider>();
 
+  /**
+   * Initialize all configured providers
+   */
   async initializeAll(): Promise<void> {
-    const configuredProviders: Array<{ name: string; enabled: boolean; provider: IProvider; config: Parameters<IProvider['initialize']>[0] }> = [
-      {
-        name: 'agnes',
-        enabled: process.env.AGNES_ENABLED === 'true',
-        provider: new AgnesProvider(),
-        config: {
+    try {
+      const provider = new AgnesProvider();
+      if (process.env.AGNES_ENABLED === 'true') {
+        await provider.initialize({
           name: 'agnes',
           apiKey: process.env.AGNES_API_KEY,
           apiUrl: process.env.AGNES_API_URL,
           timeout: Number(process.env.AGNES_TIMEOUT || 300000),
-        },
-      },
-      {
-        name: 'gemini',
-        enabled: process.env.GEMINI_ENABLED === 'true',
-        provider: new GeminiProvider(),
-        config: {
-          name: 'gemini',
-          apiKey: process.env.GOOGLE_API_KEY,
-          apiUrl: process.env.GEMINI_API_URL,
-          timeout: Number(process.env.GEMINI_TIMEOUT || 30000),
-          models: { text: process.env.GEMINI_MODEL || 'gemini-2.5-flash' },
-        },
-      },
-    ];
+        });
 
-    for (const entry of configuredProviders) {
-      if (!entry.enabled) continue;
-      try {
-        await entry.provider.initialize(entry.config);
-        const valid = await entry.provider.validateCredentials();
-        if (valid) {
-          this.providers.set(entry.name, entry.provider);
-          logger.info(`[ProviderRegistry] ${entry.name} provider initialized successfully`);
+        // Validate credentials before registering
+        const credentialsValid = await provider.validateCredentials();
+        if (credentialsValid) {
+          this.providers.set('agnes', provider);
+          logger.info('[ProviderRegistry] Agnes provider initialized successfully');
         } else {
-          logger.warn(`[ProviderRegistry] ${entry.name} provider credentials validation failed`);
+          logger.warn('[ProviderRegistry] Agnes provider credentials validation failed');
         }
-      } catch (error) {
-        // An optional provider must never prevent the backend from starting.
-        logger.error(`[ProviderRegistry] ${entry.name} provider initialization failed; continuing without it`, error);
       }
-    }
 
-    if (this.providers.size === 0) {
-      logger.warn('[ProviderRegistry] No providers were successfully initialized');
+      // Gemini is an optional text provider; its failure must not disable Agnes.
+      if (process.env.GEMINI_ENABLED === 'true') {
+        try {
+          const gemini = new GeminiProvider();
+          await gemini.initialize({
+            name: 'gemini',
+            apiKey: process.env.GOOGLE_API_KEY,
+            apiUrl: process.env.GEMINI_API_URL,
+            timeout: Number(process.env.GEMINI_TIMEOUT || 30000),
+            models: { text: process.env.GEMINI_MODEL || 'gemini-2.5-flash' },
+          });
+          if (await gemini.validateCredentials()) {
+            this.providers.set('gemini', gemini);
+            logger.info('[ProviderRegistry] Gemini provider initialized successfully');
+          } else {
+            logger.warn('[ProviderRegistry] Gemini credentials validation failed');
+          }
+        } catch (error) {
+          logger.error('[ProviderRegistry] Gemini initialization failed; continuing without Gemini', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+
+      if (this.providers.size === 0) {
+        logger.warn('[ProviderRegistry] No providers were successfully initialized');
+      }
+    } catch (error) {
+      logger.error('[ProviderRegistry] Error during provider initialization', error);
+      throw error;
     }
   }
 
+  /**
+   * Get all available providers
+   */
   getAvailableProviders(): IProvider[] {
     return Array.from(this.providers.values());
   }
 
+  /**
+   * Get a specific provider by name
+   */
   getProvider(name: string): IProvider | undefined {
     return this.providers.get(name.toLowerCase());
   }
 
+  /**
+   * Check if a provider exists
+   */
   hasProvider(name: string): boolean {
     return this.providers.has(name.toLowerCase());
   }
 
+  /**
+   * Register a provider manually
+   */
   register(provider: IProvider): void {
     const key = provider.name.toLowerCase();
     this.providers.set(key, provider);
     logger.info(`[ProviderRegistry] Registered provider: ${provider.name}`);
   }
 
+  /**
+   * Get provider status for health checks
+   */
   getStatus(): Record<string, { initialized: boolean; healthy?: boolean }> {
     const status: Record<string, { initialized: boolean; healthy?: boolean }> = {};
+
     for (const [name, provider] of this.providers) {
-      status[name] = { initialized: true };
-      provider.healthCheck().then((healthy) => {
-        status[name] = { initialized: true, healthy };
-      }).catch(() => {
+      try {
+        // Note: We don't await here for synchronous status check
+        // Actual health check is done asynchronously in Router
+        provider.healthCheck().then((healthy) => {
+          status[name] = { initialized: true, healthy };
+        }).catch(() => {
+          status[name] = { initialized: true, healthy: false };
+        });
+
+        // Set initialized flag immediately
+        if (!status[name]) {
+          status[name] = { initialized: true };
+        }
+      } catch (error) {
         status[name] = { initialized: true, healthy: false };
-      });
+      }
     }
+
     return status;
   }
 }
