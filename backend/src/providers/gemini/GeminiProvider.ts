@@ -92,7 +92,9 @@ export class GeminiProvider implements IProvider {
       const response = await this.client.get('/models');
       return response.status === 200 && Array.isArray(response.data?.models);
     } catch (error) {
-      logger.warn('[GeminiProvider] Health check failed', error);
+      logger.warn('[GeminiProvider] Health check failed', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
       return false;
     }
   }
