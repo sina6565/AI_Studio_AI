@@ -1,15 +1,11 @@
 # Mobile Product
 
-این مسیر برای تفکیک آیندهٔ جریان‌های اصلی محصول در تجربهٔ موبایل تعریف شده است.
+اپلیکیشن موبایل اجرایی پروژه در پوشهٔ `mobile/` قرار دارد.
 
-## دامنهٔ محصول
+- نقطهٔ ورود و Navigation: `mobile/src/App.tsx`
+- احراز هویت: `mobile/src/screens/AuthScreen.tsx`
+- داشبورد: `mobile/src/screens/DashboardScreen.tsx`
+- استودیو: `mobile/src/screens/StudioScreen.tsx`
+- پروژه‌ها و کارها: `mobile/src/screens/`
 
-- Authentication
-- Dashboard
-- Jobs و Projects
-- Studio mobile
-- Core product mobile flows
-
-## وضعیت فعلی
-
-این مسیر در شاخهٔ فعلی فایل معرفی دارد، اما `package.json` مستقل و ورودی اجرایی اپلیکیشن در آن تأیید نشده است. اپلیکیشن موبایل فعلی در `mobile/` قرار دارد و تا زمان انتقال و اعتبارسنجی، همان مسیر مرجع اجرایی است.
+در `apps/mobile-product/` فقط فایل معرفی وجود دارد؛ این مسیر package یا اپلیکیشن مستقل قابل اجرا ندارد.
