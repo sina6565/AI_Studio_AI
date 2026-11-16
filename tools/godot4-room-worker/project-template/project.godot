@@ -1,0 +1,13 @@
+; SINA AI STUDIO - Godot 4 generated project template
+config_version=5
+
+[application]
+config/name="SINA Generated 3D World"
+run/main_scene="res://scenes/main.tscn"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+
+[physics]
+3d/default_gravity=9.8
