@@ -38,6 +38,7 @@ func _add_static_box(node_name: String, size: Vector3, position: Vector3) -> voi
 func _spawn_player() -> void:
 	var player := CharacterBody3D.new()
 	player.name = "Player"
+	player.set_script(load("res://scripts/player_controller.gd"))
 	player.position = Vector3(0.0, 1.0, 0.0)
 	var collision := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
