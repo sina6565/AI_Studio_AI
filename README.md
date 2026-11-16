@@ -75,7 +75,7 @@ cd AI_Studio_AI
 docker compose up --build
 ```
 
-Configure the required environment variables before starting services. See [Development Guide](./docs/DEVELOPMENT.md). Never commit credentials or private environment files.
+Configure the required environment variables from the repository's `.env.example` files before starting services. See [Deployment Guide](./docs/DEPLOYMENT.md). Never commit credentials or private environment files.
 
 ## 📁 Project Structure
 
@@ -133,17 +133,12 @@ A multilingual product direction for Persian and English, with RTL and LTR inter
 
 ## 📚 Documentation
 
-- [Architecture](./docs/ARCHITECTURE.md)
-- [API](./docs/API.md)
-- [Providers](./docs/PROVIDERS.md)
-- [Sandbox](./docs/SANDBOX.md)
-- [Game Creation](./docs/GAME_CREATION.md)
-- [Website Creation](./docs/WEBSITE_CREATION.md)
-- [3D Game Room Pipeline — Unreal Engine 5](./docs/3D_GAME_ROOM_PIPELINE.md)
+- [Game Scene Creation](./docs/GAME_CREATION.md)
+- [Website Builder](./docs/WEBSITE_CREATION.md)
+- [Unreal Engine 5 Room Pipeline](./docs/3D_GAME_ROOM_PIPELINE.md)
 - [3D Model Benchmark](./docs/3D_MODEL_BENCHMARK.md)
-- [Development](./docs/DEVELOPMENT.md)
 - [Deployment](./docs/DEPLOYMENT.md)
-- [Security](./docs/SECURITY.md)
+- [UE5 Worker Setup](./tools/ue5-room-worker/README.md)
 
 ## 🔌 Providers
 
@@ -153,7 +148,7 @@ SINA connects capabilities to suitable AI models, engines, and tools through mod
 - **Local-first technology direction:** Ollama, ComfyUI, Whisper, Piper, and FFmpeg.
 - **Optional cloud resources:** may be connected when needed; none should become a mandatory foundation for SINA.
 
-Provider availability depends on implementation, credentials, configuration, and deployment environment. See [Provider Documentation](./docs/PROVIDERS.md).
+Provider availability depends on implementation, credentials, configuration, and deployment environment. The provider contract and registry are maintained in [`IProvider.ts`](./backend/src/providers/interfaces/IProvider.ts) and [`registry.ts`](./backend/src/providers/registry.ts); the Agnes adapter is in [`AgnesProvider.ts`](./backend/src/providers/agnes/AgnesProvider.ts).
 
 ## 🎮 Game Creation Features
 
@@ -191,7 +186,7 @@ For environment setup, services, and deployment guidance, see [Deployment Guide]
 
 ## 📝 API Endpoints
 
-The API surface evolves with the implementation. Use [API Documentation](./docs/API.md) and the backend route definitions as the source of truth; this README intentionally does not list unverified endpoints.
+The API surface evolves with the implementation. Use the backend route definitions under [`backend/src/api/routes/`](./backend/src/api/routes/jobs.ts) as the source of truth; this README intentionally does not list unverified endpoints.
 
 ## 🤝 Contributing
 
@@ -207,7 +202,7 @@ Use the repository's `.env.example` files and configuration schema as the source
 
 ## 🆘 Support
 
-For development and troubleshooting, start with the [Development Guide](./docs/DEVELOPMENT.md) and the repository's GitHub issues.
+For deployment and runtime setup, start with the [Deployment Guide](./docs/DEPLOYMENT.md) and the repository's GitHub issues.
 
 ## 📄 Ownership
 
