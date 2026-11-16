@@ -1,0 +1,63 @@
+name: Test Google Gemini API Key
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/test-google-api-key.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test-gemini-api:
+    name: Verify Gemini API access
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Call Gemini API without exposing the secret
+        shell: bash
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${GOOGLE_API_KEY:-}" ]]; then
+            echo "::error::GitHub Actions secret GOOGLE_API_KEY is missing or empty."
+            exit 1
+          fi
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+
+          http_status="$(curl --silent --show-error \
+            --output "$response_file" \
+            --write-out "%{http_code}" \
+            --request POST \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent" \
+            --header "x-goog-api-key: ${GOOGLE_API_KEY}" \
+            --header "Content-Type: application/json" \
+            --data '{"contents":[{"parts":[{"text":"Reply with exactly: SINA_API_OK"}]}],"generationConfig":{"maxOutputTokens":12}}')"
+
+          if [[ "$http_status" != "200" ]]; then
+            echo "::error::Gemini API request failed (HTTP ${http_status}). The response body and secret are intentionally not printed."
+            exit 1
+          fi
+
+          node - "$response_file" <<'NODE'
+          const fs = require("node:fs");
+          const data = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+          const text = (data.candidates?.[0]?.content?.parts ?? [])
+            .map((part) => part.text ?? "")
+            .join("")
+            .trim();
+
+          if (!text) {
+            console.error("Gemini returned HTTP 200 but no text candidate.");
+            process.exit(1);
+          }
+
+          console.log("Gemini API authentication and text generation: SUCCESS");
+          console.log("Model: gemini-3.8-flash");
+          console.log("Response received: YES");
+          NODE
