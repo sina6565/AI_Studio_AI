@@ -81,20 +81,31 @@ Configure the required environment variables before starting services. See [Deve
 
 ```text
 AI_Studio_AI/
-├── backend/                 # Express + TypeScript API
+├── backend/
 │   └── src/
-│       ├── api/             # Routes and middleware
-│       ├── orchestrator/    # Task planning and coordination
-│       ├── routing/         # Capability/provider routing
-│       ├── providers/       # Provider adapters
-│       ├── jobs/            # Asynchronous job processing
-│       ├── sandbox/         # Execution boundaries
-│       ├── services/        # Application services
-│       ├── storage/         # Storage layer
-│       └── database/        # Data models and access
-├── frontend/                # React + Vite web application
-├── mobile/                  # React Native application
-├── docs/                    # Product and technical documentation
+│       ├── api/routes/           # API route handlers
+│       ├── config/               # Runtime configuration
+│       ├── database/models/      # MongoDB/Mongoose models
+│       ├── game/                 # Game scene and game services
+│       ├── game3d/               # Unreal Engine 5 room pipeline
+│       ├── orchestrator/         # Task coordination
+│       ├── providers/
+│       │   ├── agnes/            # Agnes adapter
+│       │   └── registry.ts       # Provider registration
+│       ├── website/              # Website generation service
+│       ├── app.ts                # Express application
+│       └── index.ts              # Backend entry point
+├── frontend/
+│   └── src/
+│       ├── components/           # Shared and universe UI
+│       ├── pages/                # Web product and landing pages
+│       ├── services/             # Frontend API services
+│       └── App.tsx               # Web application routes
+├── mobile/
+│   └── src/
+│       ├── screens/              # Mobile screens
+│       └── App.tsx               # React Native entry point
+├── docs/                         # Product and technical documentation
 ├── docker-compose.yml
 ├── docker-compose.prod.yml
 └── README.md
