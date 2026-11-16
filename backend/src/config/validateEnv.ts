@@ -45,6 +45,18 @@ export function validateEnvironment(): { ok: boolean; checks: EnvCheck[] } {
       note: 'job queue (optional; QUEUE_MODE=auto falls back to in-process)',
     },
     {
+      name: 'GOOGLE_GEMMA_API_KEY',
+      present: has('GOOGLE_GEMMA_API_KEY'),
+      required: false,
+      note: 'hosted Gemma 4 API access',
+    },
+    {
+      name: 'NVIDIA_API_KEY',
+      present: has('NVIDIA_API_KEY'),
+      required: false,
+      note: 'hosted NVIDIA NIM API access',
+    },
+    {
       name: 'AGNES_ENABLED',
       present: has('AGNES_ENABLED'),
       required: false,
