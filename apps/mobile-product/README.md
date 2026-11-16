@@ -1,10 +1,15 @@
 # Mobile Product
 
-این اپ برای عملکرد واقعی موبایل در نظر گرفته می‌شود.
+این مسیر برای تفکیک آیندهٔ جریان‌های اصلی محصول در تجربهٔ موبایل تعریف شده است.
 
-## شامل
-- auth
-- dashboard
-- jobs/projects
-- studio mobile
-- core product mobile flow
+## دامنهٔ محصول
+
+- Authentication
+- Dashboard
+- Jobs و Projects
+- Studio mobile
+- Core product mobile flows
+
+## وضعیت فعلی
+
+این مسیر در شاخهٔ فعلی فایل معرفی دارد، اما `package.json` مستقل و ورودی اجرایی اپلیکیشن در آن تأیید نشده است. اپلیکیشن موبایل فعلی در `mobile/` قرار دارد و تا زمان انتقال و اعتبارسنجی، همان مسیر مرجع اجرایی است.
