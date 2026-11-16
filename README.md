@@ -4,17 +4,21 @@
   <strong>FROM A SINGLE IDEA TO AN ENTIRE UNIVERSE</strong>
 </p>
 
-**SINA AI STUDIO is an independent AI technology and creative ecosystem built to turn ideas into digital products, intelligent experiences, and entirely new worlds.**
+<p align="center">
+  <em>Imagine it. Create it. Build the world around it.</em>
+</p>
 
-SINA brings AI models, creative engines, development tools, and intelligent agents together through one extensible platform. Its vision goes beyond content generation: from the first idea to the creation of websites, applications, media, characters, games, and interactive 3D environments.
+**SINA AI STUDIO is an independent AI creation universe and technology ecosystem—built to bring imagination, intelligence, and engineering together.**
 
-The platform is designed around its own identity, orchestration, and extensible architecture. External models and services are resources that SINA can use and replace—not the owners of the product, its user experience, or its future.
+From a single idea, SINA is designed to help create complete digital experiences: visual worlds, films and motion, music and sound, intelligent characters, websites and applications, 2D and 3D games, and interactive environments. These are not disconnected tools gathered under one name; they are creative and technical capabilities being brought together into one evolving ecosystem.
 
-## 🌌 Platform Vision
+At its core, SINA is building its own orchestration, agent, and technology architecture. It can work with different AI models, engines, and tools while keeping the platform's identity, workflows, projects, and direction under SINA's control. Technologies are components the ecosystem can connect, evaluate, replace, and improve—not the foundation of someone else's product.
 
-One creative and technological environment where people can imagine, build, develop, and bring digital experiences to life.
+## 🌌 The SINA Vision
 
-SINA aims to connect creative production, software development, intelligent automation, and research into one evolving ecosystem—accessible through web and mobile experiences.
+To make the journey from imagination to realization possible in one connected creative and technological universe: where people can conceive, design, generate, develop, test, and expand ideas into digital products and experiences.
+
+SINA brings together AI-powered creation, software and game development, intelligent agents, and continuous research and innovation. Its ambition is not simply to offer access to AI, but to build an environment in which new things can be made—and the technology behind them can keep evolving.
 
 ## ✨ Supported Creative & Technology Domains
 
