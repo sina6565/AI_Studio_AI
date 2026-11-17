@@ -69,6 +69,13 @@ interface ProviderConfig {
     apiUrl: string;
     timeout: number;
   };
+  gemini?: {
+    enabled: boolean;
+    apiKey: string;
+    apiUrl: string;
+    model: string;
+    timeout: number;
+  };
   openai?: {
     enabled: boolean;
     apiKey: string;
@@ -209,6 +216,13 @@ const config_: AppConfig = {
       apiKey: process.env.AGNES_API_KEY || '',
       apiUrl: process.env.AGNES_API_URL || 'https://api.agnes.ai',
       timeout: parseInt(process.env.AGNES_TIMEOUT || '300000', 10),
+    },
+    gemini: {
+      enabled: process.env.GEMINI_ENABLED === 'true',
+      apiKey: process.env.GOOGLE_API_KEY || '',
+      apiUrl: process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta',
+      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      timeout: parseInt(process.env.GEMINI_TIMEOUT || '30000', 10),
     },
     openai: {
       enabled: process.env.OPENAI_ENABLED === 'true',
