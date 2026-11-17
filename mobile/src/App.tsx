@@ -23,12 +23,22 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const screenOptions = {
-  headerStyle: { backgroundColor: colors.surface },
+  headerStyle: { backgroundColor: colors.backgroundRaised },
   headerTintColor: colors.text,
-  headerTitleStyle: { color: colors.text },
-  tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+  headerTitleStyle: { color: colors.text, fontWeight: '700' as const },
+  headerShadowVisible: false,
+  headerBackTitleVisible: false,
+  tabBarStyle: {
+    backgroundColor: colors.backgroundRaised,
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    height: 64,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  tabBarLabelStyle: { fontSize: 10, fontWeight: '700' as const, letterSpacing: 0.2 },
   tabBarActiveTintColor: colors.primary,
-  tabBarInactiveTintColor: colors.muted,
+  tabBarInactiveTintColor: colors.subtle,
 };
 
 function MainTabs() {
