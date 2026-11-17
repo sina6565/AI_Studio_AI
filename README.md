@@ -21,7 +21,9 @@ Core capability areas:
 
 Availability and quality depend on the implemented workflow, provider configuration, credentials, and deployment environment. A listed capability is not proof of a successful live end-to-end run.
 
-## Existing architecture to preserve
+## Current architecture and extensible development
+
+The diagram below describes the current baseline, not a ceiling or a restriction. New architectures, services, agents, orchestrators, runtimes, providers, tools, workers, and integrations may be added in parallel when they create value. Existing components may be extended, replaced, or migrated through incremental implementations; compatibility and migration plans should be documented, not used to block experimentation.
 
 ```text
 Web client (React + Vite) / Mobile client (React Native)
@@ -48,8 +50,8 @@ Web client (React + Vite) / Mobile client (React Native)
 ### Responsibilities
 
 - **API:** authentication, authorization, validation, and REST endpoints.
-- **Orchestrator / task planner:** classify a request, break multi-step work into tasks, route tasks to the relevant capability, and coordinate results. Preserve the existing implementation; do not replace it with an autonomous-agent framework without evidence and an approved migration.
-- **Provider routing:** select providers by capability, configuration, constraints, and availability. Keep Agnes and the provider-agnostic abstraction.
+- **Orchestrator / task planner:** classify a request, break multi-step work into tasks, route tasks to the relevant capability, and coordinate results. The current Orchestrator is the baseline. New Orchestrators, planners, autonomous agents, agent teams, and execution graphs may be developed alongside it; integrate or migrate the strongest validated path without freezing innovation.
+- **Provider routing:** select providers by capability, configuration, constraints, and availability. Keep provider independence while freely adding new local, open-source, hosted, multimodal, and experimental adapters. Existing providers are not exclusive.
 - **Redis + Bull:** queue and track asynchronous jobs, retries, cancellation, and recovery using the existing queue implementation.
 - **Specialized workers:** separate media work from website/game work where the existing architecture supports it. An assembly/FFmpeg worker is an optional extension, not an assumed completed service.
 - **Sandbox:** generated or user-supplied executable content must not run unsafely in the API process. Use an isolated execution boundary and explicit validation.
@@ -57,22 +59,17 @@ Web client (React + Vite) / Mobile client (React Native)
 - **Git integration:** where implemented and authorized, version generated website/game project files through branches and commits. Do not claim automatic commits or pushes unless verified.
 - **Progress delivery:** use the project's implemented progress/status mechanism; WebSocket or Redis Pub/Sub is a design option only if confirmed in code.
 
-## Architecture options and decisions
+## Architecture evolution and parallel development
 
-The architecture notes considered both a hierarchical Orchestrator and an event-driven queue/worker model. These do not need to be treated as mutually exclusive:
+SINA is an extensible research-and-development platform. Multiple agents, teams, branches, architectures, orchestrators, runtimes, queues, databases, tools, and provider integrations may be explored and implemented in parallel. There is no product rule that limits the project to one framework or one implementation path. Existing components are a working baseline, not a permanent constraint. New paths can coexist, compete in benchmarks, and be integrated when ready.
 
-1. Keep the **existing Orchestrator** for request planning and coordination.
-2. Use **Redis + Bull and specialized workers** for reliable asynchronous execution.
-3. Keep task inputs/outputs structured and validated. A useful internal contract is `{ task_id, prompt, user_id, parameters }`; adapt it to the existing types rather than creating a competing contract.
-4. Apply provider-specific rate limits and concurrency limits separately. Concurrency alone does not enforce requests-per-minute limits.
-5. Retry transient failures with bounded retries, clear job states, and provider fallback only when a compatible provider is configured.
-6. Do not introduce CrewAI, AutoGen, NestJS, BullMQ, or a replacement queue merely because they appeared in architecture proposals. The repository currently documents **Express + TypeScript and Redis + Bull**; preserve those until a code-backed decision justifies a migration.
+Use clear interfaces and compatibility adapters where useful; do not force every experiment through the current stack. Build new capabilities directly when that is the fastest sound route. Parallel work is welcome, including overlapping prototypes; reconcile overlaps through evidence and integration rather than prohibiting parallel development. Keep changes attributable to branches/commits and make test/build outcomes visible.
 
 ### Ollama and n8n
 
 - **Ollama** is a potential local-model runtime for lightweight classification, planning, or development-time assistance where the selected model can perform the task. It is not itself a media-generation provider for every modality, and local inference still consumes machine resources.
 - **n8n** is a potential workflow/integration layer for explicitly defined external workflows. It should not duplicate the platform's existing job system or become a mandatory dependency without a demonstrated need.
-- Treat both as **optional integrations until code, configuration, and a working test prove they are integrated**. Do not place API keys or credentials in source control or documentation.
+- Treat integrations as open development paths: add, extend, replace, and connect them as needed. Clearly label implementation and validation status. Never place API keys or credentials in source control or documentation.
 
 ### Example: multi-output game workflow
 
@@ -178,14 +175,15 @@ Do not infer that an optional service, tool, provider, or framework is installed
 - [Development](./docs/DEVELOPMENT.md)
 - [Security](./docs/SECURITY.md)
 
-## Contribution rules
+## Open contribution and parallel-agent policy
 
-- Preserve existing working features and the current architecture.
-- Inspect implementation before adding a competing abstraction or service.
-- Do not label planned integrations as complete.
-- Prefer small, verifiable changes over repeated broad audits.
-- Never commit credentials or real environment files.
-- Document blockers with evidence and a concrete next action.
+- Development is open to new features, modules, architectures, providers, agents, frameworks, runtimes, services, and integrations. Do not treat the current implementation as a limit on what may be added.
+- Parallel branches and simultaneous agent work are explicitly welcome, including independent or competing implementations. Coordinate at integration time; do not block useful work merely to avoid overlap.
+- Contributors may extend or replace components when there is a clear implementation path. Keep compatibility where practical and document migration impact, but do not require approval for every experiment or additive change.
+- Keep the existing Orchestrator, Agent system, Provider Registry, and current working product available while new systems are developed. New Orchestrators and Agent architectures may run beside them.
+- Report what is implemented, what has been tested, and what remains experimental. Do not present unverified functionality as production-proven.
+- Never commit credentials, private keys, signing material, or real environment files. This is a security requirement, not a restriction on product development.
+- Use branches and pull requests for traceability. Merge when the change is reviewed and its relevant checks pass; resolve conflicts by integrating the work, not by closing parallel work automatically.
 
 ## Project status
 
@@ -271,6 +269,6 @@ The current CI workflow does **not** define separate automated test jobs for liv
 - **Sole designated GitHub owner account:** [`sina6565`](https://github.com/sina6565). The repository is maintained under this account; do not describe another person or account as a co-owner or rights holder unless the project owner explicitly authorizes that change in writing.
 - **Repository:** [`sina6565/AI_Studio_AI`](https://github.com/sina6565/AI_Studio_AI), default branch: `main`.
 - **Code and materials:** SINA AI STUDIO's original code, architecture, documentation, designs, branding, and original assets are proprietary, subject to the rights of their applicable owners and the separate terms of third-party components. See the root `LICENSE` notice. Repository access does not grant a public license to reuse or redistribute proprietary materials.
-- **Access policy:** The intended repository visibility is **Private**. Only the designated owner and collaborators explicitly authorized by that owner should have access. Do not infer or grant ownership from write, maintain, or administrative access alone.
+- **Access policy:** Repository visibility and collaborator permissions are controlled by the GitHub owner through repository settings. README text does not grant or revoke GitHub access. Authorized collaborators and agents may contribute through branches and pull requests; write access does not transfer project ownership.
 - **Product capability protection:** Changing GitHub repository visibility from Public to Private is an access-control and source-confidentiality measure only. It must not remove, disable, downgrade, hide, or otherwise restrict any SINA AI STUDIO feature, API, provider adapter, Orchestrator, Agent, workflow, user entitlement, or runtime capability. Preserve the existing implementation and deployment behavior. If a GitHub-hosted service or workflow has a plan-dependent visibility restriction, document and resolve that separately without reducing SINA product functionality.
-- **Verification:** Repository visibility and collaborator permissions must be checked in GitHub repository settings after the owner applies the Private setting. Do not report the repository as Private until GitHub confirms the change.
+- **Verification:** Report repository visibility and collaborator permissions only from the live GitHub settings; never infer them from this README.
