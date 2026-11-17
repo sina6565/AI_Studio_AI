@@ -15,6 +15,7 @@ import projectRoutes from './api/routes/projects';
 import generateRoutes from './api/routes/generate';
 import healthRoutes from './api/routes/health';
 import mcpRoutes from './mcp/router';
+import cloudModelRoutes from './api/routes/cloudModels';
 
 /**
  * Locate the built web frontend for single-container deployments.
@@ -98,6 +99,7 @@ export function createApp(): Express {
   app.use(`${config.apiPrefix}/${config.apiVersion}/projects`, projectRoutes);
   app.use(`${config.apiPrefix}/${config.apiVersion}/generate`, generateRoutes);
   app.use(`${config.apiPrefix}/${config.apiVersion}/mcp`, mcpRoutes);
+  app.use(`${config.apiPrefix}/${config.apiVersion}/models`, cloudModelRoutes);
   // Static frontend assets + SPA fallback. Registered after every API and
   // probe route, and never swallows `/api` or `/health` paths, so API 404s
   // keep returning JSON exactly as before.
