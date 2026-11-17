@@ -1,32 +1,36 @@
-# Mobile app setup
+# SINA AI STUDIO — Mobile
 
-## API connection
+The mobile client uses React Native 0.88 and the official React Native Community Android template.
 
-The Android emulator can reach a backend running on the development computer at
-`http://10.0.2.2:3000/api`. The app uses this as its development fallback.
+## Android development
 
-For a physical Android phone, `localhost` and `10.0.2.2` are not the computer's
-LAN address. Configure `REACT_APP_API_URL` to a backend address reachable from
-the phone, for example `http://192.168.1.20:3000/api` on the same trusted Wi-Fi
-network. For production, use the backend's HTTPS URL.
-
-Keep the backend bound to an interface reachable by the phone, allow the
-development port through the local firewall, and do not expose an unauthenticated
-development server to the public internet.
-
-## Commands
+Requirements: Node.js 22.13.0 or newer (CI uses 22.22.2), JDK 17, and the Android SDK/NDK versions declared in `android/build.gradle`. Do not use Node 22.7.0.
 
 ```sh
 cd mobile
-npm ci
-npm run type-check
-npm run lint
+npm install
+npm start
 ```
 
-The API URL is compiled into the app bundle. Rebuild/restart Metro after changing
-the environment value.
+In a second terminal:
 
-## Session limitation
+```sh
+cd mobile
+npm run android
+# Or build only the debug APK:
+npm run android:debug
+```
 
-The current mobile client keeps the access token in memory. A process restart
-requires signing in again; persistent secure token storage is not yet implemented.
+The debug manifest permits cleartext HTTP for local development endpoints. Release builds disable cleartext traffic. The Android package ID is `com.sinastudioai`.
+
+## API configuration
+
+The Android emulator reaches a backend on the development host through `http://10.0.2.2:3000/api`. For a physical phone, set `REACT_APP_API_URL` to a backend address reachable on the same network. Use HTTPS for production. Never bundle provider secrets or private credentials into the mobile app.
+
+## Signing
+
+No keystore is committed. Debug builds use the Android Gradle Plugin's local developer debug key. Release APK/AAB tasks require an owner-managed keystore and all four protected variables: `SINA_ANDROID_RELEASE_STORE_FILE`, `SINA_ANDROID_RELEASE_STORE_PASSWORD`, `SINA_ANDROID_RELEASE_KEY_ALIAS`, and `SINA_ANDROID_RELEASE_KEY_PASSWORD`.
+
+## Verification status
+
+This commit adds the native scaffold; it does not prove an APK build, installation, physical-device test, API compatibility, or RTL acceptance. Verify the Mobile CI run and complete device QA before release.

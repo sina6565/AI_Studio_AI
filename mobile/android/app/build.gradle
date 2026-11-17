@@ -1,0 +1,82 @@
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "com.facebook.react"
+
+react {
+    autolinkLibrariesWithApp()
+}
+
+def releaseStoreFile = System.getenv("SINA_ANDROID_RELEASE_STORE_FILE")
+def releaseStorePassword = System.getenv("SINA_ANDROID_RELEASE_STORE_PASSWORD")
+def releaseKeyAlias = System.getenv("SINA_ANDROID_RELEASE_KEY_ALIAS")
+def releaseKeyPassword = System.getenv("SINA_ANDROID_RELEASE_KEY_PASSWORD")
+def releaseSigningConfigured =
+    releaseStoreFile != null && !releaseStoreFile.trim().isEmpty() &&
+    releaseStorePassword != null && !releaseStorePassword.trim().isEmpty() &&
+    releaseKeyAlias != null && !releaseKeyAlias.trim().isEmpty() &&
+    releaseKeyPassword != null && !releaseKeyPassword.trim().isEmpty() &&
+    file(releaseStoreFile).isFile()
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
+    namespace "com.sinastudioai"
+
+    defaultConfig {
+        applicationId "com.sinastudioai"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        release {
+            if (releaseSigningConfigured) {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            manifestPlaceholders = [usesCleartextTraffic: "true"]
+        }
+        release {
+            manifestPlaceholders = [usesCleartextTraffic: "false"]
+            if (releaseSigningConfigured) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+}
+
+dependencies {
+    implementation("com.facebook.react:react-android")
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
+    } else {
+        implementation("io.github.react-native-community:jsc-android:2026004.+")
+    }
+}
+
+tasks.register("validateSinaReleaseSigning") {
+    group = "verification"
+    description = "Require the owner's private signing key before creating a release artifact."
+    doLast {
+        if (!releaseSigningConfigured) {
+            throw new GradleException("Release signing is not configured. Supply all four SINA_ANDROID_RELEASE_* values and an existing owner-managed keystore.")
+        }
+    }
+}
+tasks.configureEach {
+    if (name == "assembleRelease" || name == "bundleRelease") {
+        dependsOn("validateSinaReleaseSigning")
+    }
+}
