@@ -76,7 +76,13 @@ export default function JobsScreen() {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.text} />
       }
-      ListHeaderComponent={error ? <Text style={styles.error}>{error}</Text> : null}
+      ListHeaderComponent={(
+        <View style={styles.listHeader}>
+          <Text style={styles.eyebrow}>SINA / EXECUTION CENTER</Text>
+          <Text style={styles.screenTitle}>{t('jobs.recent')}</Text>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+        </View>
+      )}
       ListEmptyComponent={<Text style={styles.muted}>{t('jobs.empty')}</Text>}
       renderItem={({ item }) => (
         <View style={styles.row}>
@@ -127,7 +133,11 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.m,
+    paddingBottom: 36,
   },
+  listHeader: { marginBottom: spacing.m },
+  eyebrow: { color: colors.primary, fontSize: 9, fontWeight: '800', letterSpacing: 1.8, marginBottom: 6 },
+  screenTitle: { color: colors.text, fontSize: 24, fontWeight: '900', marginBottom: spacing.s },
   centered: {
     alignItems: 'center',
     backgroundColor: colors.background,
@@ -136,14 +146,15 @@ const styles = StyleSheet.create({
   },
   row: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.glass,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: 18,
     borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: spacing.s,
     padding: spacing.m,
+    minHeight: 88,
   },
   rowMain: {
     flex: 1,
