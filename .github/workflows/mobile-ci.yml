@@ -48,7 +48,9 @@ jobs:
           cache-dependency-path: mobile/android/**/*.gradle*
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
 
       - name: Refresh lockfile for React Native 0.88 dependency alignment
         run: npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
