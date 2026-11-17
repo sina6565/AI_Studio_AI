@@ -192,7 +192,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    touchClient(req);
+    if (req.header('x-mcp-client-id') || req.header('x-mcp-client-name')) touchClient(req);
     if (message.method === 'ping') {
       res.json(rpcResult(message.id, {}));
       return;
