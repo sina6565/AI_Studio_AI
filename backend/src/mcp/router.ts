@@ -209,7 +209,6 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       const data = await callTool(name, args, req.user!.userId);
       res.json(rpcResult(message.id, {
         content: [{ type: 'text', text: JSON.stringify(data) }],
-        structuredContent: data,
         isError: false,
       }));
       return;
