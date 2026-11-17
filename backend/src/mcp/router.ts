@@ -3,6 +3,7 @@ import { authenticateToken, AuthenticatedRequest } from '../api/middleware/auth'
 import { Job, Project } from '../database/models';
 import registry from '../providers/registry';
 import orchestrator from '../orchestrator/Orchestrator';
+import logger from '../utils/logger';
 
 interface RpcRequest {
   jsonrpc?: string;
@@ -44,6 +45,7 @@ function touchClient(req: AuthenticatedRequest, clientInfo?: Record<string, any>
     status: 'connected',
   };
   clients.set(clientId, client);
+  if (!previous) logger.info(`[MCP] CLIENT_CONNECTED name=${name} version=${version} userId=${userId}`);
   return client;
 }
 
@@ -174,7 +176,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
         protocolVersion,
         capabilities: { tools: { listChanged: false } },
         serverInfo: { name: 'sina-ai-studio', version: '1.0.0' },
-        instructions: 'SINA MCP is read-only. Use SINA authentication. Project and job data are scoped to the authenticated user.',
+        instructions: 'CLIENT_CONNECTED: SINA MCP accepted this client. This server is read-only. Use SINA authentication. Project and job data are scoped to the authenticated user.',
       }));
       return;
     }
