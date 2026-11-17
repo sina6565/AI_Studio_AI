@@ -25,10 +25,11 @@ interface ConnectedClient {
 
 const clients = new Map<string, ConnectedClient>();
 const CLIENT_STALE_AFTER_MS = 5 * 60 * 1000;
+const MCP_PROTOCOL_VERSION = '2025-11-25';
 
 function touchClient(req: AuthenticatedRequest, clientInfo?: Record<string, any>): ConnectedClient {
   const userId = req.user!.userId;
-  const suppliedId = String(req.header('x-mcp-client-id') || '').trim();
+  const suppliedId = String(req.header('x-mcp-client-id') || '').trim().slice(0, 100);
   const name = String(clientInfo?.name || req.header('x-mcp-client-name') || 'MCP client').slice(0, 100);
   const version = String(clientInfo?.version || 'unknown').slice(0, 50);
   const clientId = suppliedId ? `${userId}:${suppliedId}` : `${userId}:${name}`;
@@ -41,7 +42,7 @@ function touchClient(req: AuthenticatedRequest, clientInfo?: Record<string, any>
     userId,
     connectedAt: previous?.connectedAt || now,
     lastSeenAt: now,
-    protocolVersion: '2025-11-25',
+    protocolVersion: MCP_PROTOCOL_VERSION,
     status: 'connected',
   };
   clients.set(clientId, client);
@@ -51,6 +52,10 @@ function touchClient(req: AuthenticatedRequest, clientInfo?: Record<string, any>
 
 function listClients(userId: string): ConnectedClient[] {
   const cutoff = Date.now() - CLIENT_STALE_AFTER_MS;
+  const retentionCutoff = Date.now() - 24 * 60 * 60 * 1000;
+  for (const [id, client] of clients) {
+    if (new Date(client.lastSeenAt).getTime() < retentionCutoff) clients.delete(id);
+  }
   return Array.from(clients.values())
     .filter((client) => client.userId === userId)
     .map((client) => ({
@@ -168,7 +173,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (message.method === 'initialize') {
       const client = touchClient(req, message.params?.clientInfo);
-      const protocolVersion = String(message.params?.protocolVersion || '2025-11-25');
+      const protocolVersion = MCP_PROTOCOL_VERSION;
       client.protocolVersion = protocolVersion;
       clients.set(client.clientId, client);
       res.setHeader('MCP-Protocol-Version', protocolVersion);
