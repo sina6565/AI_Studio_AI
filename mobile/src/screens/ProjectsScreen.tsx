@@ -85,7 +85,7 @@ export default function ProjectsScreen() {
       ListHeaderComponent={
         <View style={styles.listHeader}>
           <Text style={styles.eyebrow}>SINA / CREATIVE ARCHIVE</Text>
-          <Text style={styles.screenTitle}>{t('projects.name')}</Text>
+          <Text style={styles.screenTitle}>{t('nav.projects')}</Text>
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <TextInput
             style={styles.input}
