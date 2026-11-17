@@ -1,13 +1,18 @@
+/**
+ * SINA mobile design tokens: deep-space surfaces with restrained gold and cyan.
+ */
 export const colors = {
-  background: '#04060f',
-  surface: '#0a1026',
-  border: '#26334f',
-  primary: '#22d3ee',
-  text: '#f4f7ff',
-  muted: '#9aa7c7',
-  danger: '#e74c3c',
-  success: '#2ecc71',
-  warning: '#f1c40f',
+  background: '#050816',
+  surface: '#0B1222',
+  surfaceElevated: '#111D32',
+  border: '#1B3553',
+  primary: '#E8C36A',
+  accent: '#48D9F2',
+  text: '#F4F7FF',
+  muted: '#91A2BD',
+  danger: '#FF647C',
+  success: '#58D6A0',
+  warning: '#F4B95F',
 };
 
 export const spacing = {
@@ -27,6 +32,6 @@ export function statusColor(status: string): string {
     case 'cancelled':
       return colors.muted;
     default:
-      return colors.primary;
+      return colors.accent;
   }
 }

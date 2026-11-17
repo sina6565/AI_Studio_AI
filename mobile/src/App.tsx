@@ -1,13 +1,19 @@
 /**
  * Mobile App Entry Point
  */
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import './i18n/config';
+import LanguageToggle from './components/LanguageToggle';
+import { initializeAppLanguage } from './i18n/switchLanguage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import {
   AuthScreen,
@@ -26,7 +32,11 @@ const screenOptions = {
   headerStyle: { backgroundColor: colors.surface },
   headerTintColor: colors.text,
   headerTitleStyle: { color: colors.text },
-  tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+  headerRight: () => <LanguageToggle />,
+  tabBarStyle: {
+    backgroundColor: colors.surface,
+    borderTopColor: colors.border,
+  },
   tabBarActiveTintColor: colors.primary,
   tabBarInactiveTintColor: colors.muted,
 };
@@ -78,6 +88,29 @@ function RootNavigator() {
 }
 
 function App() {
+  const [localeReady, setLocaleReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    initializeAppLanguage()
+      .catch(() => undefined)
+      .finally(() => {
+        if (mounted) setLocaleReady(true);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!localeReady) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <AuthProvider>
       <NavigationContainer>
@@ -86,5 +119,14 @@ function App() {
     </AuthProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+});
 
 export default App;
