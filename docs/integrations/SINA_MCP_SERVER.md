@@ -7,7 +7,7 @@ SINA exposes a read-only Model Context Protocol endpoint from its own backend. T
 - MCP Streamable HTTP JSON request endpoint: `POST /api/v1/mcp`
 - Connection monitor: `GET /api/v1/mcp/clients`
 - Authentication: the existing SINA JWT as `Authorization: Bearer <token>`
-- Optional client identity headers: `X-MCP-Client-Name` and `X-MCP-Client-Id`
+- Client identity headers: send a stable `X-MCP-Client-Id` on every request (and optionally `X-MCP-Client-Name`)
 
 The MCP route is protected by the same JWT authentication middleware as the SINA API. Project and job tools always filter by the authenticated JWT user ID. No write, generation, cancellation, or administrative tools are exposed.
 
@@ -28,7 +28,7 @@ The initial transport is stateless Streamable HTTP in JSON response mode. A succ
 
 ## Client setup
 
-Configure a remote MCP client with the deployed SINA MCP endpoint and the JWT in its Authorization header. Use a distinct `X-MCP-Client-Id` for each independent client connection (for example, `n8n-main`, `gemini-workspace-a`, and `gemini-workspace-b`).
+Configure a remote MCP client with the deployed SINA MCP endpoint and the JWT in its Authorization header. Send the same `X-MCP-Client-Id` header on every request and use a distinct value for each independent client connection (for example, `n8n-main`, `gemini-workspace-a`, and `gemini-workspace-b`). Without that header, MCP requests still work but later requests will not refresh the connection heartbeat.
 
 Important: the Gemini model/API is not automatically an MCP client. A Gemini-powered application must explicitly support MCP or run a client-side MCP bridge that connects to this endpoint and exposes the returned tools to Gemini. n8n can connect directly only when its MCP client node/version supports remote Streamable HTTP and custom Authorization headers.
 
