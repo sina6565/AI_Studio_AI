@@ -21,8 +21,25 @@ export interface AuthResult {
   token: string;
 }
 
+export type StudioCapability = 'image' | 'video' | 'audio' | 'speech' | 'game';
+
+export type BackendJobType =
+  | 'image_generation'
+  | 'video_generation'
+  | 'audio_generation'
+  | 'text_to_speech'
+  | 'game_creation'
+  | 'game_build';
+
+const JOB_TYPE_MAP: Record<Exclude<StudioCapability, 'game'>, BackendJobType> = {
+  image: 'image_generation',
+  video: 'video_generation',
+  audio: 'audio_generation',
+  speech: 'text_to_speech',
+};
+
 export interface CreateJobPayload {
-  type: string;
+  type: BackendJobType;
   input: Record<string, unknown>;
   priority?: number;
   webhookUrl?: string;
@@ -156,7 +173,7 @@ class MobileAPIClient {
   }
 
   async generate(
-    type: string,
+    type: StudioCapability,
     input: Record<string, unknown>,
     mode: 'create' | 'build' = 'create',
   ): Promise<CreatedJob> {
@@ -172,7 +189,7 @@ class MobileAPIClient {
         },
       });
     }
-    return this.createJob({ type, input });
+    return this.createJob({ type: JOB_TYPE_MAP[type], input });
   }
 }
 
