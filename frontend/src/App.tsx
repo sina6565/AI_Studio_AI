@@ -14,6 +14,7 @@ import Projects from './pages/Projects';
 import Auth from './pages/Auth';
 import UniverseLanding from './pages/UniverseLanding';
 import PreOrder from './pages/PreOrder';
+import LaunchPage from './pages/LaunchPage';
 import apiClient from './services/api';
 import './i18n/config';
 
@@ -35,7 +36,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const location = useLocation();
-  const isPublicSurface = location.pathname === '/' || location.pathname === '/preorder';
+  const isPublicSurface = location.pathname === '/' || location.pathname === '/preorder' || location.pathname === '/launch';
 
   return (
     <>
@@ -43,6 +44,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<UniverseLanding />} />
         <Route path="/preorder" element={<PreOrder />} />
+        <Route path="/launch" element={<LaunchPage />} />
         <Route path="/login" element={<Auth />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
