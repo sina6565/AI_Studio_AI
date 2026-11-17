@@ -85,9 +85,10 @@ export default function JobsScreen() {
             <Text style={styles.muted}>
               {new Date(item.createdAt).toLocaleString()}
             </Text>
-            {typeof item.progress === 'number' ? (
+            {item.progress !== undefined ? (
               <Text style={styles.muted}>
-                {t('jobs.progress')}: {item.progress}%
+                {t('jobs.progress')}: {typeof item.progress === 'number' ? item.progress : item.progress.percentage}%
+                {typeof item.progress !== 'number' && item.progress.stage ? ` · ${item.progress.stage}` : ''}
               </Text>
             ) : null}
             {item.error?.message ? (
