@@ -143,8 +143,10 @@ const mongodbUri =
   process.env.DATABASE_URL ||
   'mongodb://localhost:27017/ai-platform';
 
+const nodeEnv = (process.env.NODE_ENV as AppConfig['nodeEnv']) || 'development';
+
 const config_: AppConfig = {
-  nodeEnv: (process.env.NODE_ENV as AppConfig['nodeEnv']) || 'development',
+  nodeEnv,
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',
   apiVersion: 'v1',
@@ -163,7 +165,7 @@ const config_: AppConfig = {
   },
 
   jwt: {
-    secret: requireEnv('JWT_SECRET', 'dev-secret-key'),
+    secret: requireEnv('JWT_SECRET', nodeEnv === 'production' ? undefined : 'dev-secret-key'),
     expiry: process.env.JWT_EXPIRY || '7d',
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '12', 10),
   },
@@ -242,8 +244,33 @@ const config_: AppConfig = {
 
 // Validate configuration in production
 if (config_.nodeEnv === 'production') {
-  if (config_.jwt.secret === 'dev-secret-key') {
-    throw new Error('JWT_SECRET must be set in production');
+  const jwtSecret = process.env.JWT_SECRET || '';
+  const placeholderSecrets = new Set([
+    'dev-secret-key',
+    'replace-with-unique-local-development-secret',
+    'your-secret-jwt-key-change-in-production',
+    'your-super-secret-jwt-key-change-in-production',
+  ]);
+  const frequencies = new Map<string, number>();
+  for (const character of jwtSecret) {
+    frequencies.set(character, (frequencies.get(character) || 0) + 1);
+  }
+  const entropyBitsPerCharacter = [...frequencies.values()].reduce((entropy, count) => {
+    const probability = count / jwtSecret.length;
+    return entropy - probability * Math.log2(probability);
+  }, 0);
+  if (
+    jwtSecret.length < 32 ||
+    placeholderSecrets.has(jwtSecret.trim().toLowerCase()) ||
+    frequencies.size < 10 ||
+    entropyBitsPerCharacter < 3.5
+  ) {
+    throw new Error(
+      'JWT_SECRET must be a securely generated secret of at least 32 characters with sufficient entropy in production',
+    );
+  }
+  if (config_.cors.origin.includes('*')) {
+    throw new Error('CORS_ORIGIN must list trusted origins in production; wildcard origins are not allowed');
   }
   if (!config_.providers.agnes?.apiKey) {
     console.warn(
