@@ -1,5 +1,13 @@
 # Provider Pool & Fallback Engine
 
+## Current project scope — RAG deferred
+
+**RAG is explicitly out of scope for the current implementation phase.** Do not build, integrate, provision, or add runtime dependencies for `trace_index`, `asset_index`, `pipeline_traces`, vector databases, embeddings, or `query_rag`. Any RAG material elsewhere in this document is retained only as deferred design context and is not an active requirement, implementation task, acceptance criterion, or release dependency. Revisit it only after the project owner explicitly reopens the scope.
+
+The active focus is the existing TypeScript platform: inspect the canonical repository first, then implement and verify the mandatory Provider Pool / Fallback Engine, quota tracking, the approved capability-specific fallback policy, and the SINA-controlled MCP Gateway without replacing or duplicating the SINA Orchestrator. No parallel Python subsystem and no speculative architecture rewrite.
+
+---
+
 ## Status and intent
 
 This document adds a provider-management layer to the SINA AI STUDIO architecture. It is an architectural specification, not a claim that the runtime implementation is complete.
@@ -371,7 +379,7 @@ Implement a SINA-controlled MCP Gateway / Tool Access Layer, then evaluate these
 
 - Playwright — isolated automated browser testing and generated-site acceptance criteria.
 - Filesystem — sandbox-scoped project file read/write.
-- Fetch and Web Search — controlled external context acquisition for research and RAG.
+- Fetch and Web Search — controlled external context acquisition for approved research tasks (not RAG in the current phase).
 - GitHub — user-authorized repository/project operations.
 - PostgreSQL and SQLite — scoped data access; credit and entitlement mutations remain behind trusted application services.
 - Sentry — project-scoped pipeline error and trace inspection.
