@@ -32,10 +32,12 @@ const readiness = (_req: Request, res: Response): void => {
 router.get('/', liveness);
 router.get('/live', liveness);
 router.get('/ready', readiness);
-router.get('/detailed', (_req: Request, res: Response) => {
+router.get('/detailed', async (_req: Request, res: Response) => {
   const db = getDatabaseStatus();
-  const providers = registry.getStatus();
-  const queue = jobQueueProcessor.getConnectionStatus();
+  const [providers, queue] = await Promise.all([
+    registry.getStatus(),
+    Promise.resolve(jobQueueProcessor.getConnectionStatus()),
+  ]);
   const healthy = db.connected;
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'degraded',
