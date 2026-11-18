@@ -96,29 +96,22 @@ class ProviderRegistry {
   /**
    * Get provider status for health checks
    */
-  getStatus(): Record<string, { initialized: boolean; healthy?: boolean }> {
-    const status: Record<string, { initialized: boolean; healthy?: boolean }> = {};
-
-    for (const [name, provider] of this.providers) {
-      try {
-        // Note: We don't await here for synchronous status check
-        // Actual health check is done asynchronously in Router
-        provider.healthCheck().then((healthy) => {
-          status[name] = { initialized: true, healthy };
-        }).catch(() => {
-          status[name] = { initialized: true, healthy: false };
-        });
-
-        // Set initialized flag immediately
-        if (!status[name]) {
-          status[name] = { initialized: true };
+  async getStatus(): Promise<Record<string, { initialized: boolean; healthy: boolean }>> {
+    const entries = await Promise.all(
+      Array.from(this.providers.entries()).map(async ([name, provider]) => {
+        try {
+          const healthy = await provider.healthCheck();
+          return [name, { initialized: true, healthy }] as const;
+        } catch (error) {
+          logger.warn(`[ProviderRegistry] Health check failed for ${name}`, {
+            message: error instanceof Error ? error.message : 'Unknown error',
+          });
+          return [name, { initialized: true, healthy: false }] as const;
         }
-      } catch (error) {
-        status[name] = { initialized: true, healthy: false };
-      }
-    }
+      }),
+    );
 
-    return status;
+    return Object.fromEntries(entries);
   }
 }
 
