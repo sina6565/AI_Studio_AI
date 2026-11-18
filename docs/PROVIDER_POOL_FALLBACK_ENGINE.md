@@ -360,3 +360,32 @@ Implementation requirements:
 7. **Release gate:** provider contract tests, MCP security tests, entitlement bypass tests, isolation tests, regression suite, and documented live verification.
 
 Do not interpret this backlog as permission to spend money, create paid resources, enable production traffic, or merge the pull request. Each integration must remain feature-flagged and disabled until its owner-approved configuration and release gates are complete.
+
+
+## Mandatory architectural decision: Provider Pool is a core SINA platform component
+
+The **Provider Pool & Fallback Engine is mandatory core infrastructure** for SINA AI STUDIO. It is not an optional integration, experimental add-on, or provider-specific convenience layer.
+
+### Non-negotiable architecture boundary
+
+- Every model inference request—local or hosted, free or paid, text or multimodal—must be dispatched through the SINA Provider Pool.
+- No product feature, Agent, tool, API route, or Orchestrator module may call a provider adapter or provider API directly. The only permitted exception is an explicitly isolated test harness that cannot be enabled in production.
+- The SINA Orchestrator remains the owner of task planning, decomposition, agent coordination, and task-level decisions. It expresses capability and policy constraints to the Provider Pool; it does not select credentials, rotate provider accounts, maintain provider quotas, or implement provider-specific fallback branches.
+- The Provider Pool owns provider/model eligibility, route selection, quota and rate-limit accounting, health/circuit state, bounded retries, authorized fallback, cost controls, and provider-call execution.
+- Provider adapters are reachable only through the Provider Pool's stable internal interface. Model Registry and Provider Registry supply metadata; neither registry bypasses Pool policy.
+- All execution paths, including background jobs, queue workers, synchronous API calls, agents, website/game/media builders, and internal tools, must use the same governed dispatch boundary.
+
+### Required enforcement
+
+1. Define a single typed Provider Pool interface and make it the only production dependency available to inference consumers.
+2. Add dependency-boundary checks (static import rules or architecture tests) that fail CI if production modules outside the Pool import provider SDKs/adapters or call provider endpoints directly.
+3. Centralize provider credentials and secret resolution; no consumer or Agent receives raw provider API keys.
+4. Enforce per-task capability, privacy, entitlement, budget, quota, and provider-allowlist policies before dispatch.
+5. Normalize provider results and errors at the Pool boundary; callers must not depend on provider SDK-specific response types.
+6. Emit correlated audit/telemetry events for every route decision, provider attempt, fallback transition, usage record, and final outcome.
+7. Fail closed when no eligible route exists. Return structured errors such as `PROVIDER_UNAVAILABLE`, `QUOTA_EXHAUSTED`, `POLICY_DENIED`, or `BUDGET_EXCEEDED`; never bypass the Pool to make a feature appear available.
+8. Preserve local-first preferences and explicit owner approval for cloud or paid routes. Mandatory use of the Pool does not mean mandatory use of any particular cloud provider.
+
+### Definition of done
+
+Provider Pool is considered the enforced core only when all production inference paths have been migrated, direct-provider-call architecture tests pass, secrets are inaccessible to consumers, quota/policy enforcement is tested under concurrency, and the existing product flows pass regression tests through the Pool. Documentation alone does not satisfy this implementation gate.
