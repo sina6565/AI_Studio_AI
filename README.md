@@ -166,6 +166,7 @@ Do not infer that an optional service, tool, provider, or framework is installed
 - [Architecture](./docs/ARCHITECTURE.md)
 - [API](./docs/API.md)
 - [Providers](./docs/PROVIDERS.md)
+- [Provider Pool & Fallback Engine](./docs/PROVIDER_POOL_FALLBACK_ENGINE.md)
 - [Sandbox](./docs/SANDBOX.md)
 - [Game scene creation](./docs/GAME_CREATION.md)
 - [Website creation](./docs/WEBSITE_CREATION.md)
