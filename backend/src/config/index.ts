@@ -251,8 +251,23 @@ if (config_.nodeEnv === 'production') {
     'your-secret-jwt-key-change-in-production',
     'your-super-secret-jwt-key-change-in-production',
   ]);
-  if (jwtSecret.length < 32 || placeholderSecrets.has(jwtSecret.trim().toLowerCase())) {
-    throw new Error('JWT_SECRET must be a unique secret of at least 32 characters in production');
+  const frequencies = new Map<string, number>();
+  for (const character of jwtSecret) {
+    frequencies.set(character, (frequencies.get(character) || 0) + 1);
+  }
+  const entropyBitsPerCharacter = [...frequencies.values()].reduce((entropy, count) => {
+    const probability = count / jwtSecret.length;
+    return entropy - probability * Math.log2(probability);
+  }, 0);
+  if (
+    jwtSecret.length < 32 ||
+    placeholderSecrets.has(jwtSecret.trim().toLowerCase()) ||
+    frequencies.size < 10 ||
+    entropyBitsPerCharacter < 3.5
+  ) {
+    throw new Error(
+      'JWT_SECRET must be a securely generated secret of at least 32 characters with sufficient entropy in production',
+    );
   }
   if (config_.cors.origin.includes('*')) {
     throw new Error('CORS_ORIGIN must list trusted origins in production; wildcard origins are not allowed');
