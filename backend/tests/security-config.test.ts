@@ -46,6 +46,11 @@ describe('production security configuration', () => {
     process.env.JWT_SECRET = 'abcd'.repeat(12);
 
     expect(() => require('../src/config')).toThrow(/JWT_SECRET/);
+
+    setValidProductionEnv();
+    process.env.JWT_SECRET = 'abcdefghijklmnopqrstuvwxyzABCDEF';
+
+    expect(() => require('../src/config')).toThrow(/JWT_SECRET/);
   });
 
   it('rejects wildcard CORS origins in production', () => {
