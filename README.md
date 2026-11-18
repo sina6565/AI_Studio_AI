@@ -1,4 +1,19 @@
-# SINA AI STUDIO
+<p align="center">
+  <img src="frontend/public/assets/logo-sina.png" alt="SINA AI STUDIO logo" width="180" />
+</p>
+
+<h1 align="center">SINA AI STUDIO</h1>
+
+<p align="center">
+  <strong>FROM A SINGLE IDEA TO AN ENTIRE UNIVERSE</strong><br/>
+  یک درخواست؛ هماهنگی هوشمند؛ خروجی یکپارچه در یک پلتفرم
+</p>
+
+<p align="center">
+  <a href="https://github.com/sina6565/AI_Studio_AI/actions/workflows/ci.yml"><img src="https://github.com/sina6565/AI_Studio_AI/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
+  <img src="https://img.shields.io/badge/status-active%20development-blue" alt="Active development" />
+  <img src="https://img.shields.io/badge/license-see%20repository-lightgrey" alt="License" />
+</p>
 
 **یک پلتفرم جامع، مستقل و یکپارچه هوش مصنوعی؛ از یک درخواست تا یک خروجی کامل.**
 
@@ -12,7 +27,9 @@ SINA AI STUDIO پلتفرمی جامع و مستقل برای تولید و سا
 
 این تعریف، چشم‌انداز و هویت محصول است. وضعیت واقعی هر قابلیت در ادامه README شفاف شده است؛ هدف محصول نباید با امکاناتی که هنوز پیاده‌سازی یا در اجرای واقعی تأیید نشده‌اند اشتباه گرفته شود.
 
-## What users can create
+> 🎞️ **Animated brand mark:** The web app already contains a cinematic animated logo reveal in [LogoReveal.tsx](frontend/src/components/universe/LogoReveal.tsx). GitHub README displays the repository's existing logo image as a static mark; the in-app animation runs in the website experience. A dedicated README GIF has not yet been added.
+
+## ✨ What users can create
 
 SINA is being developed around these connected creation areas:
 
@@ -28,74 +45,42 @@ SINA is being developed around these connected creation areas:
 These are the platform's product areas and development direction. Their availability is not identical today: the implementation notes below distinguish working repository workflows from planned or unverified capabilities.
 
 <details>
-<summary><strong>How does SINA work in practice? — click to expand the end-to-end execution flow</strong></summary>
+<summary><strong>⚙️ How does SINA work in practice? — click to expand the visual workflow</strong></summary>
 
 
 Every creation starts with one user prompt or request. SINA must turn that request into a coordinated execution plan, run the required work in controlled environments, validate the outputs, and return the result inside the same platform. The user should not have to manually choose and connect a different AI service for every step.
 
-### End-to-end execution flow
+### 🔁 End-to-end workflow — n8n-style view
 
-```text
-1. USER REQUEST
-   Prompt, brief, uploaded files, references and desired output
-        |
-        v
-2. SINA APPLICATION / API
-   Receive request, authenticate user, check project and permissions,
-   save request and create a trackable task/job
-        |
-        v
-3. SINA ORCHESTRATOR — CENTRAL COORDINATION
-   Understand intent and requirements
-   Break the request into tasks and dependencies
-   Build the execution plan and acceptance criteria
-        |
-        v
-4. AGENT SELECTION
-   Consult Agent Registry
-   Select the required specialist Agent(s)
-   Assign responsibilities, tools and task boundaries
-        |
-        v
-5. EXECUTION MANAGER
-   Select or provision the appropriate execution environment
-   Create an isolated workspace / sandbox when required
-   Apply resource limits, scoped permissions and task context
-        |
-        +-------------------------------+
-        |                               |
-        v                               v
-6A. PROVIDER POOL                 6B. SINA MCP GATEWAY
-    Select eligible model/provider     Governed access to approved tools
-    Check capability, quota, health,   and external systems
-    policy and cost constraints        Apply allowlists, permissions,
-    Execute bounded retries/fallback   approvals and audit logging
-        |                               |
-        +---------------+---------------+
-                        |
-                        v
-7. SPECIALIST AGENT EXECUTION
-   Execute the planned steps through the permitted providers and tools
-   Examples: text, image, audio, speech, video, animation,
-   3D character, website and game workflows
-                        |
-                        v
-8. REVIEW, VALIDATION AND ITERATION
-   Check outputs against the request and acceptance criteria
-   Detect failures or missing assets
-   Orchestrator decides whether to retry, revise, request approval,
-   or stop with a clear structured error
-                        |
-                        v
-9. ASSET / PROJECT ASSEMBLY
-   Organize files, source materials, generated assets and metadata
-   Connect dependent outputs into one coherent project
-                        |
-                        v
-10. DELIVERY TO THE USER
-    Present preview, downloadable/exportable outputs and project state
-    Keep job status and artifacts available for the next instruction
+```mermaid
+flowchart TD
+    U["👤 User request<br/>Prompt · files · references"] --> API["🌐 SINA App / API<br/>Auth · validation · create Job"]
+    API --> ORCH["🧠 SINA Orchestrator<br/>Understand · plan · decompose tasks"]
+    ORCH --> REG["🧩 Agent Registry<br/>Select specialist Agents"]
+    REG --> EM["🎛️ Execution Manager<br/>Choose runtime and permissions"]
+    EM --> SB["📦 Workspace / Sandbox<br/>Isolated when task requires it"]
+    SB --> POOL["🔀 Provider Pool<br/>Model selection · quota · fallback"]
+    SB --> MCP["🛠️ SINA MCP Gateway<br/>Approved tools · scoped access"]
+    POOL --> AG["🤖 Specialist Agent execution"]
+    MCP --> AG
+    AG --> QA["🔍 Review & validation<br/>Check output against requirements"]
+    QA -->|"Revise / retry when allowed"| ORCH
+    QA -->|"Accepted"| ASM["🗂️ Project & asset assembly"]
+    ASM --> OUT["🚀 Delivery in SINA<br/>Preview · files · job status"]
+    subgraph WORK["Specialist creation workflows"]
+      TXT["📝 Text"]
+      IMG["🖼️ Image"]
+      AUD["🎧 Audio / speech"]
+      VID["🎬 Video / animation"]
+      THREE["🧍 3D characters / worlds"]
+      WEB["🌐 Websites"]
+      GAME["🎮 Games"]
+    end
+    AG --> WORK
+    WORK --> QA
 ```
+
+این نمودار مسیر هدف پلتفرم را نشان می‌دهد؛ همه اتصال‌ها و قابلیت‌ها هنوز در محیط واقعی به‌طور کامل پیاده‌سازی و تأیید نشده‌اند.
 
 ### Responsibility boundaries
 
@@ -112,7 +97,7 @@ Every creation starts with one user prompt or request. SINA must turn that reque
 This is the target end-to-end architecture and the responsibility model SINA is being built toward. It is not a claim that every stage is already implemented or connected in every modality. The implementation-status section below records what exists in the repository and what still needs integration or live verification. In particular, Provider Pool enforcement, the central MCP Gateway, sandbox orchestration and complete multimodal end-to-end delivery must be verified in code and runtime before being described as production-ready.
 
 </details>
-## What is implemented today
+## 🧱 What is implemented today
 
 The current repository contains real application code, but it is not yet a finished, production-proven version of every product area.
 
@@ -129,11 +114,11 @@ The current repository contains real application code, but it is not yet a finis
 | Website Builder | Generates responsive standalone HTML from templates, with preview, source editing and HTML download. AI-written website content and hosted publishing are not yet established by this workflow. |
 | 3D Game Lab | A procedural room workflow targeting Unreal Engine 5, with a Blender preview/review path and a self-hosted UE5 worker contract. A real engine import, playable game, and packaged build have not yet been verified. |
 
-### Important 3D status
+### 🧊 Important 3D status
 
 The 3D workflow currently prepares a configurable procedural room and a UE5 source-project path. It requires a compatible owner-operated machine with Blender and Unreal Engine 5 installed, plus the required project template. Repository tests cover parts of the worker contract and approval gates; they do **not** prove that a complete playable game has been built or packaged.
 
-### What is not yet proven
+### ⚠️ What is not yet proven
 
 Do not interpret a capability name, a successful build, or a passing unit test as proof of a complete live workflow. The following still require direct evidence:
 
@@ -145,7 +130,7 @@ Do not interpret a capability name, a successful build, or a passing unit test a
 - Native Android/iOS builds and device-level testing.
 - Production deployment, operational monitoring, recovery and realistic load testing.
 
-## Core architecture principles
+## 🏛️ Core architecture principles
 
 - **SINA owns orchestration.** External models and services may provide capabilities, but they do not replace SINA's task-planning and coordination layer.
 - **Provider-independent design.** Product workflows use stable SINA interfaces rather than depending directly on one provider's SDK.
@@ -158,7 +143,7 @@ Do not interpret a capability name, a successful build, or a passing unit test a
 
 **Current scope note:** RAG (including trace indexes, asset indexes, vector databases and `query_rag`) is deferred. It is not part of the active implementation scope and must not become a dependency of the current release work.
 
-## Technology
+## 🧰 Technology
 
 | Layer | Current repository technology |
 |---|---|
@@ -174,7 +159,7 @@ Do not interpret a capability name, a successful build, or a passing unit test a
 
 The repository's code, package scripts and environment examples are authoritative. A technology mentioned as a future integration is not necessarily installed or enabled.
 
-## Practical development progress
+## 📈 Practical development progress
 
 This section records concrete repository changes separately from the product roadmap. A documentation change is not counted as a completed runtime feature.
 
@@ -186,7 +171,7 @@ This section records concrete repository changes separately from the product roa
 | 2026-11-18 | RAG scope clarified | RAG, vector stores, embeddings and indexing are explicitly deferred from current release work. | Documented; not an active implementation task |
 | 2026-11-18 | Main-branch CI verification | Latest observed CI run: 4/4 jobs successful; 184 automated test cases passed. | Verified on `main`; details below |
 
-## Test and verification report
+## 🧪 Test and verification report
 
 The following figures are from the latest successful GitHub Actions CI run observed on **2026-11-18**. Counts refer only to executed automated test cases in that run; build, type-check, lint and syntax checks are reported separately.
 
@@ -208,19 +193,19 @@ The fourth CI job, Mobile, passed TypeScript type-checking and ESLint; this work
 
 Historical test reports and external/manual runs must be recorded separately with their own date, commit/build identifier, executed count and evidence link. Do not add overlapping runs together or present unverified external counts as confirmed.
 
-## Runtime, deployment and local development
+## 🚀 Runtime, deployment and local development
 
 Use the repository's current Dockerfiles, Compose files, environment examples and `docs/DEVELOPMENT.md` / `docs/DEPLOYMENT.md` as the source of truth before changing runtime behavior.
 
 The documented configuration areas include Node environment and port/host settings, MongoDB connection, Redis connection, JWT configuration, provider credentials, CORS and storage. Exact variable names must be taken from the current environment templates and configuration schema. Never commit real credentials or environment files.
 
-## Optional workflow integrations
+## 🔌 Optional workflow integrations
 
 - **Ollama:** a local model runtime that may support selected text, planning or classification tasks when the available model and hardware are suitable. It does not provide every media-generation capability by itself.
 - **n8n:** an optional integration/workflow tool for explicitly justified external automations. It must not silently replace or duplicate SINA's own Orchestrator, task system or job queue.
 - These integrations are optional. Neither is a mandatory dependency of the platform's core architecture.
 
-## Example: one request, multiple coordinated outputs
+## 🧪 Example: one request, multiple coordinated outputs
 
 For a request such as “create a 3D space game, generate its visual assets, and prepare a website presenting the game,” the intended SINA flow is:
 
@@ -234,7 +219,7 @@ For a request such as “create a 3D space game, generate its visual assets, and
 
 This is the intended coordinated product behavior. Each stage must be marked implemented only after its actual code path and end-to-end behavior have been verified.
 
-## Development priorities
+## 🎯 Development priorities
 
 1. Inspect and document the real request paths in the existing TypeScript backend.
 2. Implement the mandatory Provider Pool and migrate every production inference path through it.
@@ -245,7 +230,7 @@ This is the intended coordinated product behavior. Each stage must be marked imp
 
 Do not create a parallel Python backend or replace the existing SINA Orchestrator simply to implement these priorities. Adapt the work to the canonical repository after inspecting its actual code.
 
-## Repository and documentation
+## 📚 Repository and documentation
 
 - **Canonical repository:** [sina6565/AI_Studio_AI](https://github.com/sina6565/AI_Studio_AI)
 - **Default branch:** `main`
@@ -260,7 +245,7 @@ Do not create a parallel Python backend or replace the existing SINA Orchestrato
 - [Game scene creation](./docs/GAME_CREATION.md)
 - [Unreal Engine 5 room pipeline](./docs/3D_GAME_ROOM_PIPELINE.md)
 
-## Ownership and repository access
+## 🔐 Ownership and repository access
 
 - **Canonical repository:** [`sina6565/AI_Studio_AI`](https://github.com/sina6565/AI_Studio_AI), default branch `main`.
 - Repository access and collaborator permissions are governed by GitHub settings, not by statements in this README.
@@ -268,7 +253,7 @@ Do not create a parallel Python backend or replace the existing SINA Orchestrato
 - Write access or contribution rights do not by themselves transfer project ownership.
 - Do not commit API keys, tokens, private keys, signing material or real environment files.
 
-## Contributing and verification
+## 🤝 Contributing and verification
 
 Use branches and pull requests so changes can be reviewed and traced. Before changing an existing subsystem, inspect its current implementation and tests. For every change, report:
 
@@ -280,6 +265,6 @@ Use branches and pull requests so changes can be reviewed and traced. Before cha
 
 Never commit API keys, tokens, private keys or real environment files. Do not claim production readiness from documentation or CI results alone.
 
-## Project status
+## 📍 Project status
 
 **SINA AI STUDIO is under active development.** It has an existing web/mobile application and backend foundation, plus early creation workflows for websites, game scenes and procedural 3D rooms. The broader unified AI creation platform is the product goal; completion and live verification of all capabilities remain ongoing work.
