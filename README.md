@@ -27,34 +27,87 @@ SINA is being developed around these connected creation areas:
 
 These are the platform's product areas and development direction. Their availability is not identical today: the implementation notes below distinguish working repository workflows from planned or unverified capabilities.
 
-## How the platform works
+## How a request becomes a finished result
 
-A user starts a project or submits a creation request. SINA's application receives the request, identifies the work that needs to happen, and coordinates the relevant capabilities. Longer tasks can run as jobs so the user can follow their status and retrieve the results later.
+Every creation starts with one user prompt or request. SINA must turn that request into a coordinated execution plan, run the required work in controlled environments, validate the outputs, and return the result inside the same platform. The user should not have to manually choose and connect a different AI service for every step.
 
-At a high level:
+### End-to-end execution flow
 
 ```text
-User idea
-   |
-SINA Studio (web / mobile)
-   |
-SINA API and project management
-   |
-SINA Orchestrator
-   |  plans work and coordinates tasks/agents
-   v
-Provider Pool and tool-access layer
-   |  selects permitted AI models, providers and tools
-   v
-Specialized creation workflows
-   |  text / image / audio / video / website / 3D / game
-   |
-Project files, generated assets and job results
-   |
-User reviews and continues the project
+1. USER REQUEST
+   Prompt, brief, uploaded files, references and desired output
+        |
+        v
+2. SINA APPLICATION / API
+   Receive request, authenticate user, check project and permissions,
+   save request and create a trackable task/job
+        |
+        v
+3. SINA ORCHESTRATOR — CENTRAL COORDINATION
+   Understand intent and requirements
+   Break the request into tasks and dependencies
+   Build the execution plan and acceptance criteria
+        |
+        v
+4. AGENT SELECTION
+   Consult Agent Registry
+   Select the required specialist Agent(s)
+   Assign responsibilities, tools and task boundaries
+        |
+        v
+5. EXECUTION MANAGER
+   Select or provision the appropriate execution environment
+   Create an isolated workspace / sandbox when required
+   Apply resource limits, scoped permissions and task context
+        |
+        +-------------------------------+
+        |                               |
+        v                               v
+6A. PROVIDER POOL                 6B. SINA MCP GATEWAY
+    Select eligible model/provider     Governed access to approved tools
+    Check capability, quota, health,   and external systems
+    policy and cost constraints        Apply allowlists, permissions,
+    Execute bounded retries/fallback   approvals and audit logging
+        |                               |
+        +---------------+---------------+
+                        |
+                        v
+7. SPECIALIST AGENT EXECUTION
+   Execute the planned steps through the permitted providers and tools
+   Examples: text, image, audio, speech, video, animation,
+   3D character, website and game workflows
+                        |
+                        v
+8. REVIEW, VALIDATION AND ITERATION
+   Check outputs against the request and acceptance criteria
+   Detect failures or missing assets
+   Orchestrator decides whether to retry, revise, request approval,
+   or stop with a clear structured error
+                        |
+                        v
+9. ASSET / PROJECT ASSEMBLY
+   Organize files, source materials, generated assets and metadata
+   Connect dependent outputs into one coherent project
+                        |
+                        v
+10. DELIVERY TO THE USER
+    Present preview, downloadable/exportable outputs and project state
+    Keep job status and artifacts available for the next instruction
 ```
 
-The Orchestrator is the platform's task-coordination brain. Provider management is a separate responsibility: provider selection, quota checks, health, retries and fallback belong in the Provider Pool, not in provider-specific branches inside the Orchestrator. The Provider Pool and MCP Gateway are architectural work in progress; this diagram describes the intended boundary, not a claim that every path has already been migrated.
+### Responsibility boundaries
+
+- **Orchestrator:** owns intent analysis, task decomposition, planning, dependency coordination, Agent assignment, execution decisions and final task-level review. It does not contain provider-specific routing logic.
+- **Agent Registry and Agent Runtime:** identify, select, initialize and run specialist Agents with defined capabilities and permissions. Agents execute assigned work; they do not replace the Orchestrator.
+- **Execution Manager and Sandbox:** choose or provision the runtime appropriate to the task, isolate project execution where needed, and enforce filesystem, network, compute and permission boundaries. A sandbox is not automatically required for every request; the environment is selected according to the task's risk and runtime needs.
+- **Provider Pool & Fallback Engine:** the single governed path for production model inference. It selects compatible providers/models, checks eligibility and quotas, applies policy and cost limits, executes calls, and manages bounded retries and authorized fallback.
+- **SINA MCP Gateway:** the controlled path for Agent access to tools and external systems. It enforces per-task tool allowlists, authentication, scoped permissions, approval for sensitive write actions and audit records.
+- **Workers and modality workflows:** perform the actual specialized work—such as media generation, website construction, 3D scene preparation or game building—inside their permitted execution context.
+- **Validation and delivery:** check the result, assemble related artifacts, preserve project continuity and return the output to the user.
+
+### Architectural status
+
+This is the target end-to-end architecture and the responsibility model SINA is being built toward. It is not a claim that every stage is already implemented or connected in every modality. The implementation-status section below records what exists in the repository and what still needs integration or live verification. In particular, Provider Pool enforcement, the central MCP Gateway, sandbox orchestration and complete multimodal end-to-end delivery must be verified in code and runtime before being described as production-ready.
 
 ## What is implemented today
 
