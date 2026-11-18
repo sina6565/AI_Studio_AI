@@ -27,7 +27,9 @@ SINA is being developed around these connected creation areas:
 
 These are the platform's product areas and development direction. Their availability is not identical today: the implementation notes below distinguish working repository workflows from planned or unverified capabilities.
 
-## How a request becomes a finished result
+<details>
+<summary><strong>How does SINA work in practice? — click to expand the end-to-end execution flow</strong></summary>
+
 
 Every creation starts with one user prompt or request. SINA must turn that request into a coordinated execution plan, run the required work in controlled environments, validate the outputs, and return the result inside the same platform. The user should not have to manually choose and connect a different AI service for every step.
 
@@ -109,6 +111,7 @@ Every creation starts with one user prompt or request. SINA must turn that reque
 
 This is the target end-to-end architecture and the responsibility model SINA is being built toward. It is not a claim that every stage is already implemented or connected in every modality. The implementation-status section below records what exists in the repository and what still needs integration or live verification. In particular, Provider Pool enforcement, the central MCP Gateway, sandbox orchestration and complete multimodal end-to-end delivery must be verified in code and runtime before being described as production-ready.
 
+</details>
 ## What is implemented today
 
 The current repository contains real application code, but it is not yet a finished, production-proven version of every product area.
@@ -171,6 +174,66 @@ Do not interpret a capability name, a successful build, or a passing unit test a
 
 The repository's code, package scripts and environment examples are authoritative. A technology mentioned as a future integration is not necessarily installed or enabled.
 
+## Practical development progress
+
+This section records concrete repository changes separately from the product roadmap. A documentation change is not counted as a completed runtime feature.
+
+| Date | Work item | Evidence / result | Status |
+|---|---|---|---|
+| 2026-11-18 | Product definition clarified | README now defines SINA as one unified platform that accepts one request and returns coordinated outputs across its target modalities. | Committed on this branch |
+| 2026-11-18 | End-to-end architecture documented | Request → API → Orchestrator → Agent selection → Execution Manager/Sandbox → Provider Pool and MCP Gateway → specialist execution → validation → assembly → delivery. | Committed on this branch; target architecture, not full runtime implementation |
+| 2026-11-18 | Provider Pool & Fallback design documented | Dedicated specification covers capability-aware routing, quota accounting, health, bounded retries, authorized fallback and spending controls. | Documentation only |
+| 2026-11-18 | RAG scope clarified | RAG, vector stores, embeddings and indexing are explicitly deferred from current release work. | Documented; not an active implementation task |
+| 2026-11-18 | Main-branch CI verification | Latest observed CI run: 4/4 jobs successful; 184 automated test cases passed. | Verified on `main`; details below |
+
+## Test and verification report
+
+The following figures are from the latest successful GitHub Actions CI run observed on **2026-11-18**. Counts refer only to executed automated test cases in that run; build, type-check, lint and syntax checks are reported separately.
+
+- **Repository / branch:** `sina6565/AI_Studio_AI` / `main`
+- **Commit tested:** `b8397fa802693c017eef94c337a55c1ba9009c26`
+- **CI run:** [Run #44257581124](https://github.com/sina6565/AI_Studio_AI/actions/runs/44257581124)
+- **Overall result:** 4/4 CI jobs passed; 184/184 test cases passed; 0 failed.
+
+| Test area | Test suites / files | Tests passed | Tests failed |
+|---|---:|---:|---:|
+| Backend (Jest) | 25 suites | 152 | 0 |
+| Frontend (Vitest) | 9 files | 27 | 0 |
+| UE5 worker approval gates (Python unittest) | 1 test module | 5 | 0 |
+| **Total automated test cases** | **35 suite/file units** | **184** | **0** |
+
+The fourth CI job, Mobile, passed TypeScript type-checking and ESLint; this workflow does not report a separate mobile test-case count. The run also passed backend build, frontend type-check/build, vertical-slice E2E using FakeProvider without network access, and UE5 worker Python syntax validation. These process checks are not added to the 184 test cases.
+
+**Verification limits:** this CI run does not establish live provider generation, production deployment, hosted website publishing, real Blender rendering, Unreal Editor import, playable UE5 gameplay, packaged game output, or native Android/iOS runtime behavior. A green CI run is evidence for the checks listed above, not proof that the full product promise is already delivered.
+
+Historical test reports and external/manual runs must be recorded separately with their own date, commit/build identifier, executed count and evidence link. Do not add overlapping runs together or present unverified external counts as confirmed.
+
+## Runtime, deployment and local development
+
+Use the repository's current Dockerfiles, Compose files, environment examples and `docs/DEVELOPMENT.md` / `docs/DEPLOYMENT.md` as the source of truth before changing runtime behavior.
+
+The documented configuration areas include Node environment and port/host settings, MongoDB connection, Redis connection, JWT configuration, provider credentials, CORS and storage. Exact variable names must be taken from the current environment templates and configuration schema. Never commit real credentials or environment files.
+
+## Optional workflow integrations
+
+- **Ollama:** a local model runtime that may support selected text, planning or classification tasks when the available model and hardware are suitable. It does not provide every media-generation capability by itself.
+- **n8n:** an optional integration/workflow tool for explicitly justified external automations. It must not silently replace or duplicate SINA's own Orchestrator, task system or job queue.
+- These integrations are optional. Neither is a mandatory dependency of the platform's core architecture.
+
+## Example: one request, multiple coordinated outputs
+
+For a request such as “create a 3D space game, generate its visual assets, and prepare a website presenting the game,” the intended SINA flow is:
+
+1. The API receives and records the user's request.
+2. The Orchestrator identifies the required outputs, dependencies and acceptance criteria.
+3. Specialist Agents are selected for the game, 3D assets and website tasks.
+4. The Execution Manager selects suitable workspaces and isolated environments where required.
+5. Agents access approved models through the Provider Pool and approved tools through the MCP Gateway.
+6. The workflows generate assets and project files, then validate their outputs.
+7. SINA assembles the related deliverables under one project and returns previews, files and job status to the user.
+
+This is the intended coordinated product behavior. Each stage must be marked implemented only after its actual code path and end-to-end behavior have been verified.
+
 ## Development priorities
 
 1. Inspect and document the real request paths in the existing TypeScript backend.
@@ -196,6 +259,14 @@ Do not create a parallel Python backend or replace the existing SINA Orchestrato
 - [Website creation](./docs/WEBSITE_CREATION.md)
 - [Game scene creation](./docs/GAME_CREATION.md)
 - [Unreal Engine 5 room pipeline](./docs/3D_GAME_ROOM_PIPELINE.md)
+
+## Ownership and repository access
+
+- **Canonical repository:** [`sina6565/AI_Studio_AI`](https://github.com/sina6565/AI_Studio_AI), default branch `main`.
+- Repository access and collaborator permissions are governed by GitHub settings, not by statements in this README.
+- Original SINA code, architecture, documentation, brand assets and project materials remain subject to the rights of their applicable owners and the repository's root license notice. Third-party dependencies and assets remain subject to their own licenses.
+- Write access or contribution rights do not by themselves transfer project ownership.
+- Do not commit API keys, tokens, private keys, signing material or real environment files.
 
 ## Contributing and verification
 
