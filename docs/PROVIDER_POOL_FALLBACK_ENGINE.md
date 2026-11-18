@@ -182,3 +182,48 @@ Before enabling any NIM model, verify the current terms for that exact NIM offer
 ### Validation before rollout
 
 Add tests for per-model quota isolation, model-specific cost ceilings, task-quality thresholds during model fallback, license/entitlement gating, hosted-versus-self-hosted route metadata, and proof that no paid NIM route is selected without explicit opt-in. Benchmark representative SINA tasks across eligible local and NIM models, recording quality, latency, throughput, and estimated cost before recommending a default route.
+
+
+### Strategic provider priority: NVIDIA NIM for capacity, OpenRouter for model diversity
+
+For the hosted-model layer, the proposed SINA strategy is:
+
+- **Primary capacity route: NVIDIA NIM.** Prefer eligible NIM-hosted model routes for routine inference capacity when the exact model is available, compatible with the task, within its verified quota, and permitted by the applicable terms.
+- **Complementary diversity route: OpenRouter.** Use OpenRouter to broaden model/vendor choice, cover capability gaps, and provide a compatible fallback when an eligible NIM route is unavailable. OpenRouter is not the default primary capacity assumption.
+- **SINA remains the control plane.** The SINA Model Registry and Provider Pool make the final choice using task capability, quality thresholds, verified quota, latency, privacy, licensing, and cost policy. Neither NIM nor OpenRouter owns orchestration or provider-selection policy.
+
+#### Candidate NVIDIA NIM model catalog
+
+The following eight model IDs were supplied as candidates for evaluation in the proposed multi-model pool:
+
+| Candidate model ID | Initial registry status |
+| --- | --- |
+| `meta/llama-4-maverick-17b-128e-instruct` | Candidate; verify exact catalog ID and availability |
+| `meta/llama-3.1-8b-instruct` | Candidate; verify exact catalog ID and availability |
+| `openai/gpt-oss-20b` | Candidate; verify exact catalog ID and availability |
+| `nvidia/nemotron-nano-9b-v2` | Candidate; verify exact catalog ID and availability |
+| `nvidia/llama-3.3-nemotron-super-49b-v1` | Candidate; verify exact catalog ID and availability |
+| `meta/llama-3.3-70b-instruct` | Candidate; verify exact catalog ID and availability |
+| `mistralai/mixtral-8x22b-instruct-v0.1` | Candidate; verify exact catalog ID and availability |
+| `openai/gpt-oss-120b` | Candidate; verify exact catalog ID and availability |
+
+The supplied list contains **eight** entries, not nine. Do not infer or invent a ninth model. Confirm every exact model identifier against the live NVIDIA API catalog before registering it; the identifiers above are normalization candidates and may need correction to match the current catalog.
+
+#### Per-model quota hypothesis and safe capacity planning
+
+The proposal supplied for evaluation is that hosted NIM rate limits may be applied independently per model, with a reported allowance of 40 requests per minute (RPM) per model. This is **not yet verified as a universal or guaranteed NVIDIA quota**. Limits may vary by model, account entitlement, endpoint, traffic conditions, and current NVIDIA policy. The implementation must discover or measure the actual documented limit for each model and retain its source and verification timestamp.
+
+If, and only if, NVIDIA confirms 40 RPM independently for each of the eight listed models under the project's applicable entitlement, the arithmetic ceiling would be 8 × 40 = **320 RPM**, before accounting for concurrency, token throughput, request duration, shared infrastructure limits, or other restrictions. A ninth eligible model at the same confirmed limit would produce a theoretical 360 RPM, but no ninth model is currently specified. These figures are planning arithmetic, not a promise of available throughput.
+
+The pool may distribute **distinct eligible tasks** across different models when each model independently satisfies the task's capability and quality contract. It must not spray duplicate requests across models, rotate identities or credentials, or cascade requests for the purpose of evading rate limits, shared quotas, account restrictions, or provider safeguards. On 429 responses, honor `Retry-After` and documented reset behavior; route to another model only when the request is independently eligible there and the provider's terms permit it.
+
+#### Implementation and rollout implications
+
+1. Add NIM as the highest-priority hosted capacity family in the default provider policy, subject to local-first preference where a suitable local route is available and configured.
+2. Register each NIM model as a separate model/endpoint record with its own verified capability contract, quota state, rate-limit metadata, health, and license/entitlement status.
+3. Register OpenRouter as a complementary multi-model provider family for diversity and capability coverage; do not treat it as the primary capacity pool by default.
+4. Keep model-level scheduling fair and quality-aware. Measure RPM, tokens per minute, concurrency, latency, error rates, and task success separately; RPM alone is not a sufficient capacity metric.
+5. Keep all cloud routes disabled until the owner explicitly configures credentials and approves the applicable usage. Free/prototyping access must not be assumed unlimited, production-authorized, or guaranteed to remain free.
+6. Before changing production defaults, verify live catalog IDs, per-model quota documentation, current terms, and representative benchmarks. Record evidence and review dates in the registry.
+
+This section establishes the intended provider strategy and evaluation plan; it does not claim that the eight models are currently enabled, that a 40-RPM limit has been confirmed for each, or that runtime routing code has been implemented.
