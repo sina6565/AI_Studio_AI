@@ -300,3 +300,63 @@ Start with read-only, low-risk tools and a single isolated capability. Before en
 - audit records are complete without storing secrets or unnecessary personal data.
 
 No MCP integration should be considered active until its server, transport, credentials, authorization policy, isolation boundary, and tests have been verified.
+
+
+## Project backlog: provider expansion and MCP integrations
+
+The following items are accepted into the SINA AI STUDIO **project architecture and implementation backlog**. Recording them here means they are planned candidates, not that packages have been installed, services connected, credentials configured, or runtime behavior implemented.
+
+### Provider expansion backlog
+
+Evaluate and add adapters through the existing Provider Adapter Interface and Provider Registry for:
+
+- NVIDIA NIM — primary hosted-capacity candidate, subject to verified model-level limits and applicable terms.
+- Groq — hosted inference candidate.
+- Cerebras — hosted inference candidate.
+- Mistral — hosted inference candidate.
+- SambaNova — hosted inference candidate.
+- OpenCode Zen — hosted model catalog candidate.
+- OpenRouter — complementary model diversity and coverage.
+- Ollama Local — local-first inference route.
+- Ollama Cloud — optional hosted route, separately gated from local Ollama.
+
+Implementation requirements:
+1. Use one provider-neutral adapter contract and the SINA Provider Pool; do not add provider-specific routing branches to the Orchestrator.
+2. Discover and verify current model IDs, supported capabilities, API compatibility, rate limits, quota scope/reset, data handling, license, and free/paid status from first-party sources.
+3. Store quota and health per actual scope (provider/account/model/endpoint as documented); do not assume a quota is per-model unless verified.
+4. Keep local Ollama preferred when it satisfies the task and local-first policy.
+5. Require explicit owner configuration/approval for cloud credentials and any paid usage. Never silently enable paid fallback.
+6. Add contract tests, quota/error classification tests, secret-redaction tests, and capability/quality benchmarks before enabling each adapter.
+7. Keep FreeRide-H as an optional research/catalog reference only; do not add it as a runtime dependency or blindly inherit its credential-rotation behavior.
+
+### MCP integration backlog
+
+Implement a SINA-controlled MCP Gateway / Tool Access Layer, then evaluate these MCP server integrations:
+
+- Playwright — isolated automated browser testing and generated-site acceptance criteria.
+- Filesystem — sandbox-scoped project file read/write.
+- Fetch and Web Search — controlled external context acquisition for research and RAG.
+- GitHub — user-authorized repository/project operations.
+- PostgreSQL and SQLite — scoped data access; credit and entitlement mutations remain behind trusted application services.
+- Sentry — project-scoped pipeline error and trace inspection.
+
+Implementation requirements:
+1. Every MCP server connection and tool invocation must pass through the SINA MCP Gateway; models must never connect directly to arbitrary MCP servers.
+2. Authenticate the user and resolve tenant/project scope and entitlement on the backend for every invocation.
+3. Construct a per-task tool allowlist; re-check authorization at invocation time even if a tool was previously advertised to the model.
+4. Enforce least-privilege credentials, schema validation, resource scoping, isolation, rate/size/time limits, and redacted audit logs.
+5. Require explicit approval for external side effects and high-risk writes (for example repository writes/merges, deployments, destructive file/database actions, or spending).
+6. Website Builder and other gated capabilities may be exposed only after the backend entitlement service confirms the required Plus entitlement or valid ad-unlock grant. UI visibility or a client-provided ad-watched flag is never authorization.
+7. Begin with read-only and isolated test integrations; expand to writes only after security and acceptance tests pass.
+
+### Suggested implementation sequence
+
+1. **Foundation:** Provider Registry schema, model catalog, quota/health metadata, MCP Gateway interfaces, central entitlement checks, audit events, and feature flags.
+2. **Low-risk providers:** Ollama Local first, then hosted adapters only after credentials, free-tier terms, and capability contracts are verified.
+3. **Hosted capacity and diversity:** NIM as the primary hosted-capacity candidate; evaluate Groq, Cerebras, Mistral, and SambaNova; use OpenRouter and OpenCode Zen for complementary coverage; keep Ollama Cloud separately opt-in.
+4. **MCP read-only tools:** Fetch/Web Search and Sentry read-only, followed by GitHub read-only and isolated Playwright acceptance tests.
+5. **Sandboxed project tools:** Filesystem with strict workspace isolation; then scoped PostgreSQL/SQLite access through application services.
+6. **Controlled write actions:** GitHub writes, generated-project file changes, and other side effects only with explicit approval, authorization, and audit.
+7. **Release gate:** provider contract tests, MCP security tests, entitlement bypass tests, isolation tests, regression suite, and documented live verification.
+
+Do not interpret this backlog as permission to spend money, create paid resources, enable production traffic, or merge the pull request. Each integration must remain feature-flagged and disabled until its owner-approved configuration and release gates are complete.
