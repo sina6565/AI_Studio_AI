@@ -389,3 +389,75 @@ The **Provider Pool & Fallback Engine is mandatory core infrastructure** for SIN
 ### Definition of done
 
 Provider Pool is considered the enforced core only when all production inference paths have been migrated, direct-provider-call architecture tests pass, secrets are inaccessible to consumers, quota/policy enforcement is tested under concurrency, and the existing product flows pass regression tests through the Pool. Documentation alone does not satisfy this implementation gate.
+
+
+## Mandatory ordered fallback chain and execution policy
+
+The Provider Pool must implement an explicit **Fallback Chain** as a first-class runtime capability, not merely retry the same provider. The chain is defined per capability/task profile, resolved dynamically against the Model Registry, Provider Registry, current quota/health state, and request policy, then executed in deterministic order. A configured chain is a preference order, not permission to bypass eligibility checks.
+
+### Chain resolution and precedence
+
+For every inference request, the Pool must:
+
+1. Resolve the requested capability, task contract, quality floor, privacy/data-residency constraints, latency target, and budget/entitlement policy.
+2. Load the capability's ordered fallback policy and expand each logical tier into currently registered model/provider/credential routes.
+3. Filter out routes that are disabled, unhealthy/open-circuit, quota-exhausted, incompatible, unauthorized, license-ineligible, outside the allowed region, or over budget.
+4. Rank remaining routes within each tier using configured priority and live health/latency/quota signals. Keep the configured tier order; do not let a lower-priority tier leapfrog a healthy eligible higher-priority tier unless an explicit policy says so.
+5. Attempt the first eligible route. On a classified retryable failure, apply the error-specific retry/cooldown rule and proceed to the next eligible route within the bounded attempt/deadline budget.
+6. Validate the returned result against the original task contract and quality floor before accepting it. If validation fails, record the failure and continue only if another compatible route remains.
+7. Return the first valid result, together with a trace of attempted routes and fallback reasons, or return a structured terminal error when the chain is exhausted.
+
+### Default capability-tier templates
+
+These are initial policy templates; actual routes are populated only when adapters/models are registered, verified, configured, and enabled. The Pool must not assume that a candidate provider is available.
+
+| Capability profile | Ordered fallback tiers |
+| --- | --- |
+| Text / reasoning / code | Suitable local Ollama model -> NVIDIA NIM model(s) that pass task-quality and policy checks -> eligible Groq / Cerebras / Mistral / SambaNova routes -> OpenRouter / OpenCode Zen compatible routes |
+| Image generation | Local ComfyUI workflow/model -> explicitly enabled Agnes image route -> other verified image-generation adapters |
+| Speech transcription | Local Whisper -> explicitly enabled compatible speech-to-text route(s) |
+| Text-to-speech | Local Piper voice -> explicitly enabled Agnes Persian TTS or other compatible TTS route(s) |
+| Audio processing / conversion | Local FFmpeg or other local deterministic processor -> compatible registered processing route only when the operation genuinely requires a remote model |
+| Video generation | Compatible local workflow/runtime if installed -> explicitly enabled Agnes video route -> other verified video-generation adapters |
+| 3D / character / game assets | Compatible local generation/runtime tools where available -> explicitly enabled, verified specialist provider routes; otherwise return capability-specific unavailable status |
+
+For text-model hosting, NVIDIA NIM is the preferred hosted-capacity tier and OpenRouter is a complementary diversity/coverage tier, subject to verified model-level quota, licensing, terms, quality, and owner-approved configuration. The local-first rule takes precedence whenever a suitable local route is available and policy permits it. A cloud route must never be activated just because it appears in a template.
+
+### Failure transition rules
+
+- **Route-local transient failure** (timeout, connection reset, eligible 5xx): bounded retry on the same route, then next eligible route.
+- **429 / rate limit:** honor `Retry-After` and provider reset metadata. Mark the relevant documented quota scope as throttled. Continue only to a distinct route that is independently eligible and whose use does not evade shared limits or provider restrictions.
+- **Quota exhausted:** quarantine that quota scope until its verified reset/cooldown; advance to the next eligible route.
+- **Credential failure (401/403):** quarantine the credential route and raise an operator alert; do not retry it or rotate through identities to bypass account controls.
+- **Unsupported capability / invalid input:** do not cascade the same invalid request through providers. Stop unless an explicitly approved, contract-preserving transformation exists.
+- **Safety, policy, privacy, entitlement, or budget denial:** terminal denial; never use fallback to bypass the denial.
+- **Quality/contract validation failure:** reject the output and continue only to a route that can meet the same minimum contract. Do not silently lower the quality floor.
+- **Paid route encountered:** skip unless the request carries explicit, valid owner/user authorization for that spend and remains within its budget. No automatic paid fallback.
+
+### Chain configuration and safeguards
+
+- Store versioned fallback policies by capability and task profile, with explicit tier order, allowed providers/models, retry budget, deadline, quality floor, and paid-route consent requirements.
+- Support project-level overrides only within platform safety and owner policy; users and Agents cannot add arbitrary providers or relax platform restrictions at runtime.
+- Keep credential rotation separate from provider/model fallback. Credential failover is permitted only among independently authorized credentials within the same provider account/terms and must never evade shared account quotas or rate limits.
+- Use idempotency keys or provider-supported request identifiers for retryable generation calls. For non-idempotent operations without safe idempotency, do not automatically replay after an ambiguous timeout; surface an uncertain outcome for reconciliation.
+- Enforce a global maximum attempt count, per-route retry count, wall-clock deadline, and concurrency budget to prevent retry storms and duplicate charges.
+- Persist a structured execution trace: policy version, ordered candidates, skipped-route reasons, attempted route IDs, normalized error classes, retry delays, quota scope updates, output validation, and final decision. Redact secrets and unnecessary prompt/file content.
+- Expose fallback state to the job/API layer as provider-neutral progress metadata; never expose credential values or internal secret references.
+- Provide a dry-run/explain mode that shows the planned chain and why candidates are eligible/ineligible without making provider calls.
+
+### Required fallback-chain acceptance tests
+
+- deterministic ordering and stable policy-version behavior;
+- dynamic exclusion of disabled, unhealthy, incompatible, unauthorized, unlicensed, over-budget, and quota-exhausted routes;
+- local-first selection when a suitable local route is eligible;
+- NIM hosted tier before complementary hosted diversity tiers when configured and eligible;
+- correct advancement on timeout, 5xx, 429, and quota exhaustion, honoring reset/Retry-After;
+- terminal stop on policy/safety/privacy/entitlement/budget denial and invalid input;
+- no downgrade below the task quality floor and no acceptance of invalid fallback output;
+- no paid fallback without explicit approval;
+- no cross-account or cross-key quota-evasion behavior;
+- bounded attempts/deadline and protection against retry storms;
+- idempotency and ambiguous-timeout handling for generation tasks;
+- complete redacted trace of selected, skipped, attempted, and final routes;
+- dry-run chain explanation performs zero provider calls.
+
