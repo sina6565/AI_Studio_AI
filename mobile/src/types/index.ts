@@ -14,6 +14,13 @@ export type JobStatus =
 
 export type JobType = 'image' | 'video' | 'audio' | 'speech' | 'game';
 
+export interface JobProgressInfo {
+  percentage: number;
+  stage?: string;
+  estimatedTimeRemaining?: number;
+  details?: Record<string, unknown>;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -35,7 +42,7 @@ export interface Job {
   id: string;
   type: JobType | string;
   status: JobStatus;
-  progress?: number;
+  progress?: number | JobProgressInfo;
   result?: JobResult;
   error?: JobError;
   createdAt: string;

@@ -83,7 +83,9 @@ export default function ProjectsScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.text} />
       }
       ListHeaderComponent={
-        <View>
+        <View style={styles.listHeader}>
+          <Text style={styles.eyebrow}>SINA / CREATIVE ARCHIVE</Text>
+          <Text style={styles.screenTitle}>{t('nav.projects')}</Text>
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <TextInput
             style={styles.input}
@@ -132,7 +134,11 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.m,
+    paddingBottom: 36,
   },
+  listHeader: { marginBottom: spacing.m },
+  eyebrow: { color: colors.primary, fontSize: 9, fontWeight: '800', letterSpacing: 1.8, marginBottom: 6 },
+  screenTitle: { color: colors.text, fontSize: 24, fontWeight: '900', marginBottom: spacing.m },
   centered: {
     alignItems: 'center',
     backgroundColor: colors.background,
@@ -140,9 +146,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.glass,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
     color: colors.text,
     marginBottom: spacing.s,
@@ -164,9 +170,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   row: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.glass,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: 18,
     borderWidth: 1,
     marginBottom: spacing.s,
     padding: spacing.m,
