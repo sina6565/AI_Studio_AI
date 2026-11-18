@@ -356,6 +356,29 @@ export class Orchestrator {
       } else {
         if (!provider) throw new AppError('PROVIDER_NOT_FOUND', 'Provider not found', 503);
         switch (job.type) {
+        case JobType.TEXT_GENERATION: {
+          if (typeof provider.generateText !== 'function') {
+            throw new AppError('TEXT_GENERATION_UNAVAILABLE', 'Selected provider does not support text generation', 503);
+          }
+          job.progress = { percentage: 30, stage: 'generating_text' };
+          await job.save();
+          const generatedText = await provider.generateText({
+            prompt: String(job.input.prompt || ''),
+            system: typeof job.input.system === 'string' ? job.input.system : undefined,
+            format: job.input.format === 'json' ? 'json' : 'text',
+            temperature: typeof job.input.temperature === 'number' ? job.input.temperature : undefined,
+            maxTokens: typeof job.input.maxTokens === 'number' ? job.input.maxTokens : undefined,
+          });
+          output = {
+            id: jobId,
+            url: 'data:text/plain;charset=utf-8;base64,' + Buffer.from(generatedText, 'utf8').toString('base64'),
+            format: 'text/plain',
+            size: Buffer.byteLength(generatedText, 'utf8'),
+            metadata: { text: generatedText, provider: provider.name },
+          };
+          break;
+        }
+
         case JobType.IMAGE_GENERATION:
           job.progress = { percentage: 30, stage: 'generating_image' };
           await job.save();
