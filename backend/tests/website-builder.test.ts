@@ -40,6 +40,14 @@ describe('local website builder', () => {
     expect(html).toContain('name="description"');
   });
 
+  it('supports the full 4,000-character prompt limit in the offline fallback', () => {
+    const prompt = 'Create a website for a design studio. ' + 'Detailed requirements. '.repeat(130);
+    const result = buildWebsite({ prompt, language: 'en' });
+
+    expect(result.metadata.buildMode).toBe('single-prompt-local-interpreter');
+    expect(result.metadata.html).toContain('Detailed requirements.');
+  });
+
   it('detects Persian prompt language and generates RTL output', () => {
     const result = buildWebsite({
       prompt: 'یک وب‌سایت برای فروشگاه محصولات دست‌ساز بساز که معرفی، محصولات و راه‌های تماس داشته باشد.',
