@@ -137,3 +137,48 @@ interface ProviderPool {
 ## Rollout
 
 Implement behind a feature flag and preserve the existing provider-routing path as a compatibility adapter until parity tests pass. Start with read-only route selection/telemetry, then enable controlled fallback for a single capability, and expand only after tests and live-provider evidence. Update the README and provider documentation when code, tests, and operational behavior are verified.
+
+
+## NVIDIA NIM and per-model cost optimization
+
+NVIDIA NIM may be registered as an **optional provider family** behind the same Provider Pool interface. It must not become a mandatory dependency, replace the SINA Orchestrator, or bypass the existing local-first and explicit-consent policies. Initial integration is documentation/design only; no NIM endpoint, credential, GPU workload, or paid service is enabled by this specification.
+
+### Separate model registry
+
+Maintain a model catalog independently from provider credentials and provider health. Each model entry should declare:
+
+- stable model ID, provider, supported capabilities/modalities, input/output contracts, context or resolution limits, and supported parameters;
+- quality profile and task suitability (for example: lightweight classification, planning, code generation, deep reasoning, vision, embeddings, or review);
+- deployment mode: local, hosted API, or self-hosted NIM;
+- eligibility, region/data-handling constraints, model/runtime license metadata, and whether production use requires a separate entitlement;
+- observed latency, availability, token/image/frame usage units, and current price/estimated cost where applicable.
+
+The Model Registry describes models; the Provider Registry describes endpoints, credentials, capabilities, and health. The Pool joins these records at dispatch time. Do not assume that all models exposed by one provider share the same limits, price, license, or capability contract.
+
+### Task-to-model routing
+
+For each task, select the least-cost model that satisfies the required quality, modality, privacy, latency, and output-contract constraints. A policy may route lightweight planning/classification to a smaller model, code tasks to a code-capable model, complex reasoning to a stronger model, visual tasks to a vision model, embeddings to an embedding model, and independent review to a suitably capable low-cost model. These are routing examples, not fixed model assignments. Evaluate candidates using benchmarked task quality and total cost, not model size or advertised speed alone.
+
+Fallback should prefer another compatible model/provider route, not merely another API key for the same exhausted account. Any model substitution must pass contract and quality thresholds; otherwise return a clear unavailable/quota error rather than silently degrading results.
+
+### NVIDIA NIM deployment and commercial-use gates
+
+Support NIM in two distinct deployment patterns when configured:
+
+1. **NVIDIA-hosted API/catalog:** treat each model endpoint as its own route with model-specific availability, quotas, rate limits, and terms. Free developer/prototyping access must not be represented as unlimited or production-free.
+2. **Self-hosted NIM microservice:** register the deployed model/runtime endpoint as a provider route only after hardware, driver/runtime compatibility, capacity, security, and operational health are verified. GPU infrastructure is not assumed to be free.
+
+Before enabling any NIM model, verify the current terms for that exact NIM offering and the underlying model. NIM software/runtime rights and model-weight licenses may be separate. Distinguish developer/prototyping entitlements, NIM Certified or other no-charge offerings, and production entitlements; do not generalize one offering's license to all NIM containers or models. Record the verified license/entitlement source and review date in provider metadata. Production activation is blocked until the required rights are confirmed.
+
+### Cost and quota safeguards
+
+- Track limits and cost per model/endpoint, not only per provider or credential.
+- Estimate cost before dispatch where pricing is available; enforce project/user budgets and hard cost ceilings.
+- Keep hosted free-tier routes explicitly marked as prototype/development unless their current terms state otherwise.
+- Do not rotate keys/accounts to evade rate limits, shared free-tier quotas, billing controls, or provider safeguards. Honor `Retry-After` and provider reset information.
+- Paid hosted inference, paid GPU hosting, or production entitlements require explicit owner approval and configuration. No automatic paid fallback.
+- If model pricing, quota, entitlement, or license status is unknown or stale, mark the route ineligible for production dispatch until verified.
+
+### Validation before rollout
+
+Add tests for per-model quota isolation, model-specific cost ceilings, task-quality thresholds during model fallback, license/entitlement gating, hosted-versus-self-hosted route metadata, and proof that no paid NIM route is selected without explicit opt-in. Benchmark representative SINA tasks across eligible local and NIM models, recording quality, latency, throughput, and estimated cost before recommending a default route.
