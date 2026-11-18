@@ -16,7 +16,7 @@ export const NVIDIA_NIM_MODELS = [
   'meta/llama-4-maverick-17b-128e-instruct',
   'meta/llama-3.1-8b-instruct',
   'openai/gpt-oss-20b',
-  'nvidia/nemotron-nano-9b-v2',
+  'nvidia/nvidia-nemotron-nano-9b-v2',
   'nvidia/llama-3.3-nemotron-super-49b-v1',
   'meta/llama-3.3-70b-instruct',
   'mistralai/mixtral-8x22b-instruct-v0.1',
