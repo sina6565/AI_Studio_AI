@@ -251,6 +251,42 @@ Do not encode claims such as "~30M tokens/month" as constants. Store quota type,
 
 FreeRide-H is a possible research reference, not a runtime dependency or a component to install blindly. Before adopting any code or operational behavior, review its source, license, security posture, credential handling, rotation semantics, and compatibility with SINA's own Provider Pool. SINA must retain its own policy engine and must not inherit quota-evasion behavior.
 
+
+
+## RAG architecture: orchestration traces and production assets
+
+SINA RAG has two distinct indexes with separate retention, access policy, and retrieval purpose. They may share underlying infrastructure, but their schemas, namespaces, authorization, and retrieval pipelines must remain logically isolated.
+
+### 1. Trace RAG for Orchestrator learning
+
+- Store pipeline execution traces in a `pipeline_traces` record family: normalized user/task intent, modality, task profile, selected tool/agent sequence, provider/model route references, policy version, retry/fallback events, sandbox verification evidence, outcome, quality/acceptance result, latency, and metered usage.
+- Do not store raw credentials, authorization headers, or unnecessary sensitive prompt/file content. Apply tenant/project scoping, redaction, retention limits, and deletion policies.
+- Index approved, redacted task/trace representations in a dedicated `trace_index` for similarity retrieval. Retrieve prior successful and failed patterns as decision-support evidence, not as instructions that override current policy.
+- The Orchestrator decides whether to query trace memory and how to use the results. Similarity alone must never authorize a tool, provider, model, budget, or access path.
+- Capture feedback from actual outcomes and sandbox acceptance tests. Do not label an execution successful merely because generation returned a response.
+
+### 2. Asset RAG for generation context
+
+- Maintain a separate `asset_index` for user-authorized project files, generated assets, templates, documentation, prior project artifacts, and reusable components.
+- Enforce tenant, project, ownership, file-permission, and lifecycle filters before retrieval. Preserve source references and provenance so generated outputs can be traced to the assets used.
+- The Orchestrator selects when asset retrieval is needed and supplies only authorized, relevant context to the generation workflow.
+
+### 3. Exposure through MCP Gateway
+
+Expose retrieval to runtime Agents through a narrowly scoped MCP tool such as `query_rag`, with an explicit index selector (`trace_index` or `asset_index`), project scope, query limits, and typed result schema. The MCP Gateway re-checks user/project authorization on every invocation. Models and tools must not connect directly to vector stores, MongoDB, filesystems, or trace databases.
+
+Suggested initial module boundaries are `backend/rag/trace_index` and `backend/rag/asset_index` (adapt paths to the repository's actual stack and conventions). The trace store may use the existing database and vector-search capability if present; do not add a new database or paid service without inspecting the current implementation and obtaining owner approval.
+
+### RAG acceptance tests
+
+- cross-tenant and cross-project retrieval is denied;
+- trace retrieval excludes secrets and redacts sensitive fields;
+- asset retrieval respects file/project permissions and provenance;
+- trace similarity cannot override access, provider, budget, or safety policy;
+- failed/unverified sandbox runs are not recorded as accepted successes;
+- `query_rag` is accessible only through the MCP Gateway and is authorized at invocation time;
+- trace and asset indexes cannot accidentally query or expose each other's namespaces.
+
 ## MCP Gateway and tool authorization architecture
 
 MCP servers extend SINA's tools, but **no MCP server or tool is exposed directly to a model by default**. All MCP connections and tool invocations must pass through a SINA-controlled MCP Gateway / Tool Access Layer.
@@ -362,6 +398,19 @@ Implementation requirements:
 Do not interpret this backlog as permission to spend money, create paid resources, enable production traffic, or merge the pull request. Each integration must remain feature-flagged and disabled until its owner-approved configuration and release gates are complete.
 
 
+### Server-side quota tracker requirements
+
+Quota availability must be checked before provider dispatch by a server-side Quota Tracker; catching a 429 in application code is not a quota-management strategy.
+
+- Track counters and reset windows at the actual documented scope: provider, account, model, endpoint, or shared pool. Do not assume per-model isolation unless verified.
+- Support at least requests-per-minute (RPM) and requests-per-day (RPD) windows where the provider exposes or imposes those limits. Extend to token/image/frame/concurrency budgets where relevant.
+- Use Redis-backed atomic counters/reservations for shared production backend instances. An in-memory implementation is acceptable for isolated unit tests and single-process development only; it must not be mistaken for globally coordinated production quota state.
+- Reserve capacity atomically before dispatch to prevent concurrent jobs from over-allocating a known quota. Reconcile reservations with actual usage and provider responses; handle cancellation and uncertain outcomes safely.
+- Keep provider-reported limits/reset headers authoritative when available. Store source, scope, checked-at time, and confidence for configured limits. Unknown or stale quota data must use conservative policy, not fabricated free capacity.
+- On 429, classify the typed rate-limit error, honor `Retry-After`, update the correct quota bucket, and move to the next independently eligible route. Do not use account/key rotation to evade shared quotas.
+- Emit typed errors such as `LLMQuotaError` and `LLMRateLimitError` at the adapter boundary, then normalize them into provider-neutral Pool errors for callers.
+- Quota tracking must not grant permission to call a provider: policy, entitlement, budget, license, capability, and provider allowlists are checked independently.
+
 ## Mandatory architectural decision: Provider Pool is a core SINA platform component
 
 The **Provider Pool & Fallback Engine is mandatory core infrastructure** for SINA AI STUDIO. It is not an optional integration, experimental add-on, or provider-specific convenience layer.
@@ -409,19 +458,24 @@ For every inference request, the Pool must:
 
 ### Default capability-tier templates
 
-These are initial policy templates; actual routes are populated only when adapters/models are registered, verified, configured, and enabled. The Pool must not assume that a candidate provider is available.
+The following order is the approved initial hosted-capacity fallback policy for SINA's text/agent inference path. It is an ordered chain, not a local-first chain. Ollama Local is the final listed fallback in this specific policy. Other modalities must have their own explicit chains; do not infer that this text-provider order applies to image, audio, video, 3D, game, or website execution.
 
-| Capability profile | Ordered fallback tiers |
-| --- | --- |
-| Text / reasoning / code | Suitable local Ollama model -> NVIDIA NIM model(s) that pass task-quality and policy checks -> eligible Groq / Cerebras / Mistral / SambaNova routes -> OpenRouter / OpenCode Zen compatible routes |
-| Image generation | Local ComfyUI workflow/model -> explicitly enabled Agnes image route -> other verified image-generation adapters |
-| Speech transcription | Local Whisper -> explicitly enabled compatible speech-to-text route(s) |
-| Text-to-speech | Local Piper voice -> explicitly enabled Agnes Persian TTS or other compatible TTS route(s) |
-| Audio processing / conversion | Local FFmpeg or other local deterministic processor -> compatible registered processing route only when the operation genuinely requires a remote model |
-| Video generation | Compatible local workflow/runtime if installed -> explicitly enabled Agnes video route -> other verified video-generation adapters |
-| 3D / character / game assets | Compatible local generation/runtime tools where available -> explicitly enabled, verified specialist provider routes; otherwise return capability-specific unavailable status |
+| Order | Provider/model tier | Role and selection rule |
+| --- | --- | --- |
+| 1 | NVIDIA NIM — eligible model A, then model B, then subsequent registered NIM models | Primary hosted capacity tier. Each model slug is an independent quota bucket only where NVIDIA's current documentation/observed response confirms that scope. |
+| 2 | OpenRouter — selected compatible free model | Model diversity and compatibility fallback; account-level and model-specific limits must both be respected as documented. |
+| 3 | Groq | Additional hosted fallback when the selected model supports the task contract and its quota is available. |
+| 4 | Cerebras | Additional hosted fallback when the selected model supports the task contract and its quota is available. |
+| 5 | Ollama Local | Final fallback in this specified text-provider chain, only when a suitable local runtime/model is installed, healthy, and meets the task contract. |
+| 6 | Structured terminal error | If no eligible route remains, return a typed provider/quota/policy error to the Orchestrator. |
 
-For text-model hosting, NVIDIA NIM is the preferred hosted-capacity tier and OpenRouter is a complementary diversity/coverage tier, subject to verified model-level quota, licensing, terms, quality, and owner-approved configuration. The local-first rule takes precedence whenever a suitable local route is available and policy permits it. A cloud route must never be activated just because it appears in a template.
+The supplied NIM cascade currently names **eight** model identifiers: `meta/llama-4-maverick-17b-128e-instruct`, `meta/llama-3.1-8b-instruct`, `openai/gpt-oss-20b`, `nvidia/nemotron-nano-9b-v2`, `nvidia/llama-3.3-nemotron-super-49b-v1`, `meta/llama-3.3-70b-instruct`, `mistralai/mixtral-8x22b-instruct-v0.1`, and `openai/gpt-oss-120b`. The proposal refers to nine models, but a ninth exact model ID has not been supplied. Do not invent one; leave the ninth slot unconfigured until the owner provides and verifies its exact catalog ID.
+
+For OpenRouter, the initial candidate free-model list is `qwen/qwen3-coder:free`, `minimax/minimax-m2.5:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `openai/gpt-oss-120b:free`, `stepfun/step-3.5-flash:free`, `z-ai/glm-4.5-air:free`, and `openrouter/free`. These are candidate IDs from the supplied proposal, not a guarantee of current availability, tool-calling support, context length, or free quota. Verify the live catalog and each model's tool-calling contract before enabling it for Agent workflows.
+
+The proposal's figures—40 RPM per NIM model and an aggregate capacity estimate based on cascading models, as well as OpenRouter's stated free RPM/RPD range—are planning claims that must be verified against current first-party terms and the project's actual entitlement. Never encode them as universal constants. Store the documented quota scope, limit, reset window, source, checked-at timestamp, and confidence per provider/model/endpoint. A theoretical sum of independent limits is not a throughput guarantee and must not be used to promise capacity.
+
+For this text/agent chain, attempt eligible NIM model routes in configured order, then the compatible OpenRouter route(s), then Groq, then Cerebras, then Ollama Local. The chain is dynamically filtered by capability, tool-calling support, quality floor, policy, live health, quota, and budget. If a route is skipped because the server-side quota tracker already knows it is exhausted, do not call it. If the provider returns 429 despite an available local estimate, update the correct quota scope, honor `Retry-After`, and advance only to an independently eligible route. Never rotate credentials or accounts to evade a shared quota or provider restriction.
 
 ### Failure transition rules
 
