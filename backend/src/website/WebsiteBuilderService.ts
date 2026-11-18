@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const websiteBuildSpecSchema = z.object({
   name: z.string().trim().min(1).max(70),
   tagline: z.string().trim().min(1).max(160),
-  description: z.string().trim().min(1).max(2000),
+  description: z.string().trim().min(1).max(4000),
   kind: z.enum(['portfolio', 'business', 'product']),
   palette: z.enum(['midnight', 'light', 'ocean']),
   language: z.enum(['en', 'fa']),
