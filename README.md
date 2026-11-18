@@ -1,12 +1,16 @@
 # SINA AI STUDIO
 
-**From a single idea to an entire universe.**
+**یک پلتفرم جامع، مستقل و یکپارچه هوش مصنوعی؛ از یک درخواست تا یک خروجی کامل.**
 
-SINA AI STUDIO is an AI creation platform designed to help people turn an idea into a complete digital project. Instead of using disconnected tools for every step, users work in one studio to plan a project, create its content and assets, build websites or game environments, and manage the resulting files and tasks.
+SINA AI STUDIO پلتفرمی جامع و مستقل برای تولید و ساخت محتوای چندرسانه‌ای و محصولات دیجیتال است. کاربر فقط یک پرامپت یا درخواست به SINA می‌دهد؛ پلتفرم باید درخواست را درک و برنامه‌ریزی کند، قابلیت‌ها و Agentهای لازم را هماهنگ سازد و خروجی موردنظر را تحویل دهد.
 
-The platform brings multiple AI capabilities together behind one product experience. A user may start with an idea, create the images, text, audio or other assets it needs, and use those outputs in a website or game project. The long-term goal is a connected creative workspace—not simply a collection of model APIs or chatbots.
+با یک درخواست، هدف SINA این است که بتواند **متن، صدا، تصویر، ویدئو، انیمیشن، شخصیت سه‌بعدی، وب‌سایت و بازی** تولید کند؛ از یک خروجی مستقل تا پروژه‌ای که چند نوع خروجی را با هم ترکیب می‌کند.
 
-**خلاصه فارسی:** سینا AI استودیو یک پلتفرم ساخت و توسعه پروژه با هوش مصنوعی است. کاربر ایده‌اش را وارد می‌کند و در یک محیط واحد، مسیر تبدیل آن به محتوا، تصویر، صدا، ویدئو، وب‌سایت، دارایی سه‌بعدی یا پروژه بازی را دنبال می‌کند. هدف، اتصال این قابلیت‌ها در یک استودیوی یکپارچه است؛ نه صرفاً نمایش چند ابزار هوش مصنوعی کنار هم.
+کاربر برای رسیدن به نتیجه نباید مجبور باشد چندین ابزار هوش مصنوعی جداگانه را پیدا کند، بین آن‌ها فایل جابه‌جا کند یا هر مرحله را دستی به ابزار بعدی بسپارد. SINA قرار است این فرایند را در یک پلتفرم واحد مدیریت کند: از فهم درخواست و طراحی مراحل تا تولید، ترکیب، بررسی و تحویل نتیجه.
+
+**وعده محصول:** یک درخواست به SINA بده؛ خروجی موردنیازت را از همان پلتفرم دریافت کن.
+
+این تعریف، چشم‌انداز و هویت محصول است. وضعیت واقعی هر قابلیت در ادامه README شفاف شده است؛ هدف محصول نباید با امکاناتی که هنوز پیاده‌سازی یا در اجرای واقعی تأیید نشده‌اند اشتباه گرفته شود.
 
 ## What users can create
 
