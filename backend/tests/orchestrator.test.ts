@@ -347,6 +347,45 @@ describe('Orchestrator', () => {
     });
   });
 
+  describe('text generation jobs', () => {
+    it('executes routed text_generation jobs through provider.generateText', async () => {
+      const localOrchestrator = new Orchestrator();
+      const generateText = jest.fn(async () => 'Generated text result');
+      const provider = {
+        name: 'ollama',
+        capabilities: ['text_generation'],
+        generateText,
+        validateInput: jest.fn(async () => ({ valid: true })),
+      } as any;
+      localOrchestrator.registerProvider(provider);
+
+      const save = jest.fn(async () => undefined);
+      const job = {
+        id: 'text-job-1',
+        _id: 'text-job-1',
+        userId: 'test-user-1',
+        type: JobType.TEXT_GENERATION,
+        status: JobStatus.QUEUED,
+        priority: JobPriority.NORMAL,
+        input: { prompt: 'Write a short welcome message.', format: 'text' },
+        metadata: { requestedAt: new Date(), retryCount: 0, maxRetries: 3, provider: 'ollama' },
+        createdAt: new Date(),
+        save,
+      };
+      (Job.findById as jest.Mock).mockResolvedValue(job);
+
+      await localOrchestrator.executeJob('text-job-1');
+
+      expect(generateText).toHaveBeenCalledWith(expect.objectContaining({
+        prompt: 'Write a short welcome message.',
+        format: 'text',
+      }));
+      expect(job.status).toBe(JobStatus.COMPLETED);
+      expect((job as any).result.metadata.text).toBe('Generated text result');
+      expect(save).toHaveBeenCalled();
+    });
+  });
+
   describe('registerProvider', () => {
     it('should register a provider', () => {
       const mockProvider = {
