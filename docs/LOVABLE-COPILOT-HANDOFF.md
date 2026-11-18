@@ -54,3 +54,20 @@ If no usable Lovable artifact or verified workspace access is available, ask for
 ## Important limitation
 
 This file gives Copilot repository-side instructions; it does not itself connect Copilot to Lovable. Copilot can use Lovable material only when that material is made available to it (for example, through a preview URL it can access, screenshots, or exported source files), or when a verified Lovable integration is explicitly available.
+
+
+## Web and mobile visual preview requirement
+
+The user must be able to visually inspect both the SINA website and the mobile experience, not only read code or a technical report.
+
+- Build and maintain a previewable responsive web experience based on the existing SINA frontend. It must be inspectable at desktop, tablet, and mobile viewport sizes.
+- Include the actual mobile app screens/flows where they already exist in the repository. If the native mobile app cannot run inside Lovable, provide a clearly labelled browser-based mobile preview of the same approved screens and interactions; do not misrepresent it as a native Android/iOS build.
+- The preview must cover the main user journeys and visible states: landing/home, navigation, sign-in entry (without real credential collection in a demo), project/workspace, generation capability entry points, jobs/status, and relevant empty/loading/error states where implemented.
+- Reuse real SINA frontend components, assets, typography, localization, and API contracts wherever technically possible. Do not create fake working backend behavior. If an API is unavailable, show a clearly labelled demo/unavailable state.
+- Ensure Persian RTL and English LTR layouts are both visually reviewable, with mobile navigation and touch-friendly controls.
+- Provide a preview URL or a reproducible local preview command, plus screenshots for desktop and mobile if a hosted Lovable preview cannot be produced.
+- Before claiming the preview is ready, run the existing frontend checks and verify the pages render at mobile and desktop widths. Record what was actually tested.
+
+### Copilot task prompt for visual preview
+
+> In addition to the Lovable handoff, make the existing SINA website and mobile experience visually reviewable. Inspect the repository to locate the real web frontend and any mobile app implementation. Prepare a working desktop + mobile-responsive preview using the existing code and components. Do not rebuild the product or fake native app functionality. If Lovable cannot import this existing repository, state that limitation and provide the closest verified preview path (hosted preview or local run command) without creating a competing production codebase. Verify Persian RTL and English LTR, and report the exact preview URL/command and tested screen sizes.
