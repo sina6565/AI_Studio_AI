@@ -227,3 +227,76 @@ The pool may distribute **distinct eligible tasks** across different models when
 6. Before changing production defaults, verify live catalog IDs, per-model quota documentation, current terms, and representative benchmarks. Record evidence and review dates in the registry.
 
 This section establishes the intended provider strategy and evaluation plan; it does not claim that the eight models are currently enabled, that a 40-RPM limit has been confirmed for each, or that runtime routing code has been implemented.
+
+
+## Free and local provider expansion candidates
+
+The project may evaluate a broader provider set inspired by the external **FreeRide-H** catalog. Its published README describes a manager for nine provider families and 43+ free-model entries, including OpenRouter, OpenCode Zen, Mistral, Groq, Cerebras, SambaNova, NVIDIA NIM, Ollama Local, and Ollama Cloud. This is a third-party catalog snapshot, not an authoritative guarantee that every listed model or quota remains free, available, production-permitted, or reachable in SINA's deployment regions. Treat it as a discovery input only; verify each provider's current first-party pricing, rate-limit documentation, model catalog, terms, and data-handling policy before activation.
+
+### Candidate provider registry
+
+| Provider family | Proposed SINA role | Initial status / gate |
+| --- | --- | --- |
+| NVIDIA NIM | Primary hosted capacity candidate | Preferred hosted route after per-model quota, catalog, and license verification |
+| Groq | Fast inference candidate | Verify current free-tier quotas, model availability, and tool-calling/streaming support |
+| Cerebras | High-throughput inference candidate | Verify quota type, model set, and service terms |
+| Mistral | General and code-model diversity | Verify current free-tier conditions and model-specific capabilities |
+| SambaNova | Alternative hosted inference | Verify free access, quotas, and production terms |
+| OpenCode Zen | Additional model catalog | Verify service terms, model availability, and compatibility |
+| OpenRouter | Cross-provider model diversity and coverage | Complementary route; verify each underlying model/provider's terms and actual price |
+| Ollama Local | Local-first inference | Preferred when a suitable model and local hardware are available; no hosted API key |
+| Ollama Cloud | Optional hosted inference | Treat as a separate cloud provider; verify free GPU-time limits and terms |
+
+Do not encode claims such as "~30M tokens/month" as constants. Store quota type, amount, reset window, scope (account/model/endpoint), source URL, checked-at timestamp, and confidence per provider/model. Free tiers can change or be withdrawn. Provider onboarding must be opt-in, and no paid route may be enabled as a side effect of discovery or fallback.
+
+FreeRide-H is a possible research reference, not a runtime dependency or a component to install blindly. Before adopting any code or operational behavior, review its source, license, security posture, credential handling, rotation semantics, and compatibility with SINA's own Provider Pool. SINA must retain its own policy engine and must not inherit quota-evasion behavior.
+
+## MCP Gateway and tool authorization architecture
+
+MCP servers extend SINA's tools, but **no MCP server or tool is exposed directly to a model by default**. All MCP connections and tool invocations must pass through a SINA-controlled MCP Gateway / Tool Access Layer.
+
+### Candidate MCP integrations and SINA responsibilities
+
+| MCP server / integration | Intended SINA use | Required controls |
+| --- | --- | --- |
+| Playwright | Automated browser testing and acceptance checks for generated websites | Isolated browser session, allowed-origin policy, test-only credentials, download/upload restrictions, human approval for external side effects |
+| Filesystem | Read/write generated project files in a sandbox | Strict workspace-root allowlist, path traversal protection, per-project isolation, no host/home/root access |
+| Fetch / Web search | External context acquisition for research and RAG | URL/domain policy, SSRF and private-network blocking, content-size/time limits, provenance and source citations |
+| GitHub | Manage user-authorized project repositories, branches, issues, and pull requests | OAuth/token scopes, repository allowlist, tenant isolation, read/write separation, approval for commits, PRs, merges, and destructive operations |
+| PostgreSQL / SQLite | Controlled access to project data, credit ledger, and entitlement state | Prefer narrow application services for credit/entitlement mutations; parameterized queries, least-privilege DB roles, tenant scoping, audit log, and read-only access by default |
+| Sentry | Error and trace inspection for generation pipelines | Project-scoped access, secret/PII redaction, read-only default, explicit approval for issue mutations |
+
+The table identifies candidate integrations and security requirements; it does not claim that these MCP servers are installed, connected, or production-ready. Prefer maintained official implementations and verify their repository ownership, license, release activity, transport/authentication model, and security advisories before selection.
+
+### Gateway authorization flow
+
+1. Authenticate the user and resolve tenant, project, session, and subscription/entitlement state.
+2. Resolve the requested product capability and its access policy (for example: free, ad-unlocked, or paid/Plus).
+3. Build a per-request tool allowlist. Only tools authorized for this user, project, task, and entitlement may be advertised to the model.
+4. Enforce authorization again at invocation time; hiding a tool from the model is not an access-control boundary.
+5. Validate arguments against schemas and policy; enforce workspace, repository, URL, database, and resource scopes.
+6. Apply risk-based approval for writes, external side effects, deployments, spending, destructive operations, or access to sensitive data.
+7. Execute with short-lived scoped credentials where supported; never pass raw provider or user secrets into model context.
+8. Record actor, project, tool/server, approved scope, decision, invocation result, and redacted audit metadata.
+
+### Product entitlement rule
+
+A tool such as **Website Builder** is exposed only after the user has successfully authenticated and the entitlement service confirms that the relevant access path is satisfied (for example, an active Plus entitlement or a valid ad-unlock grant, if that is the product policy). Client-side UI visibility is not sufficient. The backend MCP Gateway must re-check entitlement on every tool invocation and enforce expiry, usage limits, and revocation. Ad views or ad-unlock grants must be verified server-side; never trust a client-supplied "ad watched" flag.
+
+Entitlements must be represented by a central SINA policy/entitlement service, not scattered provider-specific checks. The model may request a tool, but it cannot grant itself access or alter the user's entitlement. Denied calls return a structured authorization error and do not execute.
+
+### MCP rollout and tests
+
+Start with read-only, low-risk tools and a single isolated capability. Before enabling writes, test:
+- unauthorized user/project/tenant cannot discover or invoke a tool;
+- free, ad-unlocked, and Plus entitlements are checked server-side and expiry/revocation take effect immediately;
+- tool invocation is denied even if the model fabricates or replays a previously seen tool call;
+- filesystem path traversal, symlink escape, and cross-project access are blocked;
+- Fetch blocks localhost, private, link-local, and cloud-metadata destinations and revalidates redirects;
+- GitHub write/merge/delete actions require appropriate scopes and explicit approval;
+- database access uses least-privilege roles and cannot mutate credit/entitlement records outside approved application services;
+- Playwright runs in an isolated browser context and cannot access unrelated user sessions;
+- Sentry output is redacted and scoped;
+- audit records are complete without storing secrets or unnecessary personal data.
+
+No MCP integration should be considered active until its server, transport, credentials, authorization policy, isolation boundary, and tests have been verified.
