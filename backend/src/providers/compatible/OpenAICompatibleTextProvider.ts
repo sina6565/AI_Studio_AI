@@ -28,6 +28,7 @@ export class OpenAICompatibleTextProvider implements IProvider {
     this.timeout = config.timeout || 30000;
     const baseURL = (config.apiUrl || this.defaultBaseUrl).replace(/\/+$/, '');
     if (!this.apiKey) throw new Error(`${this.name} API key is required when enabled`);
+    if (!this.model) throw new Error(`${this.name} text model must be configured when enabled`);
     this.client = axios.create({
       baseURL,
       timeout: this.timeout,
@@ -86,7 +87,7 @@ export class OpenAICompatibleTextProvider implements IProvider {
     return Boolean(this.apiKey) && this.healthCheck();
   }
 
-  /** Provider quota is not inferred when no documented quota endpoint is configured. */
+  /** Provider quota is unknown unless a documented quota endpoint is integrated. */
   async getRateLimit(): Promise<RateLimitStatus> {
     return { remaining: 0, resetTime: 0, limit: 0 };
   }
