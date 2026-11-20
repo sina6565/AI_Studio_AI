@@ -31,6 +31,7 @@ function isRetryable(error: any): boolean {
   if (statusCode === 429 || statusCode === 408 || statusCode >= 500) return true;
   return [
     'RESOURCE_EXHAUSTED', 'QUOTA_EXCEEDED', 'MODEL_RATE_LIMITED',
+    'NVIDIA_NIM_POOL_EXHAUSTED', 'PROVIDER_POOL_EXHAUSTED',
     'ETIMEDOUT', 'ECONNABORTED', 'ECONNRESET', 'ECONNREFUSED',
     'EAI_AGAIN', 'ENOTFOUND', 'ERR_NETWORK',
   ].includes(code);
@@ -38,20 +39,18 @@ function isRetryable(error: any): boolean {
 
 function classify(error: any): ProviderPoolAttempt['outcome'] {
   const { statusCode, code } = errorDetails(error);
-  if (statusCode === 429 || ['RESOURCE_EXHAUSTED', 'QUOTA_EXCEEDED', 'MODEL_RATE_LIMITED'].includes(code)) {
-    return 'quota_exhausted';
-  }
-  if (statusCode >= 500 || statusCode === 408 || ['ETIMEDOUT', 'ECONNABORTED', 'ECONNRESET', 'ECONNREFUSED', 'EAI_AGAIN', 'ENOTFOUND', 'ERR_NETWORK'].includes(code)) {
-    return 'transient_error';
-  }
+  if (statusCode === 429 || [
+    'RESOURCE_EXHAUSTED', 'QUOTA_EXCEEDED', 'MODEL_RATE_LIMITED',
+    'NVIDIA_NIM_POOL_EXHAUSTED', 'PROVIDER_POOL_EXHAUSTED',
+  ].includes(code)) return 'quota_exhausted';
+  if (statusCode >= 500 || statusCode === 408 || [
+    'ETIMEDOUT', 'ECONNABORTED', 'ECONNRESET', 'ECONNREFUSED',
+    'EAI_AGAIN', 'ENOTFOUND', 'ERR_NETWORK',
+  ].includes(code)) return 'transient_error';
   return 'rate_limited';
 }
 
-/**
- * SINA text Pool Provider. The Orchestrator sees one stable provider while
- * this layer selects Gemini first, then NVIDIA NIM, then any configured
- * complementary routes. Provider-specific retry logic stays out of Orchestrator.
- */
+/** SINA's text Pool Provider: Gemini first, NVIDIA NIM next, then configured complementary routes. */
 export class ProviderPool implements IProvider {
   readonly name = 'provider-pool';
   readonly capabilities = ['text_generation'];
@@ -59,13 +58,13 @@ export class ProviderPool implements IProvider {
   constructor(private readonly providers: readonly IProvider[] = []) {}
 
   async initialize(_config: ProviderConfig): Promise<void> {
-    // Concrete providers are initialized by ProviderRegistry.
+    // Concrete adapters are initialized by ProviderRegistry.
   }
 
   private orderedProviders(): IProvider[] {
     const configured = (process.env.TEXT_PROVIDER_FALLBACK_ORDER || DEFAULT_ORDER.join(','))
       .split(',').map((name) => name.trim().toLowerCase()).filter(Boolean);
-    const rank = new Map(configured.map((name, index) => [name, index]));
+    const rank = new Map<string, number>(configured.map((name, index) => [name, index] as const));
     return this.providers
       .filter((provider) => provider.capabilities.includes('text_generation') && typeof provider.generateText === 'function')
       .map((provider, index) => ({ provider, index }))
@@ -83,12 +82,13 @@ export class ProviderPool implements IProvider {
     if (!candidates.length) {
       throw Object.assign(new Error('No configured text provider is available'), { statusCode: 503, code: 'NO_TEXT_PROVIDERS' });
     }
-    const maxAttempts = Math.max(1, Number(process.env.PROVIDER_POOL_MAX_ATTEMPTS || candidates.length));
+    const configuredMax = Number(process.env.PROVIDER_POOL_MAX_ATTEMPTS || candidates.length);
+    const maxAttempts = Number.isFinite(configuredMax) ? Math.max(1, Math.floor(configuredMax)) : candidates.length;
     const attempts: ProviderPoolAttempt[] = [];
     let lastError: unknown;
 
     for (const provider of candidates.slice(0, maxAttempts)) {
-      let providerParams = { ...params };
+      const providerParams = { ...params };
       if (provider.name === 'gemini' && providerParams.model && !providerParams.model.startsWith('gemini-')) {
         providerParams.model = undefined;
       }
