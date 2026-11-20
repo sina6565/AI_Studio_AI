@@ -234,10 +234,34 @@ export class GameService {
     if (isGameManifest(input)) {
       if (report) await report(50, 'reusing_manifest');
       manifest = input;
-    } else {
+    } else if (providers.length > 0) {
       manifest = await this.createGame(input as GameSpec, providers, report, {
         jobType: JobType.GAME_BUILD,
       });
+    } else {
+      // Free, provider-independent playable 2D build: gameplay is generated
+      // from the validated text spec; scene artwork remains explicitly absent.
+      const spec = input as GameSpec;
+      this.validateSpec(spec);
+      if (report) await report(50, 'building_local_playable_manifest');
+      manifest = {
+        version: '1.0',
+        title: spec.title.trim(),
+        description: spec.description.trim(),
+        genre: (spec.genre || 'adventure').trim(),
+        artStyle: (spec.artStyle || 'procedural').trim(),
+        scenes: this.normalizeScenes(spec).map((scene) => ({
+          id: scene.id,
+          name: scene.name,
+          description: scene.description,
+        })),
+        assets: [],
+        assetCount: 0,
+        playable: false,
+        engine: { type: 'phaser', runtime: 'html5' },
+        generatedAt: new Date().toISOString(),
+        notes: 'Playable 2D game generated locally from the supplied brief. No scene artwork was generated.',
+      };
     }
 
     if (report) await report(95, 'rendering_scene_viewer');
