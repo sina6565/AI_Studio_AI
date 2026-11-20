@@ -11,14 +11,15 @@ permissions:
 
 jobs:
   test-gemini-api:
-    name: Verify Gemini API key
+    name: Verify Gemini 2.5 Flash generation
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
     steps:
-      - name: Check whether Google accepts the API key
+      - name: Check whether Google accepts the API key and run a real generation
         shell: bash
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GEMINI_MODEL: gemini-2.5-flash
         run: |
           set -euo pipefail
           if [[ -z "${GOOGLE_API_KEY:-}" ]]; then
@@ -32,28 +33,38 @@ jobs:
           http_status="$(curl --silent --show-error \
             --output "$response_file" \
             --write-out "%{http_code}" \
-            --request GET \
-            "https://generativelanguage.googleapis.com/v1beta/models" \
-            --header "x-goog-api-key: ${GOOGLE_API_KEY}")"
+            --request POST \
+            "https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent" \
+            --header "Content-Type: application/json" \
+            --header "x-goog-api-key: ${GOOGLE_API_KEY}" \
+            --data '{"contents":[{"role":"user","parts":[{"text":"Reply with exactly SINA_GEMINI_OK"}]}],"generationConfig":{"temperature":0,"maxOutputTokens":16}}')"
 
-          node - "$response_file" "$http_status" <<'NODE'
+          node - "$response_file" "$http_status" "$GEMINI_MODEL" <<'NODE'
           const fs = require("node:fs");
           const body = fs.readFileSync(process.argv[2], "utf8");
           const status = process.argv[3];
+          const model = process.argv[4];
 
           let data = {};
           try { data = JSON.parse(body); } catch {}
 
-          if (status === "200" && Array.isArray(data.models)) {
-            console.log("RESULT: API KEY ACCEPTED");
-            console.log("Google Gemini API authenticated successfully.");
-            console.log("Available models returned:", data.models.length);
+          const generated = (data.candidates?.[0]?.content?.parts || [])
+            .map((part) => part.text || "")
+            .join("")
+            .trim();
+
+          if (status === "200" && generated.includes("SINA_GEMINI_OK")) {
+            console.log("RESULT: GEMINI GENERATION VERIFIED");
+            console.log("Model:", model);
+            console.log("Generated response: SINA_GEMINI_OK");
+            console.log("Prompt tokens:", data.usageMetadata?.promptTokenCount ?? "not reported");
+            console.log("Candidate tokens:", data.usageMetadata?.candidatesTokenCount ?? "not reported");
             process.exit(0);
           }
 
-          const message = data.error?.message || "Google rejected the request; no detailed message was returned.";
+          const message = data.error?.message || "Google returned no usable generation.";
           const code = data.error?.status || "UNKNOWN";
-          console.error("RESULT: API KEY NOT VERIFIED");
+          console.error("RESULT: GEMINI GENERATION FAILED");
           console.error("HTTP status:", status);
           console.error("Google error code:", code);
           console.error("Google message:", message.replace(/AIza[0-9A-Za-z_-]{20,}/g, "[REDACTED]"));
