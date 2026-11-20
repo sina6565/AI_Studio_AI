@@ -74,7 +74,10 @@ export class Orchestrator {
     const providers = this.getAvailableProviders();
     const isUE5Build = request.jobType === JobType.GAME_3D_BUILD || request.jobType === JobType.GAME_3D_PREVIEW;
     const isLocalWebsiteBuild = request.jobType === JobType.WEBSITE_BUILD;
-    const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && isGameManifest(request.input);
+    const isReusableGameBuild = request.jobType === JobType.GAME_BUILD && (
+      isGameManifest(request.input) ||
+      (Array.isArray(request.input.scenes) && request.input.scenes.length > 0)
+    );
     const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
     if (isUE5Build && !this.ue5Adapter.isConfigured()) {
       throw new AppError(
@@ -191,7 +194,10 @@ export class Orchestrator {
       const isUE5Build = job.type === JobType.GAME_3D_BUILD;
       const isUE5Job = isUE5Preview || isUE5Build;
       const isLocalWebsiteBuild = job.type === JobType.WEBSITE_BUILD;
-      const isReusableGameBuild = job.type === JobType.GAME_BUILD && isGameManifest(job.input);
+      const isReusableGameBuild = job.type === JobType.GAME_BUILD && (
+        isGameManifest(job.input) ||
+        (Array.isArray(job.input?.scenes) && job.input.scenes.length > 0)
+      );
       const isLocalBuild = isLocalWebsiteBuild || isReusableGameBuild;
       const providerName = String(job.metadata?.provider || '').toLowerCase();
       const provider = this.providers.get(providerName);
