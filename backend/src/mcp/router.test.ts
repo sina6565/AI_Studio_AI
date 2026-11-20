@@ -10,7 +10,7 @@ jest.mock('../database/models', () => ({
 
 jest.mock('../providers/registry', () => ({
   __esModule: true,
-  default: { getStatus: jest.fn(() => ({ agnes: { initialized: true, healthy: true } })) },
+  default: { getStatus: jest.fn(async () => ({ agnes: { initialized: true, healthy: true } })) },
 }));
 
 jest.mock('../orchestrator/Orchestrator', () => ({
