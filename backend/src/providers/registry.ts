@@ -1,14 +1,13 @@
 import logger from '../utils/logger';
 import { AgnesProvider } from './agnes/AgnesProvider';
 import { GeminiProvider } from './gemini/GeminiProvider';
+import { NvidiaNimProvider } from './nvidia/NvidiaNimProvider';
+import { ProviderPool } from './ProviderPool';
 import { IProvider } from './interfaces/IProvider';
 
 class ProviderRegistry {
   private providers = new Map<string, IProvider>();
 
-  /**
-   * Initialize all configured providers
-   */
   async initializeAll(): Promise<void> {
     try {
       const provider = new AgnesProvider();
@@ -19,8 +18,6 @@ class ProviderRegistry {
           apiUrl: process.env.AGNES_API_URL,
           timeout: Number(process.env.AGNES_TIMEOUT || 300000),
         });
-
-        // Validate credentials before registering
         const credentialsValid = await provider.validateCredentials();
         if (credentialsValid) {
           this.providers.set('agnes', provider);
@@ -30,7 +27,7 @@ class ProviderRegistry {
         }
       }
 
-      // Gemini is an optional text provider; its failure must not disable Agnes.
+      // Gemini is the first hosted text route in SINA's default Pool policy.
       if (process.env.GEMINI_ENABLED === 'true') {
         try {
           const gemini = new GeminiProvider();
@@ -54,6 +51,37 @@ class ProviderRegistry {
         }
       }
 
+      if (process.env.NVIDIA_NIM_ENABLED === 'true') {
+        const billingMode = String(process.env.NVIDIA_NIM_BILLING_MODE || 'unknown').toLowerCase();
+        const allowPaidUsage = process.env.NVIDIA_NIM_ALLOW_PAID_USAGE === 'true';
+        const billingAllowed = billingMode === 'free' || (billingMode === 'paid' && allowPaidUsage);
+
+        if (!billingAllowed) {
+          logger.warn('[ProviderRegistry] NVIDIA NIM skipped: set billing mode to free after verifying free entitlement, or explicitly opt in to paid usage');
+        } else {
+          try {
+            const nvidia = new NvidiaNimProvider();
+            await nvidia.initialize({
+              name: 'nvidia-nim',
+              apiKey: process.env.NVIDIA_NIM_API_KEY || process.env.NVIDIA_API_KEY,
+              apiUrl: process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+              timeout: Number(process.env.NVIDIA_NIM_TIMEOUT || 120000),
+              models: { text: process.env.NVIDIA_NIM_DEFAULT_MODEL || 'openai/gpt-oss-20b' },
+            });
+            if (await nvidia.validateCredentials()) {
+              this.providers.set('nvidia-nim', nvidia);
+              logger.info('[ProviderRegistry] NVIDIA NIM provider initialized successfully');
+            } else {
+              logger.warn('[ProviderRegistry] NVIDIA NIM health check failed; continuing without NVIDIA NIM');
+            }
+          } catch (error) {
+            logger.error('[ProviderRegistry] NVIDIA NIM initialization failed; continuing without NVIDIA NIM', {
+              message: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+        }
+      }
+
       if (this.providers.size === 0) {
         logger.warn('[ProviderRegistry] No providers were successfully initialized');
       }
@@ -63,39 +91,34 @@ class ProviderRegistry {
     }
   }
 
-  /**
-   * Get all available providers
-   */
+  /** Concrete text adapters stay inside the Pool Provider. */
   getAvailableProviders(): IProvider[] {
-    return Array.from(this.providers.values());
+    const all = Array.from(this.providers.values());
+    const textProviders = all.filter((provider) =>
+      provider.capabilities.includes('text_generation') && typeof provider.generateText === 'function',
+    );
+    const nonTextProviders = all.filter((provider) =>
+      provider.capabilities.some((capability) => capability !== 'text_generation'),
+    );
+    return textProviders.length
+      ? [...nonTextProviders, new ProviderPool(textProviders)]
+      : nonTextProviders;
   }
 
-  /**
-   * Get a specific provider by name
-   */
   getProvider(name: string): IProvider | undefined {
     return this.providers.get(name.toLowerCase());
   }
 
-  /**
-   * Check if a provider exists
-   */
   hasProvider(name: string): boolean {
     return this.providers.has(name.toLowerCase());
   }
 
-  /**
-   * Register a provider manually
-   */
   register(provider: IProvider): void {
     const key = provider.name.toLowerCase();
     this.providers.set(key, provider);
     logger.info(`[ProviderRegistry] Registered provider: ${provider.name}`);
   }
 
-  /**
-   * Get provider status for health checks
-   */
   async getStatus(): Promise<Record<string, { initialized: boolean; healthy: boolean }>> {
     const entries = await Promise.all(
       Array.from(this.providers.entries()).map(async ([name, provider]) => {
@@ -111,7 +134,19 @@ class ProviderRegistry {
       }),
     );
 
-    return Object.fromEntries(entries);
+    const status = Object.fromEntries(entries) as Record<string, { initialized: boolean; healthy: boolean }>;
+    const textProviderNames = new Set(
+      Array.from(this.providers.values())
+        .filter((provider) => provider.capabilities.includes('text_generation') && typeof provider.generateText === 'function')
+        .map((provider) => provider.name),
+    );
+    if (textProviderNames.size) {
+      status['provider-pool'] = {
+        initialized: true,
+        healthy: entries.some(([name, state]) => textProviderNames.has(name) && state.healthy),
+      };
+    }
+    return status;
   }
 }
 
