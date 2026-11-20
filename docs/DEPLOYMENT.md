@@ -45,6 +45,30 @@ commit real values to this repository. At minimum, production needs a real
 Provider settings such as Agnes remain controlled by their existing
 environment variables.
 
+## Gemini 2.5 Flash runtime activation
+
+The backend registers Gemini when a valid runtime key is supplied. Set the
+following variables in the **SnapDeploy application settings** for
+`ai_studio_ai` (GitHub Actions secrets are isolated to Actions and are not
+automatically injected into the SnapDeploy container):
+
+- `GOOGLE_API_KEY`: the Gemini API key (preferred), or use `GEMINI_API_KEY`.
+- `GEMINI_MODEL=gemini-2.5-flash`.
+- `GEMINI_ENABLED=true` is optional when a key is present. Set
+  `GEMINI_ENABLED=false` to explicitly disable Gemini.
+
+Never put the key in source code, workflow logs, frontend variables, or a
+committed environment file. Restart/redeploy the container after changing
+runtime variables.
+
+The GitHub Actions workflow
+`.github/workflows/test-google-api-key.yml` uses the repository secret
+`GOOGLE_API_KEY` to make a real, minimal Gemini 2.5 Flash generation request.
+A passing Actions run verifies the key from GitHub Actions, but does **not**
+prove the SnapDeploy runtime has received the key. Confirm runtime registration
+from backend startup logs and complete a text-generation job routed to
+`gemini` before calling the integration operational.
+
 ## Release checklist
 
 1. Merge the reviewed pull request into `main`.
