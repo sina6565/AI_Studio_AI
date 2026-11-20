@@ -221,7 +221,7 @@ const config_: AppConfig = {
     },
     gemini: {
       enabled: process.env.GEMINI_ENABLED === 'true',
-      apiKey: process.env.GOOGLE_API_KEY || '',
+      apiKey: process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '',
       apiUrl: process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta',
       model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
       timeout: parseInt(process.env.GEMINI_TIMEOUT || '30000', 10),
