@@ -250,10 +250,10 @@ export class GameService {
         description: spec.description.trim(),
         genre: (spec.genre || 'adventure').trim(),
         artStyle: (spec.artStyle || 'procedural').trim(),
-        scenes: this.normalizeScenes(spec).map((scene) => ({
-          id: scene.id,
-          name: scene.name,
-          description: scene.description,
+        scenes: spec.scenes.map((scene, index) => ({
+          id: scene.id || `scene-${index + 1}`,
+          name: scene.name.trim(),
+          description: scene.description.trim(),
         })),
         assets: [],
         assetCount: 0,
