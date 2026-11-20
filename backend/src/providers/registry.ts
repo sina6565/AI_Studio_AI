@@ -30,13 +30,17 @@ class ProviderRegistry {
         }
       }
 
-      // Gemini is an optional text provider; its failure must not disable Agnes.
-      if (process.env.GEMINI_ENABLED === 'true') {
+      // A configured key opts in by default. GEMINI_ENABLED=false remains an explicit kill switch.
+      const geminiApiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+      const geminiEnabled =
+        process.env.GEMINI_ENABLED === 'true' ||
+        (process.env.GEMINI_ENABLED !== 'false' && Boolean(geminiApiKey));
+      if (geminiEnabled) {
         try {
           const gemini = new GeminiProvider();
           await gemini.initialize({
             name: 'gemini',
-            apiKey: process.env.GOOGLE_API_KEY,
+            apiKey: geminiApiKey,
             apiUrl: process.env.GEMINI_API_URL,
             timeout: Number(process.env.GEMINI_TIMEOUT || 30000),
             models: { text: process.env.GEMINI_MODEL || 'gemini-2.5-flash' },
