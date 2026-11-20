@@ -1,6 +1,7 @@
 import logger from '../utils/logger';
 import { AgnesProvider } from './agnes/AgnesProvider';
 import { GeminiProvider } from './gemini/GeminiProvider';
+import { NvidiaNimProvider } from './nvidia/NvidiaNimProvider';
 import { IProvider } from './interfaces/IProvider';
 
 class ProviderRegistry {
@@ -49,6 +50,31 @@ class ProviderRegistry {
           }
         } catch (error) {
           logger.error('[ProviderRegistry] Gemini initialization failed; continuing without Gemini', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+
+      // NVIDIA NIM is the preferred cloud text-capacity provider. It remains
+      // optional: startup must continue when the key is absent or NIM is down.
+      if (process.env.NVIDIA_NIM_ENABLED === 'true') {
+        try {
+          const nvidia = new NvidiaNimProvider();
+          await nvidia.initialize({
+            name: 'nvidia-nim',
+            apiKey: process.env.NVIDIA_NIM_API_KEY || process.env.NVIDIA_API_KEY,
+            apiUrl: process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+            timeout: Number(process.env.NVIDIA_NIM_TIMEOUT || 120000),
+            models: { text: process.env.NVIDIA_NIM_DEFAULT_MODEL || 'openai/gpt-oss-20b' },
+          });
+          if (await nvidia.validateCredentials()) {
+            this.providers.set('nvidia-nim', nvidia);
+            logger.info('[ProviderRegistry] NVIDIA NIM provider initialized successfully');
+          } else {
+            logger.warn('[ProviderRegistry] NVIDIA NIM health check failed; continuing without NVIDIA NIM');
+          }
+        } catch (error) {
+          logger.error('[ProviderRegistry] NVIDIA NIM initialization failed; continuing without NVIDIA NIM', {
             message: error instanceof Error ? error.message : 'Unknown error',
           });
         }

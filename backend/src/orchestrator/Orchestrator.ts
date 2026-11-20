@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { IJob, JobStatus, JobType, JobPriority, UserPreferences } from '../types';
 import { IProvider } from '../providers/interfaces/IProvider';
+import { NvidiaNimProvider } from '../providers/nvidia/NvidiaNimProvider';
+import { NvidiaNimModelPool } from '../providers/nvidia/NvidiaNimModelPool';
 import { Router } from '../routing/Router';
 import { Job as JobModel } from '../database/models';
 import jobQueueProcessor from '../jobs/JobQueueProcessor';
@@ -332,7 +334,12 @@ export class Orchestrator {
           }
           job.progress = { percentage: 30, stage: 'generating_text' };
           await job.save();
-          output = await provider.generateText(job.input as any);
+          output = provider instanceof NvidiaNimProvider
+            ? (await new NvidiaNimModelPool(provider).generateText({
+                ...(job.input as any),
+                preferredModel: (job.input as any).model,
+              })).output
+            : await provider.generateText(job.input as any);
           break;
 
         case JobType.TEXT_TO_SPEECH:
