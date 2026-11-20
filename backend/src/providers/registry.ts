@@ -18,7 +18,6 @@ class ProviderRegistry {
           apiUrl: process.env.AGNES_API_URL,
           timeout: Number(process.env.AGNES_TIMEOUT || 300000),
         });
-
         const credentialsValid = await provider.validateCredentials();
         if (credentialsValid) {
           this.providers.set('agnes', provider);
@@ -28,8 +27,7 @@ class ProviderRegistry {
         }
       }
 
-      // Register Gemini before hosted fallbacks: the Pool Provider's default
-      // text route is Gemini, followed by NVIDIA NIM.
+      // Gemini is the first hosted text route in SINA's default Pool policy.
       if (process.env.GEMINI_ENABLED === 'true') {
         try {
           const gemini = new GeminiProvider();
@@ -54,25 +52,33 @@ class ProviderRegistry {
       }
 
       if (process.env.NVIDIA_NIM_ENABLED === 'true') {
-        try {
-          const nvidia = new NvidiaNimProvider();
-          await nvidia.initialize({
-            name: 'nvidia-nim',
-            apiKey: process.env.NVIDIA_NIM_API_KEY || process.env.NVIDIA_API_KEY,
-            apiUrl: process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1',
-            timeout: Number(process.env.NVIDIA_NIM_TIMEOUT || 120000),
-            models: { text: process.env.NVIDIA_NIM_DEFAULT_MODEL || 'openai/gpt-oss-20b' },
-          });
-          if (await nvidia.validateCredentials()) {
-            this.providers.set('nvidia-nim', nvidia);
-            logger.info('[ProviderRegistry] NVIDIA NIM provider initialized successfully');
-          } else {
-            logger.warn('[ProviderRegistry] NVIDIA NIM health check failed; continuing without NVIDIA NIM');
+        const billingMode = String(process.env.NVIDIA_NIM_BILLING_MODE || 'unknown').toLowerCase();
+        const allowPaidUsage = process.env.NVIDIA_NIM_ALLOW_PAID_USAGE === 'true';
+        const billingAllowed = billingMode === 'free' || (billingMode === 'paid' && allowPaidUsage);
+
+        if (!billingAllowed) {
+          logger.warn('[ProviderRegistry] NVIDIA NIM skipped: set billing mode to free after verifying free entitlement, or explicitly opt in to paid usage');
+        } else {
+          try {
+            const nvidia = new NvidiaNimProvider();
+            await nvidia.initialize({
+              name: 'nvidia-nim',
+              apiKey: process.env.NVIDIA_NIM_API_KEY || process.env.NVIDIA_API_KEY,
+              apiUrl: process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+              timeout: Number(process.env.NVIDIA_NIM_TIMEOUT || 120000),
+              models: { text: process.env.NVIDIA_NIM_DEFAULT_MODEL || 'openai/gpt-oss-20b' },
+            });
+            if (await nvidia.validateCredentials()) {
+              this.providers.set('nvidia-nim', nvidia);
+              logger.info('[ProviderRegistry] NVIDIA NIM provider initialized successfully');
+            } else {
+              logger.warn('[ProviderRegistry] NVIDIA NIM health check failed; continuing without NVIDIA NIM');
+            }
+          } catch (error) {
+            logger.error('[ProviderRegistry] NVIDIA NIM initialization failed; continuing without NVIDIA NIM', {
+              message: error instanceof Error ? error.message : 'Unknown error',
+            });
           }
-        } catch (error) {
-          logger.error('[ProviderRegistry] NVIDIA NIM initialization failed; continuing without NVIDIA NIM', {
-            message: error instanceof Error ? error.message : 'Unknown error',
-          });
         }
       }
 
@@ -85,10 +91,7 @@ class ProviderRegistry {
     }
   }
 
-  /**
-   * Concrete text adapters stay inside the Pool Provider. The Orchestrator
-   * receives one text-generation route and never implements provider fallback.
-   */
+  /** Concrete text adapters stay inside the Pool Provider. */
   getAvailableProviders(): IProvider[] {
     const all = Array.from(this.providers.values());
     const textProviders = all.filter((provider) =>
