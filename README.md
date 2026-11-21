@@ -258,7 +258,7 @@ Do not create a parallel Python backend or replace the existing SINA Orchestrato
 - [Unreal Engine 5 room pipeline](./docs/3D_GAME_ROOM_PIPELINE.md)
 
 ## 🔐 Ownership and repository access
-
+بنیانگزار ومیدیر خلاق : M.safarpour 
 - **Canonical repository:** [`sina6565/AI_Studio_AI`](https://github.com/sina6565/AI_Studio_AI), default branch `main`.
 - Repository access and collaborator permissions are governed by GitHub settings, not by statements in this README.
 - Original SINA code, architecture, documentation, brand assets and project materials remain subject to the rights of their applicable owners and the repository's root license notice. Third-party dependencies and assets remain subject to their own licenses.
