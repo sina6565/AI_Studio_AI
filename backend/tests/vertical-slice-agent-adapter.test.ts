@@ -1,4 +1,5 @@
 import { AgentContext as VerticalSliceContext, Agent as VerticalSliceAgent, AgentResult } from '../src/agents/vertical-slice/contracts';
+import { CodingAgent } from '../src/agents/vertical-slice/agents/coding.agent';
 import { AgentRegistry } from '../src/agents/AgentRegistry';
 import { VerticalSliceAgentAdapter, registerVerticalSliceAgents } from '../src/agents/VerticalSliceAgentAdapter';
 import { SINAAgent } from '../src/agents/contracts/AgentContract';
@@ -48,7 +49,7 @@ describe('VerticalSliceAgentAdapter', () => {
 
     expect(agent.handle).toHaveBeenCalledWith({
       id: 'task-1', type: 'code.write', goal: 'Create a module', input: { retry: 1 },
-    }, context);
+    }, expect.objectContaining({ runId: context.runId }));
     expect(output.content).toEqual({
       result: { file: 'src/example.ts' },
       artifacts: [{ id: 'example', name: 'src/example.ts', kind: 'file', content: 'export const value = 1;\n' }],
@@ -86,19 +87,37 @@ describe('VerticalSliceAgentAdapter', () => {
     expect(agent.handle).not.toHaveBeenCalled();
   });
 
-  it('rejects immediately when cancellation occurs during legacy execution', async () => {
-    const agent = makeLegacyAgent({
-      handle: jest.fn(async (): Promise<AgentResult> => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        return { ok: true, output: { file: 'src/late.ts' } };
-      }),
+  it('passes cancellation to the legacy context and prevents CodingAgent writes after provider completion', async () => {
+    let resolveCompletion!: (value: { text: string; tokens: number }) => void;
+    const completion = new Promise<{ text: string; tokens: number }>((resolve) => {
+      resolveCompletion = resolve;
     });
-    const adapter = new VerticalSliceAgentAdapter(agent, makeContext);
+    const fileWrite = jest.fn(async () => undefined);
+    const context = makeContext();
+    context.providers.pick = jest.fn(() => ({
+      id: 'local-test',
+      isLocal: true,
+      complete: jest.fn(() => completion),
+    }));
+    context.tools.get = jest.fn((name: string) => (
+      name === 'file.write' ? { name, run: fileWrite } : undefined
+    ));
+
+    const adapter = new VerticalSliceAgentAdapter(new CodingAgent(), () => context);
     const controller = new AbortController();
+    const pending = adapter.execute(
+      { goal: 'Write a file' },
+      { ...executionContext, signal: controller.signal },
+    );
 
-    const pending = adapter.execute({ goal: 'Cancel in flight' }, { ...executionContext, signal: controller.signal });
     controller.abort();
-
     await expect(pending).rejects.toThrow('cancelled');
+
+    resolveCompletion({ text: 'export function add(a: number, b: number) { return a + b; }', tokens: 12 });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(fileWrite).not.toHaveBeenCalled();
+    expect(context.memory.put).not.toHaveBeenCalled();
+    expect(context.log).toHaveBeenCalledWith(expect.stringContaining('cancelled'));
   });
 });
