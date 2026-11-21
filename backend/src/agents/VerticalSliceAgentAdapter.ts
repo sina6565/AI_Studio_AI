@@ -70,29 +70,37 @@ export class VerticalSliceAgentAdapter implements SINAAgent {
       ...(budget && typeof budget === 'object' ? { budget: budget as VerticalSliceTask['budget'] } : {}),
     };
 
-    const legacyContext = this.createContext(context);
+    // Forward cancellation to the legacy agent as well as racing the native
+    // execution promise. Cooperative agents can then stop before side effects.
+    const legacyContext: VerticalSliceContext = {
+      ...this.createContext(context),
+      ...(context.signal ? { signal: context.signal } : {}),
+    };
 
-    // Use a race with cancellation so a legacy agent that ignores cooperation
-    // cannot return success after native cancellation. It cannot undo a side
-    // effect already performed by an adapter-provided tool, so callers must
-    // also wrap writable ports in a cancellation guard.
     const execution = this.agent.handle(task, legacyContext);
-    const result = await (context.signal
-      ? Promise.race([
-          execution,
-          new Promise<never>((_resolve, reject) => {
-            if (context.signal!.aborted) {
-              reject(new Error('Agent task was cancelled'));
-              return;
-            }
-            context.signal!.addEventListener('abort', () => {
-              reject(new Error('Agent task was cancelled'));
-            }, { once: true });
-          }),
-        ])
-      : execution);
+    const signal = context.signal;
+    let abortListener: (() => void) | undefined;
+    let result: AgentResult;
 
-    throwIfAborted(context.signal);
+    try {
+      if (signal) {
+        const cancellation = new Promise<never>((_resolve, reject) => {
+          abortListener = () => reject(new Error('Agent task was cancelled'));
+          if (signal.aborted) {
+            abortListener();
+          } else {
+            signal.addEventListener('abort', abortListener, { once: true });
+          }
+        });
+        result = await Promise.race([execution, cancellation]);
+      } else {
+        result = await execution;
+      }
+    } finally {
+      if (signal && abortListener) signal.removeEventListener('abort', abortListener);
+    }
+
+    throwIfAborted(signal);
     if (!result.ok) throw new Error(errorFromResult(result));
 
     return {
