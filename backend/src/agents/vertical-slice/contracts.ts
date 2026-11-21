@@ -78,6 +78,8 @@ export interface AgentContext {
   providers: ProviderRegistry;
   monitor: ExecutionMonitor;
   approval: ApprovalManager;
+  /** Propagated from the native runtime so agents can stop before side effects. */
+  signal?: AbortSignal;
   log(message: string): void;
 }
 
