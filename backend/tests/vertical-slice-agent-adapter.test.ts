@@ -1,4 +1,4 @@
-import { AgentContext as VerticalSliceContext, Agent as VerticalSliceAgent } from '../src/agents/vertical-slice/contracts';
+import { AgentContext as VerticalSliceContext, Agent as VerticalSliceAgent, AgentResult } from '../src/agents/vertical-slice/contracts';
 import { AgentRegistry } from '../src/agents/AgentRegistry';
 import { VerticalSliceAgentAdapter, registerVerticalSliceAgents } from '../src/agents/VerticalSliceAgentAdapter';
 import { SINAAgent } from '../src/agents/contracts/AgentContract';
@@ -6,7 +6,7 @@ import { SINAAgent } from '../src/agents/contracts/AgentContract';
 function makeContext(): VerticalSliceContext {
   return {
     runId: 'test-run',
-    memory: { put: jest.fn(), get: jest.fn() },
+    memory: { put: jest.fn(async () => undefined), get: jest.fn(async () => undefined) },
     tools: { get: jest.fn(), register: jest.fn(), list: jest.fn(() => []) },
     providers: { pick: jest.fn() },
     monitor: { start: jest.fn(() => ({ end: jest.fn() })) },
@@ -16,15 +16,17 @@ function makeContext(): VerticalSliceContext {
 }
 
 function makeLegacyAgent(overrides: Partial<VerticalSliceAgent> = {}): VerticalSliceAgent {
+  const baseHandle = jest.fn(async (): Promise<AgentResult> => ({
+    ok: true,
+    output: { file: 'src/example.ts' },
+    artifacts: [{ id: 'example', name: 'src/example.ts', kind: 'file' as const, content: 'export const value = 1;\n' }],
+    usage: { tokens: 10 },
+  }));
+
   return {
     id: 'legacy-coder',
     capabilities: ['code.write'],
-    handle: jest.fn(async () => ({
-      ok: true,
-      output: { file: 'src/example.ts' },
-      artifacts: [{ id: 'example', name: 'src/example.ts', kind: 'file', content: 'export const value = 1;\n' }],
-      usage: { tokens: 10 },
-    })),
+    handle: baseHandle,
     ...overrides,
   };
 }
@@ -59,7 +61,7 @@ describe('VerticalSliceAgentAdapter', () => {
     await expect(adapter.execute({}, executionContext)).rejects.toThrow('non-empty goal');
 
     const failing = new VerticalSliceAgentAdapter(makeLegacyAgent({
-      handle: jest.fn(async () => ({ ok: false, output: { error: 'validation failed' } })),
+      handle: jest.fn(async (): Promise<AgentResult> => ({ ok: false, output: { error: 'validation failed' } })),
     }), () => makeContext());
     await expect(failing.execute({ goal: 'Try' }, executionContext)).rejects.toThrow('validation failed');
   });
@@ -82,5 +84,21 @@ describe('VerticalSliceAgentAdapter', () => {
     await expect(adapter.execute({ goal: 'Do not run' }, { ...executionContext, signal: controller.signal }))
       .rejects.toThrow('cancelled');
     expect(agent.handle).not.toHaveBeenCalled();
+  });
+
+  it('rejects immediately when cancellation occurs during legacy execution', async () => {
+    const agent = makeLegacyAgent({
+      handle: jest.fn(async (): Promise<AgentResult> => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        return { ok: true, output: { file: 'src/late.ts' } };
+      }),
+    });
+    const adapter = new VerticalSliceAgentAdapter(agent, makeContext);
+    const controller = new AbortController();
+
+    const pending = adapter.execute({ goal: 'Cancel in flight' }, { ...executionContext, signal: controller.signal });
+    controller.abort();
+
+    await expect(pending).rejects.toThrow('cancelled');
   });
 });
