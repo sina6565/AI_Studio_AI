@@ -32,10 +32,17 @@ export class OpenCodeACPProvider implements IProvider {
     child.stderr.setEncoding('utf8').on('data', (chunk) => { stderr += chunk; });
     const rl = createInterface({ input: child.stdout });
     const pending = new Map<string, { resolve: (v: any) => void; reject: (e: Error) => void }>();
+    let streamedText = '';
     const failAll = (error: Error) => { for (const p of pending.values()) p.reject(error); pending.clear(); };
     rl.on('line', (line) => {
       try {
         const message = JSON.parse(line);
+        if (message.method === 'session/update') {
+          const update = message.params?.update;
+          if (update?.sessionUpdate === 'agent_message_chunk' && update?.content?.type === 'text') {
+            streamedText += update.content.text || '';
+          }
+        }
         if (message.id && pending.has(String(message.id))) {
           const p = pending.get(String(message.id))!;
           pending.delete(String(message.id));
@@ -66,7 +73,7 @@ export class OpenCodeACPProvider implements IProvider {
         sessionId: session.sessionId,
         prompt: [{ type: 'text', text: String(params.prompt || '') }],
       });
-      return result;
+      return { ...result, text: streamedText };
     } finally {
       rl.close();
       child.kill();
