@@ -31,8 +31,10 @@ export class OpenCodeFreeProvider implements IProvider {
     if (!prompt) throw Object.assign(new Error('A non-empty prompt is required'), { statusCode: 400 });
     const model = params.model || this.model;
     const args = ['run', '--format', 'text', '--model', model];
-    if (params.systemInstruction) args.push('--system', params.systemInstruction);
-    args.push(prompt);
+    const effectivePrompt = params.systemInstruction
+      ? `System instructions:\n${params.systemInstruction}\n\nUser request:\n${prompt}`
+      : prompt;
+    args.push(effectivePrompt);
     const { stdout } = await execFileAsync(this.command, args, {
       timeout: this.timeout, maxBuffer: 8 * 1024 * 1024, windowsHide: true,
     });
