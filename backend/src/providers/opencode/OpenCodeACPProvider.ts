@@ -27,7 +27,6 @@ export class OpenCodeACPProvider implements IProvider {
 
   private async request(params: Record<string, unknown>, timeoutMs: number): Promise<any> {
     const child = spawn(this.command, this.args, { cwd: this.cwd, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
-    const id = randomUUID();
     let stderr = '';
     child.stderr.setEncoding('utf8').on('data', (chunk) => { stderr += chunk; });
     const rl = createInterface({ input: child.stdout });
@@ -83,7 +82,10 @@ export class OpenCodeACPProvider implements IProvider {
   async generateText(params: TextGenParams): Promise<GeneratedContent> {
     const prompt = params.prompt?.trim();
     if (!prompt) throw Object.assign(new Error('A non-empty prompt is required'), { statusCode: 400 });
-    const result = await this.request({ prompt }, this.timeout);
+    const effectivePrompt = params.systemInstruction
+      ? `System instructions:\n${params.systemInstruction}\n\nUser request:\n${prompt}`
+      : prompt;
+    const result = await this.request({ prompt: effectivePrompt }, this.timeout);
     const text = Array.isArray(result?.content)
       ? result.content.filter((part: any) => part.type === 'text').map((part: any) => part.text || '').join('\n').trim()
       : String(result?.text || '').trim();
