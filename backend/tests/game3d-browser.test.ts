@@ -10,7 +10,7 @@ const validManifest = {
   },
   runtime: {
     id: 'threejs_r3f',
-    threeMajorVersion: 0,
+    threeVersion: '0.170.0',
     reactThreeFiberMajorVersion: 8,
   },
   world: {
