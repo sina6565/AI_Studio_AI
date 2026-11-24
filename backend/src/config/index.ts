@@ -242,6 +242,21 @@ const config_: AppConfig = {
   },
 };
 
+// Reject long ascending or descending character runs. Entropy-by-frequency alone
+// incorrectly accepts predictable strings such as alphabet sequences.
+const hasPredictableCharacterSequence = (secret: string, minimumRun = 8): boolean => {
+  const normalized = secret.toLowerCase().replace(/[^a-z0-9]/g, '');
+  let ascending = 1;
+  let descending = 1;
+  for (let index = 1; index < normalized.length; index += 1) {
+    const delta = normalized.charCodeAt(index) - normalized.charCodeAt(index - 1);
+    ascending = delta === 1 ? ascending + 1 : 1;
+    descending = delta === -1 ? descending + 1 : 1;
+    if (ascending >= minimumRun || descending >= minimumRun) return true;
+  }
+  return false;
+};
+
 // Validate configuration in production
 if (config_.nodeEnv === 'production') {
   const jwtSecret = process.env.JWT_SECRET || '';
@@ -263,7 +278,8 @@ if (config_.nodeEnv === 'production') {
     jwtSecret.length < 32 ||
     placeholderSecrets.has(jwtSecret.trim().toLowerCase()) ||
     frequencies.size < 10 ||
-    entropyBitsPerCharacter < 3.5
+    entropyBitsPerCharacter < 3.5 ||
+    hasPredictableCharacterSequence(jwtSecret)
   ) {
     throw new Error(
       'JWT_SECRET must be a securely generated secret of at least 32 characters with sufficient entropy in production',
