@@ -220,8 +220,12 @@ const config_: AppConfig = {
       timeout: parseInt(process.env.AGNES_TIMEOUT || '300000', 10),
     },
     gemini: {
-      enabled: process.env.GEMINI_ENABLED === 'true',
-      apiKey: process.env.GOOGLE_API_KEY || '',
+      // A configured key opts in by default; GEMINI_ENABLED=false is an explicit kill switch.
+      enabled:
+        process.env.GEMINI_ENABLED === 'true' ||
+        (process.env.GEMINI_ENABLED !== 'false' &&
+          Boolean(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY)),
+      apiKey: process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '',
       apiUrl: process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta',
       model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
       timeout: parseInt(process.env.GEMINI_TIMEOUT || '30000', 10),
