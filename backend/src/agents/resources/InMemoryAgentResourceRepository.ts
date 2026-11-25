@@ -13,6 +13,12 @@ export class InMemoryAgentResourceRepository implements AgentResourceRepository 
     return item ? this.copy(item) : undefined;
   }
 
+  async createIfAbsent(resource: AgentResource): Promise<boolean> {
+    if (this.resources.has(resource.id)) return false;
+    this.resources.set(resource.id, this.copy(resource));
+    return true;
+  }
+
   async save(resource: AgentResource): Promise<void> {
     this.resources.set(resource.id, this.copy(resource));
   }
