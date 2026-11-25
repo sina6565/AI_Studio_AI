@@ -4,6 +4,10 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) throw new Error('Agent task was cancelled');
+}
+
 /**
  * Generates a TypeScript add function through a local-only provider and saves
  * it as a workspace artifact. This agent does not execute generated code.
@@ -17,6 +21,7 @@ export class CodingAgent implements Agent {
     const startedAt = Date.now();
 
     try {
+      throwIfAborted(ctx.signal);
       const provider = ctx.providers.pick({ localOnly: true });
       const system =
         'You are a senior TypeScript engineer. Return only valid TypeScript source code. Do not use Markdown fences or explanations.';
@@ -36,17 +41,24 @@ export class CodingAgent implements Agent {
         maxTokens: task.budget?.maxTokens ?? 800,
       });
 
+      // A provider may not support AbortSignal. Re-check immediately after it
+      // returns so a cancelled run cannot proceed to workspace or memory writes.
+      throwIfAborted(ctx.signal);
+
       const source = completion.text.trim();
       if (!source) throw new Error('Provider returned empty source code');
-      if (/```/.test(source)) {
+      if (/\x60\x60\x60/.test(source)) {
         throw new Error('Provider returned Markdown fences; expected raw TypeScript');
       }
 
       const fileTool = ctx.tools.get('file.write');
       if (!fileTool) throw new Error('file.write tool is not registered');
 
+      throwIfAborted(ctx.signal);
       await fileTool.run({ path: 'src/add.ts', content: `${source}\n` });
 
+      // Do not persist follow-up state if cancellation arrived during file I/O.
+      throwIfAborted(ctx.signal);
       const artifact = {
         id: 'add.ts',
         name: 'src/add.ts',
