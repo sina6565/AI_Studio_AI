@@ -51,7 +51,10 @@ export class OpenCodeACPProvider implements IProvider {
       } catch { /* Ignore non-JSON diagnostic lines; ACP protocol messages remain JSON-RPC. */ }
     });
     child.on('error', (error) => failAll(error));
-    child.on('exit', (code) => failAll(new Error(`OpenCode ACP exited (${code}): ${stderr.slice(-2000)}`)));
+    child.on('exit', (code) => failAll(Object.assign(
+      new Error(`OpenCode ACP exited (${code}): ${stderr.slice(-2000)}`),
+      { code: 'ECONNRESET', statusCode: 503 },
+    )));
     const send = (rpcMethod: string, rpcParams: Record<string, unknown>) => new Promise<any>((resolve, reject) => {
       const requestId = randomUUID();
       const timer = setTimeout(() => {
