@@ -3,6 +3,9 @@ import { AgnesProvider } from './agnes/AgnesProvider';
 import { GeminiProvider } from './gemini/GeminiProvider';
 import { NvidiaNimProvider } from './nvidia/NvidiaNimProvider';
 import { ProviderPool } from './ProviderPool';
+import { OpenCodeFreeProvider } from './opencode/OpenCodeFreeProvider';
+import { OpenCodeZenProvider } from './opencode/OpenCodeZenProvider';
+import { OpenCodeACPProvider } from './opencode/OpenCodeACPProvider';
 import { IProvider } from './interfaces/IProvider';
 
 class ProviderRegistry {
@@ -83,6 +86,68 @@ class ProviderRegistry {
               message: error instanceof Error ? error.message : 'Unknown error',
             });
           }
+        }
+      }
+
+
+      // OpenCode integrations are separate optional routes; no existing provider is replaced.
+      if (process.env.OPENCODE_FREE_ENABLED === 'true') {
+        try {
+          const provider = new OpenCodeFreeProvider();
+          await provider.initialize({
+            name: 'opencode-free', timeout: Number(process.env.OPENCODE_FREE_TIMEOUT || 120000),
+            models: { text: process.env.OPENCODE_FREE_MODEL || '' },
+          });
+          if (await provider.validateCredentials()) {
+            this.providers.set('opencode-free', provider);
+            logger.info('[ProviderRegistry] OpenCode Free local CLI initialized');
+          } else {
+            logger.warn('[ProviderRegistry] OpenCode Free CLI unavailable; continuing without it');
+          }
+        } catch (error) {
+          logger.warn('[ProviderRegistry] OpenCode Free initialization skipped', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+
+      if (process.env.OPENCODE_ZEN_ENABLED === 'true') {
+        try {
+          const provider = new OpenCodeZenProvider();
+          await provider.initialize({
+            name: 'opencode-zen', apiKey: process.env.OPENCODE_ZEN_API_KEY,
+            apiUrl: process.env.OPENCODE_ZEN_BASE_URL, timeout: Number(process.env.OPENCODE_ZEN_TIMEOUT || 90000),
+            models: { text: process.env.OPENCODE_ZEN_MODEL || 'minimax-m2.5-free' },
+          });
+          if (await provider.validateCredentials()) {
+            this.providers.set('opencode-zen', provider);
+            logger.info('[ProviderRegistry] OpenCode Zen initialized');
+          } else {
+            logger.warn('[ProviderRegistry] OpenCode Zen health check failed; continuing without it');
+          }
+        } catch (error) {
+          logger.warn('[ProviderRegistry] OpenCode Zen initialization skipped', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+
+      if (process.env.OPENCODE_ACP_ENABLED === 'true') {
+        try {
+          const provider = new OpenCodeACPProvider();
+          await provider.initialize({
+            name: 'opencode-acp', timeout: Number(process.env.OPENCODE_ACP_TIMEOUT || 120000),
+          });
+          if (await provider.validateCredentials()) {
+            this.providers.set('opencode-acp', provider);
+            logger.info('[ProviderRegistry] OpenCode ACP bridge initialized');
+          } else {
+            logger.warn('[ProviderRegistry] OpenCode ACP command unavailable; continuing without it');
+          }
+        } catch (error) {
+          logger.warn('[ProviderRegistry] OpenCode ACP initialization skipped', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+          });
         }
       }
 

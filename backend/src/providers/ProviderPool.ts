@@ -13,7 +13,7 @@ export interface ProviderPoolAttempt {
   statusCode?: number;
 }
 
-const DEFAULT_ORDER = ['gemini', 'nvidia-nim', 'openrouter', 'ollama'];
+const DEFAULT_ORDER = ['gemini', 'nvidia-nim', 'openrouter', 'ollama', 'opencode-free', 'opencode-acp', 'opencode-zen'];
 
 function errorDetails(error: any): { statusCode: number; code: string } {
   const statusCode = Number(error?.statusCode || error?.response?.status || error?.status || 0);
@@ -33,7 +33,7 @@ function isRetryable(error: any): boolean {
     'RESOURCE_EXHAUSTED', 'QUOTA_EXCEEDED', 'MODEL_RATE_LIMITED',
     'NVIDIA_NIM_POOL_EXHAUSTED', 'PROVIDER_POOL_EXHAUSTED',
     'ETIMEDOUT', 'ECONNABORTED', 'ECONNRESET', 'ECONNREFUSED',
-    'EAI_AGAIN', 'ENOTFOUND', 'ERR_NETWORK',
+    'EAI_AGAIN', 'ENOTFOUND', 'ENOENT', 'EPIPE', 'ERR_NETWORK',
   ].includes(code);
 }
 
