@@ -213,7 +213,6 @@ const Game3DBuilder: React.FC = () => {
   const [buildUrl, setBuildUrl] = useState('');
   const [jobId, setJobId] = useState('');
   const [playtestOpen, setPlaytestOpen] = useState(false);
-  const [groqScenePlan, setGroqScenePlan] = useState<Record<string, any> | null>(null);
 
   const validateRoomSettings = (): string | null => {
     const numericValues = [roomWidth, roomDepth, roomHeight, doorwayWidth, doorwayHeight, portalDiameter];
@@ -225,29 +224,6 @@ const Game3DBuilder: React.FC = () => {
     if (doorwayHeight < 2.5 || doorwayHeight > roomHeight - 1) return t('game3d.doorHeightBounds');
     if (portalDiameter < 2.5 || portalDiameter > Math.min(roomWidth, roomDepth) * 0.75) return t('game3d.portalBounds');
     return null;
-  };
-
-  const generateGroqScenePlan = async () => {
-    setError('');
-    setStatus('designing_3d_scene_with_groq');
-    setBusy(true);
-    try {
-      const response = await apiClient.design3DScene({
-        projectId: `sina-${Date.now()}`,
-        title,
-        description,
-        genre,
-        target: platform === 'android' || platform === 'ios' ? 'web_mobile' : 'web_desktop',
-      });
-      if (!response.success || !response.data?.manifest) {
-        throw new Error(response.error?.message || 'Groq did not return a valid 3D scene plan.');
-      }
-      setGroqScenePlan(response.data.manifest);
-      setStatus('groq_scene_plan_ready');
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || err.message || 'Groq 3D design failed.');
-      setStatus('failed');
-    } finally { setBusy(false); }
   };
 
   const runPreview = async () => {
@@ -335,17 +311,6 @@ const Game3DBuilder: React.FC = () => {
             <Stack spacing={2}>
               <TextField label={t('game3d.projectName')} value={title} onChange={(e) => setTitle(e.target.value)} fullWidth inputProps={{ maxLength: 120 }} disabled={busy || Boolean(previewUrl)} />
               <TextField label={t('game3d.description')} value={description} onChange={(e) => setDescription(e.target.value)} multiline minRows={4} fullWidth inputProps={{ maxLength: 4000 }} disabled={busy || Boolean(previewUrl)} />
-              <Button variant="outlined" onClick={generateGroqScenePlan} disabled={busy || !title.trim() || !description.trim()}>
-                Generate 3D scene plan with Groq
-              </Button>
-              {groqScenePlan && (
-                <Alert severity="success">
-                  Groq generated a validated Three.js scene plan ({Array.isArray(groqScenePlan.entities) ? groqScenePlan.entities.length : 0} entities).
-                  <Button size="small" onClick={() => navigator.clipboard.writeText(JSON.stringify(groqScenePlan, null, 2))}>
-                    Copy scene JSON
-                  </Button>
-                </Alert>
-              )}
               <TextField label={t('game3d.genre')} value={genre} onChange={(e) => setGenre(e.target.value)} fullWidth disabled={busy || Boolean(previewUrl)} />
               <TextField select label={t('game3d.platform')} value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} fullWidth disabled={busy || Boolean(previewUrl)}>
                 <MenuItem value="windows">Windows</MenuItem>
