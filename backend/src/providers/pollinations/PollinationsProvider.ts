@@ -50,8 +50,7 @@ export class PollinationsProvider implements IProvider {
     const prompt = params.prompt?.trim();
     if (!prompt) throw Object.assign(new Error('A non-empty image prompt is required'), { statusCode: 400 });
     const query = new URLSearchParams();
-    if (params.width) query.set('width', String(params.width));
-    if (params.height) query.set('height', String(params.height));
+    if (params.size) query.set('size', params.size);
     if (params.seed !== undefined) query.set('seed', String(params.seed));
     if (params.model) query.set('model', params.model);
     query.set('nologo', 'true');
