@@ -54,7 +54,10 @@ export class OpenCodeACPProvider implements IProvider {
     child.on('exit', (code) => failAll(new Error(`OpenCode ACP exited (${code}): ${stderr.slice(-2000)}`)));
     const send = (rpcMethod: string, rpcParams: Record<string, unknown>) => new Promise<any>((resolve, reject) => {
       const requestId = randomUUID();
-      const timer = setTimeout(() => { pending.delete(requestId); reject(new Error(`ACP request timed out: ${rpcMethod}`)); }, timeoutMs);
+      const timer = setTimeout(() => {
+        pending.delete(requestId);
+        reject(Object.assign(new Error(`ACP request timed out: ${rpcMethod}`), { code: 'ETIMEDOUT', statusCode: 503 }));
+      }, timeoutMs);
       pending.set(requestId, {
         resolve: (value) => { clearTimeout(timer); resolve(value); },
         reject: (error) => { clearTimeout(timer); reject(error); },
