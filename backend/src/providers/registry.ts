@@ -1,5 +1,7 @@
 import logger from '../utils/logger';
 import { AgnesProvider } from './agnes/AgnesProvider';
+import { PollinationsProvider } from './pollinations/PollinationsProvider';
+import { GroqProvider } from './groq/GroqProvider';
 import { GeminiProvider } from './gemini/GeminiProvider';
 import { NvidiaNimProvider } from './nvidia/NvidiaNimProvider';
 import { ProviderPool } from './ProviderPool';
@@ -27,6 +29,45 @@ class ProviderRegistry {
           logger.info('[ProviderRegistry] Agnes provider initialized successfully');
         } else {
           logger.warn('[ProviderRegistry] Agnes provider credentials validation failed');
+        }
+      }
+
+      // Pollinations provides keyless text and image generation. It is enabled by default;
+      // set POLLINATIONS_ENABLED=false to opt out.
+      if (process.env.POLLINATIONS_ENABLED !== 'false') {
+        try {
+          const pollinations = new PollinationsProvider();
+          await pollinations.initialize({
+            name: 'pollinations',
+            apiUrl: process.env.POLLINATIONS_TEXT_BASE_URL || 'https://text.pollinations.ai',
+            timeout: Number(process.env.POLLINATIONS_TIMEOUT || 90000),
+          });
+          this.providers.set('pollinations', pollinations);
+          logger.info('[ProviderRegistry] Pollinations keyless text/image provider initialized');
+        } catch (error) {
+          logger.warn('[ProviderRegistry] Pollinations initialization skipped', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+
+      // Groq is an optional text reasoning route used by the 3D scene-design agent.
+      if (process.env.GROQ_ENABLED === 'true') {
+        try {
+          const groq = new GroqProvider();
+          await groq.initialize({
+            name: 'groq',
+            apiKey: process.env.GROQ_API_KEY,
+            apiUrl: process.env.GROQ_BASE_URL,
+            timeout: Number(process.env.GROQ_TIMEOUT || 90000),
+            models: { text: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile' },
+          });
+          this.providers.set('groq', groq);
+          logger.info('[ProviderRegistry] Groq text provider initialized for agent workloads');
+        } catch (error) {
+          logger.warn('[ProviderRegistry] Groq initialization skipped', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+          });
         }
       }
 
