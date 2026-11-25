@@ -13,7 +13,7 @@ export interface ProviderPoolAttempt {
   statusCode?: number;
 }
 
-const DEFAULT_ORDER = ['gemini', 'nvidia-nim', 'openrouter', 'ollama', 'opencode-free', 'opencode-acp', 'opencode-zen'];
+const DEFAULT_ORDER = ['groq', 'pollinations', 'gemini', 'nvidia-nim', 'openrouter', 'ollama', 'opencode-free', 'opencode-acp', 'opencode-zen'];
 
 function errorDetails(error: any): { statusCode: number; code: string } {
   const statusCode = Number(error?.statusCode || error?.response?.status || error?.status || 0);
