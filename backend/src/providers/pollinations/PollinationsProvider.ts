@@ -66,7 +66,11 @@ export class PollinationsProvider implements IProvider {
     };
   }
 
-  async healthCheck(): Promise<boolean> { return this.initialized; }
+  async healthCheck(): Promise<boolean> {
+    if (!this.initialized) return false;
+    try { const response = await this.textClient.get('/models'); return response.status === 200; }
+    catch { return false; }
+  }
   async validateCredentials(): Promise<boolean> { return this.initialized; }
   async getRateLimit(): Promise<RateLimitStatus> { return { remaining: 0, resetTime: 0, limit: 0 }; }
 
