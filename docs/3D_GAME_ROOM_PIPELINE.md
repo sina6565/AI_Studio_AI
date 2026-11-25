@@ -1,6 +1,6 @@
 # SINA AI STUDIO — Native 3D Room and UE5 Project Pipeline
 
-**Engine decision:** Unreal Engine 5 is the native 3D runtime. Blender is the deterministic room authoring and geometry-review stage. Phaser remains the independent 2D runtime; Three.js/React Three Fiber is used only for the web concept preview and cinematic surfaces.
+**Engine decision:** Three.js + React Three Fiber is the first-class browser 3D scene and gameplay runtime. Unreal Engine 5 remains the native 3D project/runtime path. Blender is the deterministic room-authoring and geometry-review stage and can exchange assets through GLB. Phaser remains the independent 2D runtime. See [the browser runtime and agent integration decision](3D_BROWSER_RUNTIME_AND_AGENT_INTEGRATION.md) for runtime selection, agent/MCP responsibilities, licensing and release gates.
 
 ## User workflow
 
