@@ -45,6 +45,28 @@ commit real values to this repository. At minimum, production needs a real
 Provider settings such as Agnes remain controlled by their existing
 environment variables.
 
+
+## Gemini runtime activation
+
+The backend registers Gemini when a runtime API key is supplied, unless
+`GEMINI_ENABLED=false` is explicitly set. Configure the key in the
+**SnapDeploy application settings** for `ai_studio_ai`:
+
+- `GOOGLE_API_KEY` (preferred), or `GEMINI_API_KEY`.
+- `GEMINI_MODEL=gemini-2.5-flash` (unless a different verified model is selected).
+- `GEMINI_ENABLED` may be omitted when a key is present; set it to `false`
+  as an explicit kill switch.
+
+Never put real keys in source code, GitHub commits, frontend variables, or
+committed environment files. GitHub Actions secrets are not automatically
+injected into the SnapDeploy container. Restart/redeploy after changing
+runtime variables.
+
+A successful provider initialization and a real generation request through
+the production application are both required before calling Gemini live.
+A CI mock or a GitHub Actions key check alone does not prove the production
+container has the key or can use the provider.
+
 ## Release checklist
 
 1. Merge the reviewed pull request into `main`.
