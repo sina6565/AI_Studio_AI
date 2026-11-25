@@ -104,10 +104,9 @@ export class AgentResourceEngine {
 
   async register(resource: AgentResource): Promise<void> {
     const normalized = this.normalize(resource);
-    if (await this.repository.get(normalized.id)) {
+    if (!(await this.repository.createIfAbsent(normalized))) {
       throw new Error('Resource already registered: ' + normalized.id);
     }
-    await this.repository.save(normalized);
   }
 
   async update(resource: AgentResource): Promise<boolean> {
