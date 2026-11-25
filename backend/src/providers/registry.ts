@@ -247,7 +247,7 @@ class ProviderRegistry {
     const status = Object.fromEntries(entries) as Record<string, { initialized: boolean; healthy: boolean }>;
     const textProviderNames = new Set(
       Array.from(this.providers.values())
-        .filter((provider) => provider.capabilities.includes('text_generation') && typeof provider.generateText === 'function')
+        .filter((provider) => provider.name !== 'groq' && provider.capabilities.includes('text_generation') && typeof provider.generateText === 'function')
         .map((provider) => provider.name),
     );
     if (textProviderNames.size) {
