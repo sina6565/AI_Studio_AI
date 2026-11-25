@@ -80,8 +80,10 @@ describe('AgentResourceEngine', () => {
     expect((await engine.get('web-builder'))?.capabilities).toEqual(['website.create']);
   });
 
-  it('rejects duplicate ids and oversized instructions', async () => {
-    await engine.register(skill);
+  it('rejects duplicate ids, including concurrent registrations, and oversized instructions', async () => {
+    const registrations = await Promise.allSettled([engine.register(skill), engine.register(skill)]);
+    expect(registrations.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(registrations.filter((result) => result.status === 'rejected')).toHaveLength(1);
     await expect(engine.register(skill)).rejects.toThrow('already registered');
     await expect(engine.register({
       ...skill,
