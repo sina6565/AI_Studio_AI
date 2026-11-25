@@ -60,7 +60,7 @@ export const browserGameSceneManifestSchema = z.object({
   }).strict(),
   runtime: z.object({
     id: z.literal('threejs_r3f'),
-    threeVersion: z.string().regex(/^\\d+\\.\\d+\\.\\d+$/),
+    threeVersion: z.string().regex(/^\d+\.\d+\.\d+$/),
     reactThreeFiberMajorVersion: z.literal(8),
   }).strict(),
   world: z.object({
