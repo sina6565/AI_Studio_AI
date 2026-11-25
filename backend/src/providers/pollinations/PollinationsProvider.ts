@@ -32,8 +32,7 @@ export class PollinationsProvider implements IProvider {
     const response = await this.textClient.get(`/${encodeURIComponent(prompt)}`, {
       params: {
         ...(params.model ? { model: params.model } : {}),
-        ...(params.temperature !== undefined ? { temperature: params.temperature } : {}),
-        ...(params.maxOutputTokens ? { max_tokens: params.maxOutputTokens } : {}),
+        ...(params.systemInstruction ? { system: params.systemInstruction } : {}),
       },
       responseType: 'text',
     });
@@ -50,7 +49,13 @@ export class PollinationsProvider implements IProvider {
     const prompt = params.prompt?.trim();
     if (!prompt) throw Object.assign(new Error('A non-empty image prompt is required'), { statusCode: 400 });
     const query = new URLSearchParams();
-    if (params.size) query.set('size', params.size);
+    if (params.size) {
+      const dimensions = /^(\\d{2,5})x(\\d{2,5})$/.exec(params.size);
+      if (dimensions) {
+        query.set('width', dimensions[1]);
+        query.set('height', dimensions[2]);
+      }
+    }
     if (params.seed !== undefined) query.set('seed', String(params.seed));
     if (params.model) query.set('model', params.model);
     query.set('nologo', 'true');
