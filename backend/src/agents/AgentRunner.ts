@@ -45,6 +45,15 @@ export class AgentRunner {
         durationMs: Date.now() - startedAt,
       };
     } catch (error) {
+      if (task.signal?.aborted) {
+        return this.failure(
+          task,
+          'AGENT_ABORTED',
+          error instanceof Error ? error.message : 'Agent task was cancelled',
+          startedAt,
+          agent,
+        );
+      }
       return this.failure(
         task,
         'AGENT_EXECUTION_FAILED',
