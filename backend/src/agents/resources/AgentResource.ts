@@ -60,6 +60,8 @@ export interface ResolvedAgentResources {
 export interface AgentResourceRepository {
   list(): Promise<AgentResource[]>;
   get(id: string): Promise<AgentResource | undefined>;
+  /** Atomically create only when the ID does not already exist. */
+  createIfAbsent(resource: AgentResource): Promise<boolean>;
   save(resource: AgentResource): Promise<void>;
   delete(id: string): Promise<boolean>;
 }
