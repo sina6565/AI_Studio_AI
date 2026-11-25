@@ -205,7 +205,7 @@ class ProviderRegistry {
   getAvailableProviders(): IProvider[] {
     const all = Array.from(this.providers.values());
     const textProviders = all.filter((provider) =>
-      provider.capabilities.includes('text_generation') && typeof provider.generateText === 'function',
+      provider.name !== 'groq' && provider.capabilities.includes('text_generation') && typeof provider.generateText === 'function',
     );
     const nonTextProviders = all.filter((provider) =>
       provider.capabilities.some((capability) => capability !== 'text_generation'),
