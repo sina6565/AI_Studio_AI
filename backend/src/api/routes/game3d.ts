@@ -23,7 +23,12 @@ router.post('/design', async (req: AuthenticatedRequest, res, next) => {
       });
       return;
     }
-    const input = designRequestSchema.parse(req.body);
+    const parsed = designRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, error: { code: 'INVALID_3D_DESIGN_REQUEST', message: parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join('; ') } });
+      return;
+    }
+    const input = parsed.data;
     const agent = new GroqBrowserSceneAgent();
     await agent.initialize();
     const manifest = await agent.designScene(input);
