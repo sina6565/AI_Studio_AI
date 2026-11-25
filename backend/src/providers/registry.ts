@@ -33,7 +33,7 @@ class ProviderRegistry {
           const gemini = new GeminiProvider();
           await gemini.initialize({
             name: 'gemini',
-            apiKey: process.env.GOOGLE_API_KEY,
+            apiKey: process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY,
             apiUrl: process.env.GEMINI_API_URL,
             timeout: Number(process.env.GEMINI_TIMEOUT || 30000),
             models: { text: process.env.GEMINI_MODEL || 'gemini-2.5-flash' },
@@ -53,11 +53,15 @@ class ProviderRegistry {
 
       if (process.env.NVIDIA_NIM_ENABLED === 'true') {
         const billingMode = String(process.env.NVIDIA_NIM_BILLING_MODE || 'unknown').toLowerCase();
-        const allowPaidUsage = process.env.NVIDIA_NIM_ALLOW_PAID_USAGE === 'true';
+        // NVIDIA_NIM_ALLOW_PAID is the canonical explicit opt-in. Keep the
+        // older *_ALLOW_PAID_USAGE name as a backward-compatible alias.
+        const allowPaidUsage =
+          process.env.NVIDIA_NIM_ALLOW_PAID === 'true' ||
+          process.env.NVIDIA_NIM_ALLOW_PAID_USAGE === 'true';
         const billingAllowed = billingMode === 'free' || (billingMode === 'paid' && allowPaidUsage);
 
         if (!billingAllowed) {
-          logger.warn('[ProviderRegistry] NVIDIA NIM skipped: set billing mode to free after verifying free entitlement, or explicitly opt in to paid usage');
+          logger.warn('[ProviderRegistry] NVIDIA NIM skipped: verify free entitlement before setting billing mode to free; paid usage requires explicit opt-in');
         } else {
           try {
             const nvidia = new NvidiaNimProvider();
