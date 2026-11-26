@@ -27,3 +27,42 @@ SINA AI STUDIO با چشم‌انداز یک **AI Super-Platform** در حال �
 - مدیریت پروژه‌ها، وظایف و خروجی‌ها
 
 قابلیت‌ها به‌صورت مرحله‌ای توسعه می‌یابند و وضعیت اجرایی هر بخش تابع پیاده‌سازی و تأیید آن در محیط واقعی است.
+
+
+🆘 Support
+For issues, questions, or contributions:
+
+Check Troubleshooting
+Review existing GitHub Issues
+Create new issue with details
+📄 License
+Not specified
+
+📊 Current Status
+✅ Core Express.js backend setup
+✅ Authentication framework
+✅ Database models and connection
+✅ Agnes AI provider integration
+✅ Content generation endpoints (Image, Video, Audio, Text-to-Speech)
+✅ Security middleware (helmet, CORS, rate limiting)
+✅ Error handling and logging
+⏳ Frontend Web UI
+⏳ Mobile app
+⏳ Job orchestration system
+⏳ Game creation workflows
+⏳ Advanced provider routing
+⏳ Production deployment configuration
+🗓️ Roadmap to Release
+✅ Core API foundation with content generation
+Web frontend UI development
+Mobile app development
+Job queue & orchestration system
+Game creation workflows
+Advanced provider selection & routing
+Testing & quality assurance
+Performance optimization
+Security audit
+Production deployment & release
+Version: 1.0.0
+Last Updated: 2026-09-09
+Status: Core Features Implemented - Production Development Phase
