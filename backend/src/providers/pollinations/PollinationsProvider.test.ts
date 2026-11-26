@@ -12,7 +12,7 @@ describe('PollinationsProvider', () => {
 
   it('builds a keyless image URL and rejects empty prompts', async () => {
     const provider = new PollinationsProvider();
-    await provider.initialize({ name: 'pollinations' });
+    await provider.initialize({ name: 'pollinations', timeout: 1000 });
     await expect(provider.generateImage({ prompt: '' })).rejects.toThrow('prompt');
     // No network request is made while constructing the image URL.
     const image = await provider.generateImage({ prompt: 'golden portal', seed: 7 });
