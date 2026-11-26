@@ -137,6 +137,14 @@ class APIClient {
     return response.data;
   }
 
+  async design3DScene(input: {
+    projectId: string; title: string; description: string; genre: string;
+    target?: 'web_desktop' | 'web_mobile' | 'web_responsive';
+  }): Promise<APIResponse<{ manifest: Record<string, any>; provider: string; runtime: string }>> {
+    const response = await this.client.post('/v1/game3d/design', input);
+    return response.data;
+  }
+
   async listJobs(): Promise<APIResponse<Job[]>> {
     const response = await this.client.get('/v1/jobs');
     return response.data;
