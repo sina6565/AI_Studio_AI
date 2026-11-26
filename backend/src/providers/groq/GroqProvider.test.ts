@@ -10,6 +10,6 @@ describe('GroqProvider', () => {
 
   it('requires an explicit API key when enabled', async () => {
     const provider = new GroqProvider();
-    await expect(provider.initialize({ name: 'groq' })).rejects.toThrow('GROQ_API_KEY');
+    await expect(provider.initialize({ name: 'groq', timeout: 1000 })).rejects.toThrow('GROQ_API_KEY');
   });
 });
