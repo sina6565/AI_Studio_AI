@@ -190,11 +190,11 @@ export default function Playable3DGame({ width, depth, height, doorwayWidth, doo
   }, []);
 
   const collect = useCallback(() => setScore((value) => Math.min(5, value + 1)), []);
-  const hit = useCallback(() => setLives((value) => {
-    const next = Math.max(0, value - 1);
-    if (next === 0) setResult('lost');
-    return next;
-  }), []);
+  const hit = useCallback(() => setLives((value) => Math.max(0, value - 1)), []);
+
+  useEffect(() => {
+    if (lives === 0) setResult('lost');
+  }, [lives]);
   const finish = useCallback((value: 'won' | 'lost') => setResult(value), []);
 
   const restart = () => {
