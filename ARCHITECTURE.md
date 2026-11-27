@@ -85,6 +85,21 @@ Do not assume a provider is active because its name appears in a document or bra
 
 The repository's worker contract and tests do not prove that Blender or Unreal Engine has run on a configured machine. A real engine build, gameplay acceptance test and packaged executable must not be claimed without worker logs and artifacts.
 
+## Live backend validation — 2026-11-26
+
+The project owner reports a successful live human test using the Bolt.new development environment and an Activepieces workflow. The owner confirms that the tested backend path can send and receive text, image-related, and game-related requests/results.
+
+The supplied Activepieces capture shows the `SINA_Test` flow enabled with a successful execution state, a `catch_webhook` trigger, an `x-api-key` authentication-header configuration, and distinct Success and Failure branches. This is recorded as successful live field validation, not as an independently reproduced CI test or production-load test.
+
+Architecture boundary:
+- Activepieces may serve as an optional workflow/integration execution layer behind authenticated backend-controlled webhooks.
+- SINA's Orchestrator, Jobs system, Provider Registry/Pool, authorization, and persistence remain the platform's source of truth.
+- Bolt.new is the development/test environment used for this milestone, not a required production runtime.
+- n8n is not a required dependency for this integration path.
+- Keep webhook URLs, API keys, and other credentials server-side; never commit them.
+
+This milestone confirms the owner's reported text/image/game send-and-receive exchange. It does not claim that every image storage/large-payload edge case is covered, that the system has passed production-load testing, or that game requests produce a compiled playable game. See [the detailed live validation record](docs/validation/LIVE_BACKEND_MULTIMODAL_VALIDATION_2026-11-26.md).
+
 ## Client applications
 
 - Web: React, TypeScript and Vite in `frontend/`.
